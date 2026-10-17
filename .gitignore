@@ -1,0 +1,24 @@
+# Data and model artifacts (downloaded or generated, too large for git).
+# Leading slash = only the top-level folders, so the andon/data/ package is kept.
+/data/
+/checkpoints/
+*.wav
+*.zip
+*.zip.part
+*.pt
+*.npy
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Firmware build output
+firmware/build/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
