@@ -81,11 +81,20 @@ def test_matches_librosa_baseline_front_end():
     rng = np.random.default_rng(0)
     y = (0.1 * rng.standard_normal(SR * 2) + sine(440.0, seconds=2.0)).astype(np.float32)
 
+    # The baseline pinned librosa 0.6.0, which reflect-padded; newer librosa defaults
+    # to zeros, so the padding mode is passed explicitly.
     mel = librosa.feature.melspectrogram(
-        y=y, sr=SR, n_fft=1024, hop_length=512, n_mels=128, power=2.0
+        y=y, sr=SR, n_fft=1024, hop_length=512, n_mels=128, power=2.0, pad_mode="reflect"
     )
     expected = (20.0 / 2.0 * np.log10(mel + np.finfo(float).eps)).T
 
     ours = logmel(y)
     assert ours.shape == expected.shape
-    assert np.max(np.abs(ours - expected)) < 1e-2  # dB
+    assert np.max(np.abs(ours - expected)) < 1e-2  # dB, every frame including the edges
+
+
+def test_pad_mode_changes_only_the_edge_frames():
+    y = sine(440.0, seconds=2.0)
+    diff = np.abs(logmel(y) - logmel(y, LogMelConfig(pad_mode="constant"))).max(axis=1)
+    assert diff[0] > 1.0 and diff[-1] > 1.0
+    assert diff[1:-1].max() < 1e-4

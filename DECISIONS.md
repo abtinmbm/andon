@@ -12,6 +12,17 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-10-17: Reflect padding at the clip edges, as in the baseline (Phase 0)
+- **Tried:** the first version zero-padded the centered STFT frames, matching librosa 1.0's default. The baseline pinned librosa 0.6.0, whose `stft` defaults to `pad_mode='reflect'`.
+- **Result:** zero padding moved only the first and last frame of each clip, by several dB; every other frame was unchanged (checked by `test_pad_mode_changes_only_the_edge_frames`). With reflect padding the librosa cross-check passes on every frame.
+- **Decision:** kept `pad_mode="reflect"` as the `LogMelConfig` default; the librosa cross-check now passes `pad_mode="reflect"` explicitly.
+- **Why:** Phase 1 has to reproduce the baseline exactly. The setting stays configurable because a streaming C front end has no "edge" to reflect.
+
+### 2026-10-17: Download resumes even when the partial file is already complete (Phase 0)
+- **Tried:** if a run stopped after the last byte but before the rename, the next run asked Zenodo for bytes past the end, got HTTP 416, and failed on every retry.
+- **Decision:** kept: a 416 on a resume skips straight to the MD5 check, which deletes the file if it's bad. Tests cover both the 206 resume and the 416 case with a fake server.
+- **Why:** the zips are 1 to 2 GB; a stuck download shouldn't need someone to delete files by hand.
+
 ### 2026-10-17: Cap numpy below 2.5 for Windows Smart App Control (Phase 0)
 - **Tried:** `uv sync` resolved numpy 2.5.4; on the Windows dev machine Smart App Control refused to load its `_multiarray_umath` DLL, so nothing that imports numpy (torch, scipy, librosa) worked. numpy 2.3.5 and 2.4.6 load fine with the rest of the locked stack unchanged.
 - **Decision:** kept `numpy>=2.0,<2.5`; locked to 2.4.6.

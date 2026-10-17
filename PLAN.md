@@ -119,7 +119,7 @@ Do the phases in this order: 0, 1, 2, 3, 5, 6, then 4. Phase 4 only matters once
 
 ## Stage 2: hardware
 
-The owner has no hardware experience, so Stage 2 starts slowly. All firmware is C with the Pico SDK, not MicroPython or Arduino.
+Stage 2 starts with small bring-up steps and builds up one piece at a time. All firmware is C with the Pico SDK, not MicroPython or Arduino.
 
 ### Phase H0: First light
 

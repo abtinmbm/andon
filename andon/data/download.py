@@ -16,6 +16,7 @@ import argparse
 import hashlib
 import shutil
 import sys
+import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -75,19 +76,13 @@ def download(url: str, dest: Path, expected_md5: str | None = None) -> Path:
     if have:
         request.add_header("Range", f"bytes={have}-")
 
-    with urllib.request.urlopen(request, timeout=60) as response:
-        resumed = have > 0 and response.getcode() == 206
-        if not resumed:
-            have = 0  # server ignored the Range header (or nothing to resume): start over
-        length = response.headers.get("Content-Length")
-        total = have + int(length) if length else None
-        with part.open("ab" if resumed else "wb") as out:
-            done = have
-            for block in iter(lambda: response.read(_CHUNK), b""):
-                out.write(block)
-                done += len(block)
-                _progress(done, total, dest.name)
-    sys.stderr.write("\n")
+    try:
+        _stream(request, part, have, dest.name)
+    except urllib.error.HTTPError as err:
+        # 416 means the .part file already holds every byte (the last run stopped
+        # before renaming it), so go straight to the MD5 check.
+        if err.code != 416 or not have:
+            raise
 
     if expected_md5 is not None:
         actual = md5sum(part)
@@ -99,6 +94,23 @@ def download(url: str, dest: Path, expected_md5: str | None = None) -> Path:
             )
     part.replace(dest)
     return dest
+
+
+def _stream(request: urllib.request.Request, part: Path, have: int, name: str) -> None:
+    """Write the response body to ``part``, appending if the server honoured the Range."""
+    with urllib.request.urlopen(request, timeout=60) as response:
+        resumed = have > 0 and response.getcode() == 206
+        if not resumed:
+            have = 0  # server ignored the Range header (or nothing to resume): start over
+        length = response.headers.get("Content-Length")
+        total = have + int(length) if length else None
+        with part.open("ab" if resumed else "wb") as out:
+            done = have
+            for block in iter(lambda: response.read(_CHUNK), b""):
+                out.write(block)
+                done += len(block)
+                _progress(done, total, name)
+    sys.stderr.write("\n")
 
 
 def extract(zip_path: Path, root: Path, machine_type: str) -> Path:

@@ -2,10 +2,13 @@
 
 This matches the DCASE 2020 Task 2 baseline front end, which used
 ``librosa.feature.melspectrogram`` with its defaults (periodic Hann window,
-centered frames with zero padding, Slaney mel scale and normalization) and then
-``10 * log10(mel + eps)``. It is written out by hand instead of calling librosa
-because the same steps get ported to C for the Pico in Stage 2, and the tests
-cross-check this file against librosa.
+centered frames, Slaney mel scale and normalization) and then
+``10 * log10(mel + eps)``. The baseline pinned librosa 0.6.0, whose frames are
+reflect-padded at the clip edges; librosa 0.10+ pads with zeros instead.
+
+It is written out by hand instead of calling librosa because the same steps get
+ported to C for the Pico in Stage 2, and the tests cross-check this file against
+librosa.
 
 Output is time-major, shape ``(n_frames, n_mels)``, because that is the order
 frames arrive in when streaming.
@@ -34,6 +37,9 @@ class LogMelConfig:
     power: float = 2.0
     fmin: float = 0.0
     fmax: float | None = None  # None means sample_rate / 2
+    # How the first and last frames are padded (any np.pad mode). "reflect" is the
+    # baseline's; it changes only those two frames, so streaming code may choose otherwise.
+    pad_mode: str = "reflect"
 
 
 # --- Slaney mel scale: linear below 1 kHz, logarithmic above. ---
@@ -93,11 +99,11 @@ def hann_window(n: int) -> np.ndarray:
 
 
 def power_spectrogram(y: np.ndarray, cfg: LogMelConfig) -> np.ndarray:
-    """|STFT|^power with centered, zero-padded frames. Shape ``(n_frames, n_fft // 2 + 1)``."""
+    """|STFT|^power with centered, edge-padded frames. Shape ``(n_frames, n_fft // 2 + 1)``."""
     if y.ndim != 1:
         raise ValueError(f"expected mono audio (1-D array), got shape {y.shape}")
     pad = cfg.n_fft // 2
-    padded = np.pad(y.astype(np.float32, copy=False), (pad, pad), mode="constant")
+    padded = np.pad(y.astype(np.float32, copy=False), (pad, pad), mode=cfg.pad_mode)
     if padded.size < cfg.n_fft:
         raise ValueError("audio is too short for one frame")
 

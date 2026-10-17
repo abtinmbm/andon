@@ -1,3 +1,7 @@
+import hashlib
+import io
+import urllib.error
+import urllib.request
 import zipfile
 from pathlib import Path
 
@@ -106,6 +110,40 @@ def test_download_rejects_bad_md5(tmp_path):
     with pytest.raises(RuntimeError, match="MD5"):
         dl.download(src.resolve().as_uri(), tmp_path / "file.bin", "0" * 32)
     assert not (tmp_path / "file.bin.part").exists()
+
+
+class _FakeResponse(io.BytesIO):
+    def __init__(self, body: bytes, code: int):
+        super().__init__(body)
+        self.code = code
+        self.headers = {"Content-Length": str(len(body))}
+
+    def getcode(self) -> int:
+        return self.code
+
+
+def _range_server(payload: bytes):
+    """A stand-in for urlopen that honours Range headers the way Zenodo does."""
+
+    def urlopen(request, timeout=None):
+        start = int((request.get_header("Range") or "bytes=0-")[6:-1])
+        if start >= len(payload):
+            raise urllib.error.HTTPError(request.full_url, 416, "Range Not Satisfiable", {}, None)
+        return _FakeResponse(payload[start:], 206 if start else 200)
+
+    return urlopen
+
+
+@pytest.mark.parametrize("already_have", [2000, 5000], ids=["resume", "part-complete"])
+def test_download_resumes_from_partial_file(tmp_path, monkeypatch, already_have):
+    payload = b"andon" * 1000
+    monkeypatch.setattr(urllib.request, "urlopen", _range_server(payload))
+    dest = tmp_path / "file.bin"
+    (tmp_path / "file.bin.part").write_bytes(payload[:already_have])
+
+    md5 = hashlib.md5(payload).hexdigest()
+    assert dl.download("https://example.invalid/file.bin", dest, md5) == dest
+    assert dest.read_bytes() == payload
 
 
 def test_zenodo_urls_and_md5_table():
