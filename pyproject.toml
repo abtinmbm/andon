@@ -17,6 +17,8 @@ dev = [
     "ruff>=0.8",
     # Reference implementation, used only in tests to cross-check our log-mel.
     "librosa>=0.10.2",
+    # Reference implementation, used only in tests to cross-check our AUC and pAUC.
+    "scikit-learn>=1.9.1",
 ]
 
 [build-system]

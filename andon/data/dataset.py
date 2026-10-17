@@ -72,6 +72,37 @@ def scan(root: Path, machine_types: Iterable[str] | None = None) -> list[Clip]:
     return sorted(clips, key=lambda c: c.path)
 
 
+def train_clips(root: Path, machine_type: str) -> list[Clip]:
+    """Normal training clips for one machine type, sorted by name. The only source of training data.
+
+    Reads ``train/`` and nothing else, so test-split normals can never leak into training.
+    Sorted by name as the baseline's ``sorted(glob(...))`` was; Keras ``validation_split``
+    holds out the tail of that order, so the order matters for reproducing it.
+    """
+    clips = _split_clips(root, machine_type, "train")
+    bad = [c.path for c in clips if c.is_anomaly or c.split != "train"]
+    if bad:  # parse_clip already refuses these; keep the guard next to the training entry point
+        raise ValueError(f"non-normal or non-train clips in training set: {bad[:3]}")
+    return clips
+
+
+def dev_test_clips(root: Path, machine_type: str) -> list[Clip]:
+    """Labelled dev test clips (normal and anomalous) for one machine type, sorted by name."""
+    return _split_clips(root, machine_type, "test")
+
+
+def _split_clips(root: Path, machine_type: str, split: str) -> list[Clip]:
+    if machine_type not in MACHINE_TYPES:
+        raise ValueError(f"unknown machine type: {machine_type}")
+    folder = dev_root(root) / machine_type / split
+    if not folder.is_dir():
+        raise FileNotFoundError(f"{folder} not found; download it with andon.data.download")
+    clips = [parse_clip(p, machine_type, split) for p in folder.glob("*.wav")]
+    if not clips:
+        raise FileNotFoundError(f"no .wav files in {folder}")
+    return sorted(clips, key=lambda c: c.path.name)
+
+
 _COLUMNS = ("train", "test_norm", "test_anom")
 
 
