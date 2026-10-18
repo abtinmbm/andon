@@ -95,11 +95,11 @@ def evaluate_and_log(
 
 
 def summary_table(cfg: Config, log: Path = RESULTS_LOG) -> str:
-    """Mean ± sample std over seeds per machine type, next to the published baseline."""
+    """Mean +/- sample std over seeds per machine type, next to the published baseline."""
     rows = [r for r in read_results(log) if r["config"] == cfg.name and r["split"] == "dev_test"]
     header = (
-        f"{'machine_type':<12} {'seeds':>5} {'AUC mean±std':>15} {'pub AUC':>8} {'diff':>6} "
-        f"{'pAUC mean±std':>15} {'pub pAUC':>8} {'diff':>6}  within 2 pts"
+        f"{'machine_type':<12} {'seeds':>5} {'AUC mean+/-std':>16} {'pub AUC':>8} {'diff':>6} "
+        f"{'pAUC mean+/-std':>16} {'pub pAUC':>8} {'diff':>6}  within 2 pts"
     )
     lines = [f"config {cfg.name}, split dev_test, values in %", header, "-" * len(header)]
     for machine_type in cfg.machine_types:
@@ -114,8 +114,8 @@ def summary_table(cfg: Config, log: Path = RESULTS_LOG) -> str:
         d_auc = aucs.mean() - pub_auc
         ok = "yes" if abs(d_auc) <= 100 * REPRODUCTION_TOLERANCE else "NO"
         lines.append(
-            f"{machine_type:<12} {len(mine):>5} {aucs.mean():>8.2f}±{sd(aucs):<5.2f} "
-            f"{pub_auc:>8.2f} {d_auc:>+6.2f} {paucs.mean():>8.2f}±{sd(paucs):<5.2f} "
+            f"{machine_type:<12} {len(mine):>5} {aucs.mean():>8.2f}+/-{sd(aucs):<5.2f} "
+            f"{pub_auc:>8.2f} {d_auc:>+6.2f} {paucs.mean():>8.2f}+/-{sd(paucs):<5.2f} "
             f"{pub_pauc:>8.2f} {paucs.mean() - pub_pauc:>+6.2f}  {ok}"
         )
     seeds = sorted({r["seed"] for r in rows}, key=int)
@@ -126,7 +126,9 @@ def summary_table(cfg: Config, log: Path = RESULTS_LOG) -> str:
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Summarise dev test results for a config.")
     parser.add_argument("--config", type=Path, required=True)
-    parser.add_argument("--summary", action="store_true", help="print mean ± std per machine type")
+    parser.add_argument(
+        "--summary", action="store_true", help="print mean +/- std per machine type"
+    )
     args = parser.parse_args(argv)
     cfg = load_config(args.config)
     if not args.summary:

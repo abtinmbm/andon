@@ -97,7 +97,16 @@ def git_commit() -> str:
             ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True
         ).stdout.strip()
         dirty = subprocess.run(
-            ["git", "status", "--porcelain", "--untracked-files=no"],
+            # The log is tracked and grows with every row, so it must not count as a code change.
+            [
+                "git",
+                "status",
+                "--porcelain",
+                "--untracked-files=no",
+                "--",
+                ".",
+                f":(exclude){RESULTS_LOG.as_posix()}",
+            ],
             capture_output=True,
             text=True,
             check=True,

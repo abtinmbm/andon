@@ -212,7 +212,7 @@ def test_results_rows_and_summary(tmp_path):
     assert is_logged(cfg, "fan", 1, "dev_test", log=log)
     assert not is_logged(cfg, "fan", 3, "dev_test", log=log)
     table = summary_table(cfg, log=log)
-    assert "66.00±1.00" in table and "yes" in table  # published fan AUC is 65.83
+    assert "66.00+/-1.00" in table and "yes" in table  # published fan AUC is 65.83
     with pytest.raises(ValueError, match="split"):
         append_result(cfg, "fan", "test", 0, 0.5, 0.5, log=log)
 
@@ -257,3 +257,29 @@ def test_results_append_waits_for_the_lock(tmp_path):
     append_result(cfg, "fan", "dev_test", 0, 0.5, 0.5, log=log)
     assert not log.with_suffix(".lock").exists()
     assert len(read_results(log)) == 1
+
+
+def test_git_commit_ignores_the_results_log(tmp_path, monkeypatch):
+    import subprocess
+
+    from andon.experiment import git_commit
+
+    def git(*args):
+        subprocess.run(
+            ["git", "-c", "user.name=t", "-c", "user.email=t@example.com", *args],
+            check=True,
+            capture_output=True,
+        )
+
+    monkeypatch.chdir(tmp_path)
+    git("init", "-q")
+    Path("results").mkdir()
+    Path("results/results_log.csv").write_text("header\n")
+    Path("code.py").write_text("x = 1\n")
+    git("add", ".")
+    git("commit", "-q", "-m", "init")
+    with Path("results/results_log.csv").open("a") as f:
+        f.write("a new row\n")
+    assert not git_commit().endswith("-dirty")  # appending results is not a code change
+    Path("code.py").write_text("x = 2\n")
+    assert git_commit().endswith("-dirty")
