@@ -1,0 +1,20 @@
+# Phase 2: isolation forest, one detector per machine ID.
+# Input is one vector per clip: the mean of its log-mel frames (same front end as Phase 1).
+phase: 2
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+features:  # identical to phase1_baseline, so its feature cache is reused
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+model:
+  type: isolation_forest
+  fit_per: machine_id
+  n_estimators: 100
+  max_samples: auto  # min(256, n_clips) per tree, the sklearn default

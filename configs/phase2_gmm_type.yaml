@@ -1,0 +1,22 @@
+# Phase 2: Gaussian mixture model, one per machine type,
+# all IDs pooled, as the autoencoder was trained.
+# Input is one vector per clip: the mean of its log-mel frames (same front end as Phase 1).
+phase: 2
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+features:  # identical to phase1_baseline, so its feature cache is reused
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+model:
+  type: gmm
+  fit_per: machine_type
+  n_components: 4
+  covariance_type: full
+  reg_covar: 0.01  # dB^2 added to each variance; keeps 128-dim covariances invertible

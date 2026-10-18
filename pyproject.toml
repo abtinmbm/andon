@@ -8,6 +8,8 @@ dependencies = [
     # <2.5: Windows Smart App Control blocks numpy 2.5's unsigned DLLs until they gain reputation.
     "numpy>=2.0,<2.5",
     "pyyaml>=6.0",
+    # Classic detectors (Phase 2); tests also cross-check our AUC and pAUC against it.
+    "scikit-learn>=1.9.1",
     "torch>=2.5",
 ]
 
@@ -17,8 +19,6 @@ dev = [
     "ruff>=0.8",
     # Reference implementation, used only in tests to cross-check our log-mel.
     "librosa>=0.10.2",
-    # Reference implementation, used only in tests to cross-check our AUC and pAUC.
-    "scikit-learn>=1.9.1",
 ]
 
 [build-system]

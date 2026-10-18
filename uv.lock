@@ -13,6 +13,7 @@ source = { editable = "." }
 dependencies = [
     { name = "numpy" },
     { name = "pyyaml" },
+    { name = "scikit-learn" },
     { name = "torch", version = "2.14.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
 ]
@@ -22,13 +23,13 @@ dev = [
     { name = "librosa" },
     { name = "pytest" },
     { name = "ruff" },
-    { name = "scikit-learn" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=2.0,<2.5" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "scikit-learn", specifier = ">=1.9.1" },
     { name = "torch", specifier = ">=2.5", index = "https://download.pytorch.org/whl/cpu" },
 ]
 
@@ -37,7 +38,6 @@ dev = [
     { name = "librosa", specifier = ">=0.10.2" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "ruff", specifier = ">=0.8" },
-    { name = "scikit-learn", specifier = ">=1.9.1" },
 ]
 
 [[package]]

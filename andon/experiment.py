@@ -21,6 +21,7 @@ import yaml
 from andon.features.logmel import LogMelConfig
 
 RESULTS_LOG = Path("results/results_log.csv")
+UNTRACKED_CODE_DIRS = ("andon", "configs")  # untracked files here also make a run "-dirty"
 RESULTS_COLUMNS = (
     "timestamp",
     "git_commit",
@@ -107,6 +108,13 @@ def git_commit() -> str:
                 ".",
                 f":(exclude){RESULTS_LOG.as_posix()}",
             ],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        # A new module or config that isn't committed yet is code the hash doesn't contain.
+        dirty += subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=all", "--", *UNTRACKED_CODE_DIRS],
             capture_output=True,
             text=True,
             check=True,

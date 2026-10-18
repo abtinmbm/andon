@@ -281,5 +281,16 @@ def test_git_commit_ignores_the_results_log(tmp_path, monkeypatch):
     with Path("results/results_log.csv").open("a") as f:
         f.write("a new row\n")
     assert not git_commit().endswith("-dirty")  # appending results is not a code change
+    Path("results/phase2_table.md").write_text("generated\n")
+    assert not git_commit().endswith("-dirty")  # untracked output files don't count
+    Path("configs").mkdir()
+    Path("configs/new.yaml").write_text("phase: 2\n")
+    assert git_commit().endswith("-dirty")  # an uncommitted config is code the hash lacks
+    Path("configs/new.yaml").unlink()
+    Path("andon").mkdir()
+    Path("andon/new_model.py").write_text("x = 1\n")
+    assert git_commit().endswith("-dirty")
+    Path("andon/new_model.py").unlink()
+    assert not git_commit().endswith("-dirty")
     Path("code.py").write_text("x = 2\n")
     assert git_commit().endswith("-dirty")

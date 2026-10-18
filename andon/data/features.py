@@ -90,6 +90,18 @@ def load_or_extract(
     return feats
 
 
+def clip_means(feats: SplitFeatures) -> np.ndarray:
+    """One vector per clip: the mean of its log-mel frames, shape ``(n_clips, n_mels)``.
+
+    Accumulated in float64; a clip has about 300 frames of values in the tens of dB.
+    """
+    lengths = np.diff(feats.offsets)
+    if (lengths < 1).any():
+        raise ValueError("a clip has no frames")
+    sums = np.add.reduceat(feats.frames.astype(np.float64), feats.offsets[:-1], axis=0)
+    return sums / lengths[:, None]
+
+
 def window_starts(offsets: np.ndarray, n_context: int) -> np.ndarray:
     """First-frame index of every ``n_context``-frame window that stays inside one clip.
 
