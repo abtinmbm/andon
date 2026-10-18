@@ -12,6 +12,40 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-10-18: GMM and Mahalanobis on the mean log-mel spectrum beat the autoencoder on 5 of 6 types (Phase 2)
+- **Tried:** Mahalanobis distance, a Gaussian mixture and an isolation forest, each on one 128-value vector per clip (the mean of its log-mel frames), fitted on normal train clips only. Configs `phase2_{mahalanobis,gmm,iforest}_{type,id}`, seeds 0, 1, 2, dev test. Table: `results/phase2_comparison.md`.
+- **Result (AUC %, mean ± sample std over 3 seeds; mean of the six types in the last figure):** per-ID GMM ToyCar 93.80 ± 0.84, ToyConveyor 88.18 ± 0.84, fan 84.01 ± 0.19, pump 86.53 ± 0.99, slider 87.54 ± 0.75, valve 59.43 ± 0.05; mean 83.25 ± 0.22 against the autoencoder's 73.80 ± 0.14. Per-type GMM: mean 81.72 ± 0.08 (best on pump 86.65 and slider 91.18). Per-ID Mahalanobis: mean 80.34. The autoencoder still wins valve (65.96 ± 0.82); every classic detector is at 50.06 to 59.43 there. Isolation forest is the weakest (mean 57.98 per type, 63.26 per ID), below the autoencoder on every type except pump per ID (75.39). On pAUC the per-type GMM has the best mean (66.05 ± 0.07), level with per-ID GMM (65.95 ± 0.82); the autoencoder's is 59.93 ± 0.31.
+- **Decision:** reported as a finding. Per-ID GMM and per-ID Mahalanobis are the strongest cheap models, so they are the fallback candidates for the microcontroller (Phase 4) and the bar Phase 3 has to clear, not just the autoencoder.
+- **Why:** a 10 s average keeps the steady spectral shape, which is where most of these anomalies show. Valve faults are likely short clicks that the average washes out, which a frame-level model can still see. The isolation forest's random axis-aligned splits likely suit 128 strongly correlated bands poorly. Neither explanation was tested.
+
+### 2026-10-18: Fit classic detectors both per machine type and per machine ID (Phase 2)
+- **Tried:** every detector twice: one model on all IDs of a type pooled (as the autoencoder is trained), and one model per ID, scoring each test clip with its own ID's model (the ID is in every file name).
+- **Result (mean AUC % over the six types, per type → per ID):** Mahalanobis 74.96 → 80.34, GMM 81.72 → 83.25, isolation forest 57.98 → 63.26. Per ID is not better everywhere: GMM on slider 91.18 → 87.54. Per-ID GMM seeds spread more (pump pAUC ± 3.37 against ± 0.09 pooled), since each mixture sees a third to a quarter of the data (3 or 4 IDs per type).
+- **Decision:** both kept in the table (PM call). Per type is the like-for-like comparison with the autoencoder; per ID matches the hardware stage, which monitors one fan.
+- **Why:** reporting per ID alone would mix two changes (the model and the grouping) in one comparison.
+
+### 2026-10-18: Classic detector settings fixed up front, no sweep (Phase 2)
+- **Tried:** Mahalanobis with a Ledoit-Wolf shrunk covariance (about 1,000 clips per ID for 128 bands make the plain sample covariance noisy in the directions the distance weights most); GMM with 4 full-covariance components and `reg_covar` 0.01 dB²; isolation forest with 100 trees and scikit-learn's default 256 samples per tree. Score = squared distance, negative log-likelihood, and negated `score_samples` respectively, so higher means more anomalous.
+- **Result:** Mahalanobis is deterministic, so its three seeds give identical rows (std 0.00); they are logged anyway so every config has 3 seeds. Fits take under 1.5 s per machine type; all 108 runs (6 configs × 6 types × 3 seeds) took about 3 minutes, almost all of it loading the feature cache.
+- **Decision:** kept as the Phase 2 reference settings. Tuning them (more GMM components, adding the per-band std) is left to Phase 3, one change at a time on dev test.
+- **Why:** Phase 2 is a reference point. Tuning six configs before there was a first table would have been scope the plan didn't ask for.
+
+### 2026-10-18: scikit-learn becomes a runtime dependency (Phase 2)
+- **Tried:** moved `scikit-learn>=1.9.1` from the dev group to the runtime dependencies (PM approval). The lock is unchanged at 1.9.1, which already loaded under Smart App Control in the Phase 1 metric tests.
+- **Decision:** kept.
+- **Why:** writing a GMM and an isolation forest by hand would have been slower and riskier. They need porting to C only if one is chosen as the microcontroller fallback.
+
+### 2026-10-18: Uncommitted new code also marks a run "-dirty" (Phase 2)
+- **Tried:** `git_commit()` only looked at tracked files. The first Phase 2 job ran before its code was committed, so its 108 rows read `1d40af1-dirty`, a commit without the classic detectors. With only the new, untracked files added, the rows would have shown a clean hash that doesn't contain them.
+- **Result:** we committed the code as `0b53cf9`, restored the log with git (no hand edit) and re-ran all six configs. The 108 new rows read `0b53cf9`, and every AUC, pAUC and per-ID value is identical to the first job's, so the seeded runs reproduce exactly.
+- **Decision:** kept: untracked files under `andon/` and `configs/` now count as dirty too. Untracked output files elsewhere (generated tables) still don't. Covered by a test.
+- **Why:** the tag must identify the code that produced a row.
+
+### 2026-10-18: Comparison table built only from the results log (Phase 2)
+- **Tried:** `uv run python -m andon.evaluate --compare <config names> --out <file>` prints AUC and pAUC tables (mean +/- sample std over seeds, in %) and writes them as Markdown. The "mean" row averages the six types within each seed, then takes the mean and std over seeds. It shows `n/a` unless every type has the same seeds. Duplicate rows raise an error. Only `dev_test` rows are used.
+- **Decision:** kept; `results/phase2_comparison.md` is regenerated by the command in its first line.
+- **Why:** every figure in the docs has to come from `results_log.csv`, and a generated table can't drift from it.
+
 ### 2026-10-18: PyTorch baseline reproduces the published DCASE 2020 numbers (Phase 1)
 - **Tried:** `configs/phase1_baseline.yaml`, 6 machine types × seeds 0, 1, 2, dev test, commit `e2db074`.
 - **Result (AUC %, mean ± sample std over 3 seeds, published in brackets):** ToyCar 79.65 ± 1.12 (78.77), ToyConveyor 73.20 ± 0.47 (72.53), fan 66.24 ± 1.38 (65.83), pump 73.12 ± 0.55 (72.89), slider 84.67 ± 0.52 (84.76), valve 65.96 ± 0.82 (66.28). Largest AUC gap 0.88 points (ToyCar); largest pAUC gap 1.18 (ToyCar). Mean of the six: 73.80 vs 73.51 published.
