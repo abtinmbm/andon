@@ -1,0 +1,34 @@
+# Phase 3 (eval baseline): the phase1_baseline autoencoder, trained on the additional
+# training set, i.e. the normal clips of the evaluation machine IDs, as the official
+# baseline does for the evaluation set. Everything else is identical to phase1_baseline.
+# Training only checkpoints; andon.score scores the evaluation set once, at the end.
+phase: 3
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+  train_set: additional
+
+features:
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+  frames: 5          # stacked context frames -> 640 inputs
+
+model:
+  type: dense_autoencoder
+  hidden: 128
+  n_hidden: 4        # Dense(128) blocks on each side of the bottleneck
+  bottleneck: 8
+  bn_momentum: 0.01  # Keras momentum 0.99, in PyTorch's convention
+  bn_eps: 0.001      # Keras default
+
+train:
+  epochs: 100
+  batch_size: 512
+  learning_rate: 0.001
+  adam_eps: 1.0e-7   # Keras default
+  shuffle: true
+  validation_split: 0.1  # Keras: the last 10% of the unshuffled training windows is held out

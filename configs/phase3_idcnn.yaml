@@ -1,0 +1,28 @@
+# Phase 3: a small CNN that classifies the machine ID, trained on normal clips only.
+# Anomaly score = mean over patches of -log p(true ID). One model per machine type,
+# trained on every ID of the type: dev train plus the additional training set.
+phase: 3
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+features:  # identical to phase1_baseline, so its feature cache is reused
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+model:
+  type: id_cnn
+  channels: [16, 32, 64, 128]  # stride-2 stem, then 3 pooled stages; about 98k weights
+  patch_frames: 64             # about 2 s of audio per patch
+  score_hop: 32                # scoring windows overlap by half
+
+train:
+  epochs: 100        # one random patch per training clip per epoch; the last epoch is kept
+  batch_size: 128
+  learning_rate: 0.001  # Adam, cosine decay to 0 over the run
+  mixup_alpha: 0.0      # off; phase3_idcnn_mixup changes only this
+  spec_mask: null       # off

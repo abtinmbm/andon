@@ -90,6 +90,14 @@ def load_or_extract(
     return feats
 
 
+def concat(parts: Sequence[SplitFeatures]) -> SplitFeatures:
+    """Join several splits into one, keeping clip order (clips of ``parts[0]`` first)."""
+    frames = np.concatenate([p.frames for p in parts])
+    lengths = np.concatenate([np.diff(p.offsets) for p in parts])
+    offsets = np.r_[0, np.cumsum(lengths)].astype(np.int64)
+    return SplitFeatures(frames=frames, offsets=offsets)
+
+
 def clip_means(feats: SplitFeatures) -> np.ndarray:
     """One vector per clip: the mean of its log-mel frames, shape ``(n_clips, n_mels)``.
 

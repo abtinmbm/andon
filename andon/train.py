@@ -2,6 +2,11 @@
 
     uv run python -m andon.train --config configs/phase1_baseline.yaml --seed 0
 
+A config with ``data.train_set: additional`` trains on the additional training set (the
+evaluation machine IDs) instead, as the official baseline does for the evaluation set.
+Those models never saw the dev IDs, so they are only checkpointed; ``andon.score``
+scores them on the evaluation set once the final models are fixed.
+
 Each machine type is trained, checkpointed and logged to ``results/results_log.csv`` on its
 own. Re-running the same command skips what is already logged and reuses finished
 checkpoints, so an interrupted run picks up where it stopped.
@@ -19,7 +24,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from andon.data.dataset import train_clips
+from andon.data.dataset import additional_train_clips, train_clips
 from andon.data.features import SplitFeatures, gather_windows, load_or_extract, window_starts
 from andon.evaluate import evaluate_and_log
 from andon.experiment import Config, is_logged, load_config, set_seed
@@ -150,19 +155,29 @@ def load_checkpoint(path: Path, cfg: Config, device: torch.device) -> tuple[Dens
 
 
 def run(cfg: Config, seed: int, machine_types: list[str], device: torch.device) -> None:
+    train_set = cfg.raw["data"].get("train_set", "dev")
+    if train_set not in ("dev", "additional"):
+        raise ValueError(f"data.train_set must be dev or additional, got {train_set}")
     for machine_type in machine_types:
         if is_logged(cfg, machine_type, seed, "dev_test"):
             print(f"[{machine_type} seed {seed}] already logged, skipping")
             continue
         ckpt_path = cfg.checkpoint_path(machine_type, seed)
+        if train_set == "additional" and ckpt_path.exists():
+            print(f"[{machine_type} seed {seed}] {ckpt_path} exists, skipping")
+            continue
         if ckpt_path.exists():
             print(f"[{machine_type} seed {seed}] reusing {ckpt_path}")
             model, ckpt = load_checkpoint(ckpt_path, cfg, device)
             history = ckpt["history"]
         else:
-            clips = train_clips(cfg.data_root, machine_type)
+            if train_set == "dev":
+                clips, cache_name = train_clips(cfg.data_root, machine_type), "train"
+            else:
+                clips = additional_train_clips(cfg.data_root, machine_type)
+                cache_name = "additional_train"
             print(f"[{machine_type} seed {seed}] features for {len(clips)} normal train clips")
-            feats = load_or_extract(clips, cfg.logmel, CACHE_DIR, f"{machine_type}_train")
+            feats = load_or_extract(clips, cfg.logmel, CACHE_DIR, f"{machine_type}_{cache_name}")
             # Seed per machine type, so each model is the same whatever order they run in.
             set_seed(seed)
             tic = time.perf_counter()
@@ -172,6 +187,8 @@ def run(cfg: Config, seed: int, machine_types: list[str], device: torch.device) 
                 f"{(time.perf_counter() - tic) / 60:.1f} min"
             )
             save_checkpoint(ckpt_path, model, cfg, machine_type, seed, history)
+        if train_set == "additional":
+            continue  # scored on the evaluation set by andon.score, once
         evaluate_and_log(
             cfg, model, machine_type, seed, device, final_val_loss=history[-1]["val_loss"]
         )

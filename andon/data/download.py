@@ -1,13 +1,18 @@
-"""Download and unpack the DCASE 2020 Task 2 development data from Zenodo.
+"""Download and unpack the DCASE 2020 Task 2 data from Zenodo.
 
     uv run python -m andon.data.download fan ToyConveyor
+    uv run python -m andon.data.download all --dataset eval_data
 
-Downloads resume if interrupted (re-run the same command), every zip is checked
+Downloads resume if interrupted (re-run the same command), every file is checked
 against Zenodo's MD5, and the clip counts are printed at the end. The data lands
-in ``data/dev_data/<machine_type>/`` and stays out of git.
+in ``data/dev_data/<machine_type>/`` or ``data/eval_data/<machine_type>/`` and stays
+out of git. ``eval_data`` holds the additional training set (normal clips of the
+evaluation machine IDs), the evaluation clips, and their ground truth.
 
-Data: DCASE 2020 Task 2 development dataset (ToyADMOS + MIMII), CC BY-NC-SA 4.0,
-https://zenodo.org/records/3678171
+Data: DCASE 2020 Task 2 (ToyADMOS + MIMII), CC BY-NC-SA 4.0. Development set
+https://zenodo.org/records/3678171, additional training set
+https://zenodo.org/records/3727685, evaluation set https://zenodo.org/records/3841772,
+evaluation ground truth https://zenodo.org/records/3951620.
 """
 
 from __future__ import annotations
@@ -19,13 +24,37 @@ import sys
 import urllib.error
 import urllib.request
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
 
-from andon.data.dataset import MACHINE_TYPES, count_table, dev_root, scan
+from andon.data.dataset import (
+    DATASETS,
+    GROUND_TRUTH_FILE,
+    MACHINE_TYPES,
+    count_table,
+    ground_truth_path,
+    scan,
+)
 
-ZENODO_RECORD = "3678171"
+ZENODO_RECORD = "3678171"  # development set
+EVAL_TRAIN_RECORD = "3727685"  # additional training set
+EVAL_TEST_RECORD = "3841772"  # evaluation set
+GROUND_TRUTH_RECORD = "3951620"
+GROUND_TRUTH_MD5 = "f16aaa185df9906e588864aaf7cb58ea"
 
-# File name and MD5 for each machine type, from the Zenodo record page.
+
+@dataclass(frozen=True)
+class Archive:
+    """One zip on Zenodo and the split folders it unpacks into ``<root>/<dataset>/<type>/``."""
+
+    record: str
+    file_name: str
+    md5: str
+    dataset: str
+    splits: tuple[str, ...]
+
+
+# File name and MD5 for each machine type, from the Zenodo record pages.
 DEV_FILES: dict[str, tuple[str, str]] = {
     "fan": ("dev_data_fan.zip", "649bdfc06263ae7a838963f43b6641e6"),
     "pump": ("dev_data_pump.zip", "90e7091ef722b7238a7f1009365779cd"),
@@ -34,13 +63,44 @@ DEV_FILES: dict[str, tuple[str, str]] = {
     "ToyConveyor": ("dev_data_ToyConveyor.zip", "03b6aa1bfd09a39d53af0ba39f71fa91"),
     "valve": ("dev_data_valve.zip", "34d2672f55bb041589ef79c10dc89934"),
 }
-assert set(DEV_FILES) == set(MACHINE_TYPES)
+EVAL_TRAIN_FILES: dict[str, tuple[str, str]] = {
+    "fan": ("eval_data_train_fan.zip", "567798854130c8019df8b664c095ed1e"),
+    "pump": ("eval_data_train_pump.zip", "4e33ae9c0db5cc88437675f5e317caee"),
+    "slider": ("eval_data_train_slider.zip", "f84f186f4295fc23754abcdd1b0580a7"),
+    "ToyCar": ("eval_data_train_ToyCar.zip", "a5d4ccd498af70b04dd74b644b820006"),
+    "ToyConveyor": ("eval_data_train_ToyConveyor.zip", "0e808ac0b761e9fb13d5e0c65caff00d"),
+    "valve": ("eval_data_train_valve.zip", "057cdd560caffb8305449541afd28c6d"),
+}
+EVAL_TEST_FILES: dict[str, tuple[str, str]] = {
+    "fan": ("eval_data_test_fan.zip", "1eb9356a768cadfd0f2e59a5c57e578b"),
+    "pump": ("eval_data_test_pump.zip", "23a8f8f924be218c69df67fe07360348"),
+    "slider": ("eval_data_test_slider.zip", "0193c769073840332ce3aad84b1ccaa2"),
+    "ToyCar": ("eval_data_test_ToyCar.zip", "bea2bdd612f616be8f2b8eb087b32c7c"),
+    "ToyConveyor": ("eval_data_test_ToyConveyor.zip", "ccfcc9847c7d3404d7ee9d6d9e0b2ba2"),
+    "valve": ("eval_data_test_valve.zip", "f69c551d2088691050d20cccca9d631c"),
+}
+assert set(DEV_FILES) == set(EVAL_TRAIN_FILES) == set(EVAL_TEST_FILES) == set(MACHINE_TYPES)
 
 _CHUNK = 1 << 20  # 1 MiB
 
 
-def zenodo_url(file_name: str) -> str:
-    return f"https://zenodo.org/records/{ZENODO_RECORD}/files/{file_name}?download=1"
+def zenodo_url(file_name: str, record: str = ZENODO_RECORD) -> str:
+    return f"https://zenodo.org/records/{record}/files/{file_name}?download=1"
+
+
+def archives(machine_type: str, dataset: str = "dev_data") -> list[Archive]:
+    """The zips that make up one machine type of ``dataset``."""
+    if dataset == "dev_data":
+        name, md5 = DEV_FILES[machine_type]
+        return [Archive(ZENODO_RECORD, name, md5, dataset, ("train", "test"))]
+    if dataset == "eval_data":
+        train_name, train_md5 = EVAL_TRAIN_FILES[machine_type]
+        test_name, test_md5 = EVAL_TEST_FILES[machine_type]
+        return [
+            Archive(EVAL_TRAIN_RECORD, train_name, train_md5, dataset, ("train",)),
+            Archive(EVAL_TEST_RECORD, test_name, test_md5, dataset, ("test",)),
+        ]
+    raise ValueError(f"unknown dataset: {dataset}")
 
 
 def md5sum(path: Path) -> str:
@@ -113,52 +173,75 @@ def _stream(request: urllib.request.Request, part: Path, have: int, name: str) -
     sys.stderr.write("\n")
 
 
-def extract(zip_path: Path, root: Path, machine_type: str) -> Path:
-    """Unpack one machine type's zip into ``<root>/dev_data/<machine_type>``.
+def extract(
+    zip_path: Path,
+    root: Path,
+    machine_type: str,
+    dataset: str = "dev_data",
+    splits: tuple[str, ...] = ("train", "test"),
+) -> Path:
+    """Unpack one zip's ``splits`` into ``<root>/<dataset>/<machine_type>/``.
 
-    Works whether the zip's top folder is ``dev_data/<type>/`` or just ``<type>/``.
+    Works whether the zip's top folder is ``<dataset>/<type>/`` or just ``<type>/``. Only
+    the listed split folders are replaced, so the additional training zip and the
+    evaluation zip can share ``eval_data/<type>/``.
     """
-    target = dev_root(root) / machine_type
+    target = Path(root) / dataset / machine_type
     staging = Path(root) / f"_extract_{machine_type}"
     if staging.exists():
         shutil.rmtree(staging)
     with zipfile.ZipFile(zip_path) as zf:
         zf.extractall(staging)
 
-    candidates = [p.parent for p in staging.rglob("train") if p.is_dir()]
-    candidates = [p for p in candidates if p.name == machine_type and (p / "test").is_dir()]
+    candidates = [p for p in staging.rglob(machine_type) if p.is_dir()]
+    candidates = [p for p in candidates if all((p / s).is_dir() for s in splits)]
     if len(candidates) != 1:
         shutil.rmtree(staging)
-        raise RuntimeError(f"{zip_path.name}: could not find {machine_type}/train and /test")
+        wanted = " and ".join(f"{machine_type}/{s}" for s in splits)
+        raise RuntimeError(f"{zip_path.name}: could not find {wanted}")
 
-    if target.exists():
-        shutil.rmtree(target)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.move(str(candidates[0]), str(target))
+    target.mkdir(parents=True, exist_ok=True)
+    for split in splits:
+        if (target / split).exists():
+            shutil.rmtree(target / split)
+        shutil.move(str(candidates[0] / split), str(target / split))
     shutil.rmtree(staging)
     return target
 
 
-def is_extracted(root: Path, machine_type: str) -> bool:
-    folder = dev_root(root) / machine_type
-    return all(any((folder / split).glob("*.wav")) for split in ("train", "test"))
+def is_extracted(
+    root: Path,
+    machine_type: str,
+    dataset: str = "dev_data",
+    splits: tuple[str, ...] = ("train", "test"),
+) -> bool:
+    folder = Path(root) / dataset / machine_type
+    return all(any((folder / split).glob("*.wav")) for split in splits)
 
 
-def fetch(machine_type: str, root: Path, keep_zip: bool = False) -> None:
-    if is_extracted(root, machine_type):
-        print(f"{machine_type}: already extracted, skipping")
-        return
-    file_name, md5 = DEV_FILES[machine_type]
-    print(f"{machine_type}: downloading {file_name}")
-    zip_path = download(zenodo_url(file_name), Path(root) / "downloads" / file_name, md5)
-    print(f"{machine_type}: extracting")
-    extract(zip_path, root, machine_type)
-    if not keep_zip:
-        zip_path.unlink()
+def fetch(machine_type: str, root: Path, keep_zip: bool = False, dataset: str = "dev_data") -> None:
+    for archive in archives(machine_type, dataset):
+        label = f"{machine_type} ({archive.file_name})"
+        if is_extracted(root, machine_type, archive.dataset, archive.splits):
+            print(f"{label}: already extracted, skipping")
+            continue
+        print(f"{label}: downloading")
+        dest = Path(root) / "downloads" / archive.file_name
+        zip_path = download(zenodo_url(archive.file_name, archive.record), dest, archive.md5)
+        print(f"{label}: extracting")
+        extract(zip_path, root, machine_type, archive.dataset, archive.splits)
+        if not keep_zip:
+            zip_path.unlink()
+
+
+def fetch_ground_truth(root: Path) -> Path:
+    """The evaluation labels, ``<root>/eval_data/eval_data_list.csv`` (MD5-checked)."""
+    url = zenodo_url(GROUND_TRUTH_FILE, GROUND_TRUTH_RECORD)
+    return download(url, ground_truth_path(root), GROUND_TRUTH_MD5)
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Download DCASE 2020 Task 2 dev data.")
+    parser = argparse.ArgumentParser(description="Download DCASE 2020 Task 2 data.")
     parser.add_argument(
         "machines",
         nargs="*",
@@ -166,6 +249,12 @@ def main(argv: list[str] | None = None) -> None:
         help="machine types to fetch (default: fan ToyConveyor; 'all' for all six)",
     )
     parser.add_argument("--root", type=Path, default=Path("data"), help="data folder")
+    parser.add_argument(
+        "--dataset",
+        choices=DATASETS,
+        default="dev_data",
+        help="dev_data, or eval_data (additional training set, evaluation set, ground truth)",
+    )
     parser.add_argument("--keep-zip", action="store_true", help="keep zips after extracting")
     args = parser.parse_args(argv)
 
@@ -174,11 +263,13 @@ def main(argv: list[str] | None = None) -> None:
     if unknown:
         parser.error(f"unknown machine types: {sorted(unknown)}; choose from {MACHINE_TYPES}")
 
+    if args.dataset == "eval_data":
+        fetch_ground_truth(args.root)
     for machine_type in machines:
-        fetch(machine_type, args.root, keep_zip=args.keep_zip)
+        fetch(machine_type, args.root, keep_zip=args.keep_zip, dataset=args.dataset)
 
     print()
-    print(count_table(scan(args.root, machines)))
+    print(count_table(scan(args.root, machines, args.dataset)))
 
 
 if __name__ == "__main__":

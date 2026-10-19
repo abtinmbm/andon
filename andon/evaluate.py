@@ -97,16 +97,17 @@ def log_scores(
     scores: np.ndarray,
     extra_notes: str = "",
     log: Path = RESULTS_LOG,
+    split: str = "dev_test",
 ) -> dict[str, str]:
-    """Turn dev test clip scores into the machine type's AUC and pAUC and log one row."""
+    """Turn test clip scores into the machine type's AUC and pAUC and log one ``split`` row."""
     per_id = per_id_metrics(clips, scores)
     auc = float(np.mean([a for a, _ in per_id.values()]))
     pauc = float(np.mean([p for _, p in per_id.values()]))
     notes = " ".join(f"{mid}={a:.4f}/{p:.4f}" for mid, (a, p) in per_id.items())
     if extra_notes:
         notes += f" {extra_notes}"
-    row = append_result(cfg, machine_type, "dev_test", seed, auc, pauc, notes, log=log)
-    print(f"[{machine_type} seed {seed}] dev test AUC {auc:.4f}  pAUC {pauc:.4f}  ({notes})")
+    row = append_result(cfg, machine_type, split, seed, auc, pauc, notes, log=log)
+    print(f"[{machine_type} seed {seed}] {split} AUC {auc:.4f}  pAUC {pauc:.4f}  ({notes})")
     return row
 
 

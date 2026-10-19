@@ -1,0 +1,28 @@
+# Phase 3, step 3: phase3_idcnn with mixup, the only change. Each training patch is
+# blended with another from the batch (weight lam ~ Beta(0.2, 0.2), mostly near 0 or 1),
+# and the loss is the same blend of the two ID losses.
+phase: 3
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+features:  # identical to phase1_baseline, so its feature cache is reused
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+model:
+  type: id_cnn
+  channels: [16, 32, 64, 128]  # stride-2 stem, then 3 pooled stages; about 98k weights
+  patch_frames: 64             # about 2 s of audio per patch
+  score_hop: 32                # scoring windows overlap by half
+
+train:
+  epochs: 100        # one random patch per training clip per epoch; the last epoch is kept
+  batch_size: 128
+  learning_rate: 0.001  # Adam, cosine decay to 0 over the run
+  mixup_alpha: 0.2      # the one change from phase3_idcnn
+  spec_mask: null       # off
