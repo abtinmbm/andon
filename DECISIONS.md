@@ -12,6 +12,30 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-10-20: Mixup kept for the machine-ID CNN (Phase 3)
+- **Tried:** `phase3_idcnn_mixup`, identical to `phase3_idcnn` except mixup: each training patch is blended with another from the batch, weight lam ~ Beta(0.2, 0.2), with the same blend of the two ID losses. Alpha fixed up front, no sweep. Seeds 0, 1, 2, dev test.
+- **Result (AUC %, mean ± sample std over 3 seeds):** mean of the six types 84.33 ± 0.67 → 86.64 ± 0.57 (+2.31); per-seed means 83.64 / 84.38 / 84.97 → 86.48 / 86.17 / 87.28. Higher on all six types: ToyCar 86.48 → 86.69, ToyConveyor 70.64 → 76.18, fan 82.04 → 84.72, pump 85.91 → 87.12, slider 93.94 → 97.52, valve 86.97 → 87.63. Mean pAUC 77.24 → 79.24, but lower on ToyCar (83.94 → 81.98) and valve (81.54 → 78.38).
+- **Decision:** kept; step 4 (masking) builds on it.
+- **Why:** the gain is over three times either config's seed spread and the worst mixup seed beats the best plain one. ToyConveyor gained most: without mixup its classifier reached 100% train accuracy (loss 0.0002), i.e. it was certain about every patch, which leaves little room for a fault to lower p(true ID); mixup's soft targets keep it less certain. That explanation fits the numbers but was not tested separately.
+
+### 2026-10-20: Machine-ID CNN beats the autoencoder on 5 of 6 types on dev test (Phase 3)
+- **Tried:** `phase3_idcnn`: one CNN per machine type (stride-2 stem, 3 pooled stages, 16-32-64-128 channels, about 98k weights) classifies 64-frame log-mel patches by machine ID. Trained on normal clips only, 100 epochs of one random patch per clip, Adam 1e-3 with cosine decay, last epoch kept; inputs normalised per mel band with training statistics stored in the checkpoint. Score: mean over patches (hop 32, last patch flush with the clip end) of -log p(true ID). Seeds 0, 1, 2, dev test.
+- **Result (AUC %):** mean 84.33 ± 0.67 against the autoencoder's 73.80 ± 0.14 and per-ID GMM's 83.25 ± 0.22. Valve 86.97 ± 1.52 (autoencoder 65.96, GMM 59.43), slider 93.94 ± 1.14. Below the autoencoder only on ToyConveyor (70.64 ± 2.40 against 73.20 ± 0.47); below the GMM on ToyCar, ToyConveyor, fan and pump. Mean pAUC 77.24 ± 1.08 (autoencoder 59.93, GMM 65.95).
+- **Decision:** kept as the Phase 3 base model.
+- **Why:** the size was chosen by timing on this laptop's CPU before any training: the same widths with two convolutions per stage trained 2 to 9 times slower (612 patches/s with the stride-2 stem, 139 without, against 1240), too slow for 18-run jobs. No architecture search was done.
+
+### 2026-10-20: One ID classifier per type on dev and evaluation IDs; autoencoder retrained for eval (Phase 3)
+- **Tried:** the CNN learns every machine ID of a type: dev train plus the additional training set (normal clips of the evaluation IDs; 6 or 7 IDs per type). The autoencoder's evaluation-set run (`phase3_baseline_eval`) is `phase1_baseline` trained on the additional training set only, as the official baseline does; it is only checkpointed, never scored on dev test.
+- **Result:** one CNN checkpoint scores both the dev test and the evaluation set, so eval is a single scoring pass (`andon.score --split eval`) with no retraining. The dev numbers come from a 6-to-7-ID problem rather than 3-to-4.
+- **Decision:** kept (PM call at the Phase 3 plan).
+- **Why:** an ID classifier can only score IDs it was trained on; this is how the top DCASE 2020 systems trained. No test clip of either set is used in training; `all_train_clips` refuses an ID present in both sets.
+
+### 2026-10-20: First 9 `phase3_idcnn` rows are tagged `fc2291e-dirty` (Phase 3)
+- **Tried:** the training job was started before the code was committed. Rows for ToyCar, ToyConveyor and fan (all seeds) were logged with commit `fc2291e-dirty`; the remaining rows after the commit carry `a9746aa`.
+- **Result:** no code file changed after 2026-10-19 05:33Z (file modification times), the first row was logged at 05:48Z, and the working tree matched `a9746aa` when it was committed. So all 18 rows ran `a9746aa`'s code.
+- **Decision:** rows left as written (the log is never edited by hand); no re-run.
+- **Why:** re-training would cost about an hour and reproduce the same code.
+
 ### 2026-10-18: GMM and Mahalanobis on the mean log-mel spectrum beat the autoencoder on 5 of 6 types (Phase 2)
 - **Tried:** Mahalanobis distance, a Gaussian mixture and an isolation forest, each on one 128-value vector per clip (the mean of its log-mel frames), fitted on normal train clips only. Configs `phase2_{mahalanobis,gmm,iforest}_{type,id}`, seeds 0, 1, 2, dev test. Table: `results/phase2_comparison.md`.
 - **Result (AUC %, mean ± sample std over 3 seeds; mean of the six types in the last figure):** per-ID GMM ToyCar 93.80 ± 0.84, ToyConveyor 88.18 ± 0.84, fan 84.01 ± 0.19, pump 86.53 ± 0.99, slider 87.54 ± 0.75, valve 59.43 ± 0.05; mean 83.25 ± 0.22 against the autoencoder's 73.80 ± 0.14. Per-type GMM: mean 81.72 ± 0.08 (best on pump 86.65 and slider 91.18). Per-ID Mahalanobis: mean 80.34. The autoencoder still wins valve (65.96 ± 0.82); every classic detector is at 50.06 to 59.43 there. Isolation forest is the weakest (mean 57.98 per type, 63.26 per ID), below the autoencoder on every type except pump per ID (75.39). On pAUC the per-type GMM has the best mean (66.05 ± 0.07), level with per-ID GMM (65.95 ± 0.82); the autoencoder's is 59.93 ± 0.31.

@@ -314,3 +314,16 @@ def test_mixup_config_changes_one_thing():
     assert mix["train"].pop("mixup_alpha") > 0
     base["train"].pop("mixup_alpha")
     assert mix == base
+
+
+def test_mask_config_adds_masking_to_mixup_and_changes_nothing_else():
+    mix = yaml.safe_load((CONFIGS / "phase3_idcnn_mixup.yaml").read_text())
+    mask = yaml.safe_load((CONFIGS / "phase3_idcnn_mixup_mask.yaml").read_text())
+    assert mix["train"].pop("spec_mask") is None
+    assert set(mask["train"].pop("spec_mask")) == {
+        "freq_masks",
+        "freq_width",
+        "time_masks",
+        "time_width",
+    }
+    assert mask == mix
