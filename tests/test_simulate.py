@@ -141,6 +141,33 @@ def test_simulate_id_catches_loud_faults_without_false_alarms():
     assert limits.control > limits.warn > limits.center
 
 
+def test_simulate_id_keeps_calibration_clips_out_of_every_judged_stream(monkeypatch):
+    clips, feats = synthetic_split(n_normal=10, n_anom=3)
+    calib, _ = simulate.calibration_split(clips, list(range(13)))
+    # Calibration clips get one constant level, so the fitted centre shows what it was fitted on.
+    marked = SplitFeatures(frames=feats.frames.copy(), offsets=feats.offsets)
+    for i in calib:
+        marked.frames[i * 40 : (i + 1) * 40] = 0.5
+    seen = []
+
+    def spy(model, frames, streams, *args):
+        seen.extend(streams)
+        return real(model, frames, streams, *args)
+
+    real = simulate.score_streams
+    monkeypatch.setattr(simulate, "score_streams", spy)
+    frames = torch.from_numpy(marked.frames)
+    _, limits, sim = simulate.simulate_id(Loudness(), frames, marked, clips, list(range(13)), 0, ST)
+
+    calib_frames = set(simulate.stream_frames(marked.offsets, calib).tolist())
+    assert seen[0].tolist() == sorted(calib_frames)  # the limits' stream is calibration only
+    assert limits.center == pytest.approx(np.log1p(np.exp(4 * 0.5 - 4)))  # Loudness at 0.5
+    assert limits.sigma == pytest.approx(0.0, abs=1e-6)
+    assert not set(sim) & set(calib)
+    for s in seen[1:]:  # false-alarm stream, then warmup + fault streams
+        assert not calib_frames & set(s.tolist())
+
+
 def test_simulate_id_plays_a_fault_as_consecutive_anomaly_clips():
     clips, feats = synthetic_split(n_normal=10, n_anom=5)
     # Only the second clip of each two-clip fault is loud: the red comes one clip later.
@@ -195,6 +222,30 @@ def test_summary_table_means_and_spreads_over_seeds(tmp_path):
     # fa/h 1 and 2, caught 80% and 90%, delay 3 and 4 s: sample std 0.71, 7.07, 0.71.
     assert "| fan | 1.50 ± 0.71 | 85.00 ± 7.07 | 3.50 ± 0.71 | 0.50 | 10 |" in table
     assert "| **Mean of six types** | 1.50 ± 0.71 | 85.00 ± 7.07 | 3.50 ± 0.71 | | |" in table
+    assert "no delay to average" not in table
+
+
+def test_summaries_skip_splits_a_config_was_never_run_on(tmp_path):
+    log = tmp_path / "log.csv"
+    log_rows(log, [0, 1])
+    log_rows(log, [0, 1], split="eval")
+    tables = simulate.summaries(["phase5_test", "phase5_other"], ["dev_test", "eval"], log=log)
+    assert [t.split(" on ")[1].split(",")[0] for t in tables] == ["dev_test", "eval"]
+    with pytest.raises(ValueError, match="no rows"):
+        simulate.summaries(["phase5_other"], ["dev_test"], log=log)
+
+
+def test_summary_table_explains_nan_delays(tmp_path):
+    log = tmp_path / "log.csv"
+    cfg = Config("phase5_test", {"phase": 5, "model": {"type": "id_cnn"}})
+    for t in MACHINE_TYPES:
+        for s in (0, 1):
+            d = "nan" if t == "valve" else "3.00"
+            notes = f"fa=0 normal_h=0.5000 fa_per_h=0.00 detected=0/10 delay_mean_s={d}"
+            append_result(cfg, t, "dev_test", s, 0.9, 0.8, notes, log=log)
+    table = simulate.summary_table("phase5_test", "dev_test", log=log)
+    assert "| valve | 0.00 ± 0.00 | 0.00 ± 0.00 | nan ± nan |" in table
+    assert "no delay to average" in table
 
 
 def test_summary_table_refuses_partial_runs(tmp_path):

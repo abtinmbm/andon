@@ -1,0 +1,14 @@
+# Phase 5: the dashboard and GIF demo. One machine ID's stream, built with exactly the
+# settings and limits of phase5_andon; it produces no results rows. The ID is picked to
+# show the light working, so it illustrates the mechanism, not a typical rate: the rates
+# are in results/phase5_simulator.md.
+phase: 5
+
+demo:
+  from_config: configs/phase5_andon.yaml
+  split: dev_test
+  machine_type: fan
+  machine_id: id_06
+  seed: 0
+  normal_clips: 12  # about 2 minutes of normal running before the fault
+  gif_fps: 8        # GIF frames per second; one frame per window, so 8x real time

@@ -3,7 +3,8 @@
     uv run python -m andon.simulate --config configs/phase5_andon.yaml --seed 0 1 2 \\
         --split dev_test
     uv run python -m andon.simulate --summary --split dev_test eval \\
-        --out results/phase5_simulator.md
+        --out results/phase5_simulator.md --config configs/phase5_andon.yaml \\
+        configs/phase5_andon_log.yaml configs/phase5_andon_1clip.yaml
 
 A device hears one continuous stream, so the clips of a machine ID are played back to
 back and a 64-frame window is scored every ``hop_frames`` frames, straddling the joins.
@@ -355,12 +356,32 @@ def summary_table(config: str, split: str, log: Path = RESULTS_LOG) -> str:
     avg = [np.mean(per_seed[s], axis=0) for s in seeds]
     cols = [_mean_sd([a[k] for a in avg]) for k in range(3)]
     lines.append(f"| **Mean of six types** | {' | '.join(cols)} | | |")
+    if any("nan" in line for line in lines[4:]):
+        lines += [
+            "",
+            "nan: in at least one seed no fault was caught, so there is no delay to average.",
+        ]
     return "\n".join(lines)
+
+
+def summaries(configs: list[str], splits: list[str], log: Path = RESULTS_LOG) -> list[str]:
+    """A table per config and split that has rows; dev-only variants have no eval table."""
+    logged = {(r["config"], r["split"]) for r in read_results(log)}
+    tables = [summary_table(c, s, log) for c in configs for s in splits if (c, s) in logged]
+    if not tables:
+        raise ValueError(f"no rows for {configs} on {splits}")
+    return tables
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Stream test clips through the andon light.")
-    parser.add_argument("--config", type=Path, default=Path("configs/phase5_andon.yaml"))
+    parser.add_argument(
+        "--config",
+        type=Path,
+        nargs="+",
+        default=[Path("configs/phase5_andon.yaml")],
+        help="one config to run; with --summary, one or more",
+    )
     parser.add_argument("--seed", type=int, nargs="+", help="one or more seeds")
     parser.add_argument("--split", nargs="+", choices=sorted(score.SPLITS), required=True)
     parser.add_argument("--machines", nargs="*", help="machine types (default: all in the config)")
@@ -368,17 +389,17 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--summary", action="store_true", help="print the tables, run nothing")
     parser.add_argument("--out", type=Path, help="with --summary: also write the tables here")
     args = parser.parse_args(argv)
-    cfg = load_config(args.config)
 
     if args.summary:
-        text = "\n\n".join(summary_table(cfg.name, s) for s in args.split) + "\n"
+        text = "\n\n".join(summaries([c.stem for c in args.config], args.split)) + "\n"
         print(text)
         if args.out:
             args.out.write_text(text, encoding="utf-8")
         return
 
-    if not args.seed or len(args.split) != 1:
-        parser.error("a run needs --seed and exactly one --split")
+    if not args.seed or len(args.split) != 1 or len(args.config) != 1:
+        parser.error("a run needs --seed, exactly one --split and exactly one --config")
+    cfg = load_config(args.config[0])
     if args.threads:
         torch.set_num_threads(args.threads)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

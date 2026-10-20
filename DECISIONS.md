@@ -12,6 +12,46 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-10-20: Evaluation set, scored once: the andon light catches 65.57 % of faults at 5.53 false alarms per hour (Phase 5)
+- **Tried:** `phase5_andon` with every setting frozen after the dev run, seeds 0, 1, 2, `--split eval`, run once. Rows are tagged `4c3956c`. Tables are in `results/phase5_simulator.md`.
+- **Result (mean of six types, mean ± sample std over seeds):**
+  - Eval: 5.53 ± 1.79 false alarms per hour of normal audio, 65.57 ± 1.02 % of faults caught, 10.57 ± 0.24 s mean delay to red.
+  - Dev: 4.49 ± 0.56, 52.96 ± 0.99 % and 12.02 ± 0.32 s.
+  - On eval, caught rates run from 21.75 % (valve) and 35.40 % (ToyConveyor) to 94.27 % (fan). False alarms per hour run from 0.00 (valve) to 14.38 ± 7.19 (pump).
+  - On dev, slider has the most false alarms (17.37 ± 5.78 per hour), and most of them come from `id_02` (8 of 11 on seed 0).
+- **Decision:** reported as is.
+- **Why it looks this way:** the CNN's clip AUC is high, but one 2 s window is weak evidence, and a limit set for few false alarms lets many faulty windows through. Valve has a high clip AUC (93.84 to 94.23 % on eval, simulation clips) but the lowest caught rate, so its fault windows rarely cross the control limit three times in a row; a likely cause is that valve sound is intermittent (open and close events), but this was not investigated. The false-alarm rates rest on little normal audio for the MIMII types (0.42 to 0.56 h per type), so one false alarm moves the rate by about 2 per hour; their seed spread shows it.
+
+### 2026-10-20: Fault = three anomaly clips in a row (Phase 5)
+- **Tried:** `phase5_andon_1clip`: `phase5_andon` with each fault a single 10 s anomaly clip (`fault_clips: 1`), dev test, seeds 0, 1, 2. Never run on eval.
+- **Result (mean of six types):** 32.79 ± 0.41 % of faults caught, against 52.96 ± 0.99 % with three-clip faults. The false alarms per hour are the same 4.49 ± 0.56, since the limits and normal stream don't change. The mean delay is 5.44 ± 0.07 s against 12.02 ± 0.32 s, because a 10 s fault can only be caught quickly; the delay counts caught faults only.
+- **Decision:** three clips (about 30 s) kept.
+- **Why:** a failing machine stays faulty, and with 10 s faults two thirds are over before the light can act. The three clips are consecutive anomaly files of the same machine ID in name order, which may be different fault types; the leftover clips that don't fill a fault are not played.
+
+### 2026-10-20: Limits on raw scores, not log scores (Phase 5)
+- **Tried:** the first Phase 5 plan fitted mean + 2σ and 3σ on log window scores, to undo their right skew. A seed-0 dev check before any row was logged caught no ToyCar or valve fault. The variant is logged as `phase5_andon_log` (dev test, seeds 0, 1, 2; never run on eval).
+- **Result (mean of six types):** log-scale limits give 0.30 ± 0.30 false alarms per hour but catch only 24.87 ± 0.72 % of faults: 0.09 ± 0.16 % of ToyCar's and 0.00 ± 0.00 % of valve's. Raw-score limits (`phase5_andon`) give 4.49 ± 0.56 and 52.96 ± 0.99 %.
+- **Decision:** raw scores (`log_scale: false`), a plain Shewhart chart as PLAN.md describes it.
+- **Why:** windows the classifier is very sure of score near 0, and their logs form a long left tail that inflates σ, so the 3σ control limit lands above almost every fault window. Raw limits were chosen knowing they cost more false alarms. Probability limits (quantiles of normal scores) were looked at in the same unlogged seed-0 check; no result is claimed for them, since they have no config or rows.
+
+### 2026-10-20: Andon simulator protocol (Phase 5)
+- **Tried:** `andon.simulate` plays each machine ID's test clips back to back and scores a 64-frame window every 32 frames with the Phase 3 CNN (`phase3_idcnn_mixup` checkpoints, nothing retrained). Per ID, the normal clips in name order alternate between calibration (they fit the limits and are used for nothing else) and simulation. False alarms are counted on the simulation normals back to back, with the light reset after each red. Each fault plays after two simulation normals (about 20 s). Audio time is counted as frames x 32 ms. The light: yellow after 2 windows above the warning limit and off after 3 below it; red after 3 above the control limit, latched.
+- **Decision:** kept. Settings were fixed before the logged runs, with no sweep. The two changes (raw-score limits, three-clip faults) were made on an unlogged seed-0 dev check before any row was logged. The `phase5_andon_log` and `phase5_andon_1clip` rows were logged afterwards (after the eval run) to record that comparison with 3 seeds; they changed no setting.
+- **How false alarms are counted:** the light is reset right after each red, so one long normal excursion above the control limit counts once per 3 windows it stays there. Windows that straddle the join between two unrelated clips are scored like any other; a join covers at most 2 consecutive windows, so it can't make a red alone.
+- **Why:** half the normal test clips is the only normal audio the model never trained on, so limits fitted on training clips would be too tight. Each row's AUC and pAUC are the Phase 3 clip scores on the simulation normals and every anomaly clip, so they tie back to Phase 3.
+- **Rows tagged `4c3956c-dirty`:** the 36 rows of `phase5_andon_log` and `phase5_andon_1clip`. They ran before their configs and the demo code were committed. `andon/simulate.py` and `andon/light.py` then matched `4c3956c` except for the summary-table printing, which was changed during the run and doesn't affect the rows. The configs are in the commit that follows.
+
+### 2026-10-20: Demo replay and dashboard share one drawing; the GIF is rendered, not screen-recorded (Phase 5)
+- **Tried:** `andon/demo.py` builds one stream with exactly the simulator's limits and windows: fan `id_06`, dev test clips, model seed 0, the first 12 simulation normals, then that ID's first fault (`configs/phase5_demo.yaml`). `dashboard/app.py` (Streamlit) replays it live with a reset button; `python -m andon.demo --gif` draws the same frames with matplotlib into `docs/andon_demo.gif`. The score axis is logarithmic because normal windows sit near 0.01 and fault windows near 10.
+- **Result:** no results rows; the demo is an illustration. The ID was chosen because the light catches its faults (fan `id_06` was caught in every fault on seed 0), so the caption says it was picked and points at the rate table.
+- **Decision:** kept.
+- **Why:** a rendered GIF regenerates from one command and matches the dashboard exactly; a screen recording can't be reproduced. The dashboard and GIF packages live in a `dashboard` dependency group, and CI installs all groups so the drawing code is tested.
+
+### 2026-10-20: pyarrow capped below 26 (Phase 5)
+- **Tried:** `streamlit` needs `pyarrow`; Windows Smart App Control blocked pyarrow 26.0.0's DLL ("An Application Control policy has blocked this file"). Versions 20.0.0 to 25.0.0 each loaded in a clean environment.
+- **Decision:** `pyarrow<26` in the `dashboard` group (25.0.1 installed), as with the numpy cap.
+- **Why:** Smart App Control stays on; the cap can be lifted once the newer DLLs gain reputation.
+
 ### 2026-10-20: Evaluation set, scored once: the mixup CNN beats the autoencoder on 5 of 6 types (Phase 3)
 - **Tried:** the three final models, each scored once on the evaluation test clips with seeds 0, 1, 2. All choices were already made on dev test.
   - `phase3_idcnn_mixup`, from its checkpoints, with no retraining.
@@ -60,7 +100,7 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 ### 2026-10-20: One ID classifier per type on dev and evaluation IDs; autoencoder retrained for eval (Phase 3)
 - **Tried:** the CNN learns every machine ID of a type: dev train plus the additional training set (normal clips of the evaluation IDs; 6 or 7 IDs per type). The autoencoder's evaluation-set run (`phase3_baseline_eval`) is `phase1_baseline` trained on the additional training set only, as the official baseline does; it is only checkpointed, never scored on dev test.
 - **Result:** one CNN checkpoint scores both the dev test and the evaluation set, so eval is a single scoring pass (`andon.score --split eval`) with no retraining. The dev numbers come from a 6-to-7-ID problem rather than 3-to-4.
-- **Decision:** kept (PM call at the Phase 3 plan).
+- **Decision:** kept (decided at the Phase 3 plan).
 - **Why:** an ID classifier can only score IDs it was trained on; this is how the top DCASE 2020 systems trained. No test clip of either set is used in training; `all_train_clips` refuses an ID present in both sets.
 
 ### 2026-10-20: First 9 `phase3_idcnn` rows are tagged `fc2291e-dirty` (Phase 3)
@@ -78,7 +118,7 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 ### 2026-10-18: Fit classic detectors both per machine type and per machine ID (Phase 2)
 - **Tried:** every detector twice: one model on all IDs of a type pooled (as the autoencoder is trained), and one model per ID, scoring each test clip with its own ID's model (the ID is in every file name).
 - **Result (mean AUC % over the six types, per type → per ID):** Mahalanobis 74.96 → 80.34, GMM 81.72 → 83.25, isolation forest 57.98 → 63.26. Per ID is not better everywhere: GMM on slider 91.18 → 87.54. Per-ID GMM seeds spread more (pump pAUC ± 3.37 against ± 0.09 pooled), since each mixture sees a third to a quarter of the data (3 or 4 IDs per type).
-- **Decision:** both kept in the table (PM call). Per type is the like-for-like comparison with the autoencoder; per ID matches the hardware stage, which monitors one fan.
+- **Decision:** both kept in the table. Per type is the like-for-like comparison with the autoencoder; per ID matches the hardware stage, which monitors one fan.
 - **Why:** reporting per ID alone would mix two changes (the model and the grouping) in one comparison.
 
 ### 2026-10-18: Classic detector settings fixed up front, no sweep (Phase 2)
@@ -88,7 +128,7 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 - **Why:** Phase 2 is a reference point. Tuning six configs before there was a first table would have been scope the plan didn't ask for.
 
 ### 2026-10-18: scikit-learn becomes a runtime dependency (Phase 2)
-- **Tried:** moved `scikit-learn>=1.9.1` from the dev group to the runtime dependencies (PM approval). The lock is unchanged at 1.9.1, which already loaded under Smart App Control in the Phase 1 metric tests.
+- **Tried:** moved `scikit-learn>=1.9.1` from the dev group to the runtime dependencies. The lock is unchanged at 1.9.1, which already loaded under Smart App Control in the Phase 1 metric tests.
 - **Decision:** kept.
 - **Why:** writing a GMM and an isolation forest by hand would have been slower and riskier. They need porting to C only if one is chosen as the microcontroller fallback.
 
@@ -118,7 +158,7 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 ### 2026-10-17: Match the Keras defaults the baseline relied on (Phase 1)
 - **Tried:** reproduced what PyTorch does differently from Keras 2.1: Glorot-uniform weights and zero biases; batch norm momentum 0.99 (0.01 in PyTorch's convention) and epsilon 1e-3; Adam epsilon 1e-7; and `validation_split=0.1`, which holds out the last 10% of the unshuffled training windows (mostly the highest machine ID) rather than a random 10%. Like the baseline, one model per machine type is trained on the train clips of all its IDs, with no input normalization, and the last epoch is used (the held-out 10% only reports a loss).
 - **Result:** see the reproduction entry above; no ablation of each detail was run.
-- **Decision:** kept, all set in the config (PM call before the runs).
+- **Decision:** kept, all set in the config before the runs.
 - **Why:** a few lines of config remove every obvious excuse if the numbers had missed; finding the cause of a gap afterwards would have cost far more training time.
 
 ### 2026-10-17: Fused Adam and 3 seeds in parallel to fit training on a laptop CPU (Phase 1)

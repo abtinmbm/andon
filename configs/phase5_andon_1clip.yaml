@@ -1,0 +1,26 @@
+# Phase 5, dev test only: phase5_andon with each fault one 10 s anomaly clip instead
+# of three in a row. Logged to record the fault-length comparison; never run on eval.
+phase: 5
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+model:
+  type: id_cnn
+  from_config: configs/phase3_idcnn_mixup.yaml  # weights, features and patch width
+
+limits:            # SPC-style, fitted per machine ID on calibration window scores
+  log_scale: false # mean + k sigma of the raw window scores, a plain Shewhart chart
+  warn_sigma: 2.0  # yellow (warning limit)
+  control_sigma: 3.0  # red (control limit)
+
+light:
+  warn_on: 2   # windows in a row above the warning limit: green -> yellow
+  warn_off: 3  # windows in a row at or below it: yellow -> green
+  red_hold: 3  # windows in a row above the control limit: red, latched until reset
+
+stream:
+  hop_frames: 32    # a new 64-frame (2.05 s) window every 32 frames (1.02 s)
+  warmup_clips: 2   # about 20 s of normal audio before each fault
+  fault_clips: 1    # the one change: a fault is a single 10 s anomaly clip

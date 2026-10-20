@@ -12,8 +12,8 @@
 #     fault's first frame to the end of the window that turned the light red, and a fault
 #     with no red by its last window is a miss
 #
-# Fixed in the Phase 5 plan (D4), then changed once on dev test, seed 0, before any row
-# was logged (D5, D6 in DECISIONS.md): log-scale limits caught no ToyCar or valve fault,
+# Fixed in the Phase 5 plan, then changed once on dev test, seed 0, before any row
+# was logged (see DECISIONS.md, Phase 5): log-scale limits caught no ToyCar or valve fault,
 # because confident windows give log scores a long left tail that inflates sigma; and a
 # real fault lasts longer than one 10 s clip. This is a measurement, not a model choice,
 # so there is no keep rule; eval runs once with exactly these settings.
