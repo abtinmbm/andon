@@ -12,6 +12,17 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-10-20: Per-ID GMM on the evaluation set is refitted, not retrained under a new config (Phase 3)
+- **Tried:** for eval, `andon.classic --split eval` fits `phase2_gmm_id` on the additional training set (the normal clips of the evaluation IDs, one GMM per ID) and scores the evaluation test clips. The rows are logged under `phase2_gmm_id` with split `eval`. The autoencoder got its own config (`phase3_baseline_eval`) because its eval model is a different training run with its own checkpoints. A per-ID GMM is the same procedure on any ID's normal clips, so it needs neither a new config nor a checkpoint. Eval tables come from `andon.evaluate --compare ... --split dev_test eval`, which keeps dev and eval in separate tables. `--beats` gives the per-type head to head and refuses partial or duplicated runs.
+- **Decision:** kept.
+- **Why:** it is the official protocol for the evaluation set (fit on its IDs' normal training clips), and the GMM fits in under a second per type.
+
+### 2026-10-20: Spectrogram masking dropped; mixup CNN is the final Phase 3 model (Phase 3)
+- **Tried:** `phase3_idcnn_mixup_mask`: `phase3_idcnn_mixup` plus SpecAugment-style masking of each training patch (2 bands of up to 12 mels, 2 spans of up to 6 frames). The sizes were fixed up front with no sweep. Seeds 0, 1, 2, dev test. The rule set before the run: keep it only if the mean dev AUC beats 86.64 by more than the seed spread.
+- **Result (AUC %, mean ± sample std over 3 seeds):** the mean of the six types went from 86.64 ± 0.57 to 86.79 ± 0.19 (+0.15). Per-seed means went from 86.48 / 86.17 / 87.28 to 86.79 / 86.59 / 86.98. By type: ToyCar 86.69 → 87.05, ToyConveyor 76.18 → 80.15, fan 84.72 → 84.61, pump 87.12 → 88.20, slider 97.52 → 96.64, valve 87.63 → 84.07. Mean pAUC went from 79.24 to 79.44.
+- **Decision:** dropped. `phase3_idcnn_mixup` is the final model and the only CNN scored on the evaluation set.
+- **Why:** +0.15 is about a quarter of mixup's seed spread (0.57), so it fails the rule. Masking moved the types in opposite directions (ToyConveyor +3.97, valve −3.56), which a mean hides; with no clear net gain, the simpler model stays.
+
 ### 2026-10-20: Mixup kept for the machine-ID CNN (Phase 3)
 - **Tried:** `phase3_idcnn_mixup`, identical to `phase3_idcnn` except mixup: each training patch is blended with another from the batch, weight lam ~ Beta(0.2, 0.2), with the same blend of the two ID losses. Alpha fixed up front, no sweep. Seeds 0, 1, 2, dev test.
 - **Result (AUC %, mean ± sample std over 3 seeds):** mean of the six types 84.33 ± 0.67 → 86.64 ± 0.57 (+2.31); per-seed means 83.64 / 84.38 / 84.97 → 86.48 / 86.17 / 87.28. Higher on all six types: ToyCar 86.48 → 86.69, ToyConveyor 70.64 → 76.18, fan 82.04 → 84.72, pump 85.91 → 87.12, slider 93.94 → 97.52, valve 86.97 → 87.63. Mean pAUC 77.24 → 79.24, but lower on ToyCar (83.94 → 81.98) and valve (81.54 → 78.38).

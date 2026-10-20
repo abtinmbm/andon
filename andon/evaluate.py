@@ -7,6 +7,8 @@ give the machine type's figure.
 
     uv run python -m andon.evaluate --config configs/phase1_baseline.yaml --summary
     uv run python -m andon.evaluate --compare phase1_baseline phase2_gmm_id --out results/x.md
+    uv run python -m andon.evaluate --compare A B --split dev_test eval
+    uv run python -m andon.evaluate --beats phase3_idcnn_mixup phase3_baseline_eval --split eval
 """
 
 from __future__ import annotations
@@ -146,20 +148,33 @@ def _mean_sd(values: list[float]) -> tuple[float, float]:
     return float(a.mean()), sd
 
 
-def comparison_table(configs: list[str], metric: str = "auc", log: Path = RESULTS_LOG) -> str:
-    """Markdown table of one metric, mean +/- std over seeds in %, configs side by side.
+SPLIT_NAMES = {"dev_test": "Dev test", "eval": "Eval (evaluation set test clips)"}
+
+
+def _cells(rows: list[dict[str, str]], metric: str) -> dict[tuple[str, str], dict[str, float]]:
+    """``{(config, machine_type): {seed: value}}``; a repeated row is an error."""
+    by_cell: dict[tuple[str, str], dict[str, float]] = defaultdict(dict)
+    for r in rows:
+        seeds = by_cell[(r["config"], r["machine_type"])]
+        if r["seed"] in seeds:  # runs skip logged rows, so a repeat means the log was edited
+            raise ValueError(
+                f"duplicate row: {r['config']} {r['machine_type']} {r['split']} seed {r['seed']}"
+            )
+        seeds[r["seed"]] = float(r[metric])
+    return by_cell
+
+
+def comparison_table(
+    configs: list[str], metric: str = "auc", log: Path = RESULTS_LOG, split: str = "dev_test"
+) -> str:
+    """Markdown table of one metric on one split, mean +/- std over seeds in %, side by side.
 
     The "mean" row averages the six machine types within each seed first, then takes
     the mean and std of those per-seed averages, so it needs every type for every seed.
     The best mean in each row is in bold.
     """
-    rows = [r for r in read_results(log) if r["split"] == "dev_test" and r["config"] in configs]
-    by_cell: dict[tuple[str, str], dict[str, float]] = defaultdict(dict)
-    for r in rows:
-        seeds = by_cell[(r["config"], r["machine_type"])]
-        if r["seed"] in seeds:  # runs skip logged rows, so a repeat means the log was edited
-            raise ValueError(f"duplicate row: {r['config']} {r['machine_type']} seed {r['seed']}")
-        seeds[r["seed"]] = float(r[metric])
+    rows = [r for r in read_results(log) if r["split"] == split and r["config"] in configs]
+    by_cell = _cells(rows, metric)
 
     def cell(stats: tuple[float, float] | None, best: float | None) -> str:
         if stats is None:
@@ -201,20 +216,81 @@ def comparison_table(configs: list[str], metric: str = "auc", log: Path = RESULT
     )
     lines.append("")
     lines.append(
-        f"Dev test, from results_log.csv. Mean +/- sample std (ddof=1) over seeds "
+        f"{SPLIT_NAMES[split]}, from results_log.csv. Mean +/- sample std (ddof=1) over seeds "
         f"(seeds per config: {seeds_note})."
     )
     return "\n".join(lines)
 
 
+def comparison_tables(configs: list[str], splits: list[str], log: Path = RESULTS_LOG) -> str:
+    """AUC and pAUC tables for each split.
+
+    With several splits, a config with no rows in a split is left out of that split's
+    table (the eval-only autoencoder has no dev rows). A config with no rows in any of
+    the splits is an error, so a mistyped name can't vanish silently.
+    """
+    rows = read_results(log)
+    present = {split: {r["config"] for r in rows if r["split"] == split} for split in splits}
+    missing = [c for c in configs if not any(c in present[s] for s in splits)]
+    if missing:
+        raise ValueError(f"no {' or '.join(splits)} rows for: {missing}")
+    tables = []
+    for split in splits:
+        here = [c for c in configs if c in present[split]] if len(splits) > 1 else configs
+        if here:
+            tables += [comparison_table(here, m, log, split) for m in ("auc", "pauc")]
+    return "\n\n".join(tables)
+
+
+def head_to_head(
+    candidate: str, baseline: str, split: str, metric: str = "auc", log: Path = RESULTS_LOG
+) -> tuple[str, int]:
+    """Per machine type, candidate vs baseline mean +/- std over seeds, and the number of
+    types where the candidate's mean is higher.
+
+    Both configs must have the same seeds (at least two), one row each, for every machine
+    type: the check fails rather than compare partial runs.
+    """
+    rows = [
+        r for r in read_results(log) if r["split"] == split and r["config"] in (candidate, baseline)
+    ]
+    by_cell = _cells(rows, metric)
+    seeds = set(by_cell[(candidate, MACHINE_TYPES[0])])
+    for c in (candidate, baseline):
+        for t in MACHINE_TYPES:
+            if len(seeds) < 2 or set(by_cell[(c, t)]) != seeds:
+                got = sorted(by_cell[(c, t)], key=int)
+                raise ValueError(f"{c} {t} {split}: seeds {got}, expected {sorted(seeds, key=int)}")
+    seed_list = ", ".join(sorted(seeds, key=int))
+    lines = [
+        f"{SPLIT_NAMES[split]}, {metric.upper()} %, mean +/- std over seeds {seed_list}",
+        f"{'machine_type':<12} {candidate:>24} {baseline:>24} {'diff':>7}",
+    ]
+    wins = 0
+    for t in MACHINE_TYPES:
+        cm, cs = _mean_sd(list(by_cell[(candidate, t)].values()))
+        bm, bs = _mean_sd(list(by_cell[(baseline, t)].values()))
+        wins += cm > bm
+        c_text, b_text = f"{cm:.2f} +/- {cs:.2f}", f"{bm:.2f} +/- {bs:.2f}"
+        lines.append(f"{t:<12} {c_text:>24} {b_text:>24} {cm - bm:>+7.2f}")
+    lines.append(f"{candidate} beats {baseline} on {wins}/{len(MACHINE_TYPES)} machine types")
+    return "\n".join(lines), wins
+
+
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(description="Summarise and compare logged dev test results.")
+    parser = argparse.ArgumentParser(description="Summarise and compare logged results.")
     parser.add_argument("--config", type=Path, help="config for --summary")
     parser.add_argument(
         "--summary", action="store_true", help="print mean +/- std per machine type"
     )
     parser.add_argument(
         "--compare", nargs="+", metavar="NAME", help="config names to compare side by side"
+    )
+    parser.add_argument(
+        "--beats", nargs=2, metavar=("CANDIDATE", "BASELINE"), help="per-type head to head"
+    )
+    parser.add_argument(
+        "--split", nargs="+", choices=sorted(SPLIT_NAMES), default=["dev_test"], help="test splits"
     )
     parser.add_argument("--out", type=Path, help="also write the --compare tables to this file")
     args = parser.parse_args(argv)
@@ -223,15 +299,21 @@ def main(argv: list[str] | None = None) -> None:
             parser.error("--summary needs --config")
         print(summary_table(load_config(args.config)))
     elif args.compare:
-        text = "\n\n".join(comparison_table(args.compare, m) for m in ("auc", "pauc"))
+        text = comparison_tables(args.compare, args.split)
         print(text)
         if args.out:
             args.out.parent.mkdir(parents=True, exist_ok=True)
             command = "uv run python -m andon.evaluate --compare " + " ".join(args.compare)
+            if args.split != ["dev_test"]:
+                command += " --split " + " ".join(args.split)
             header = f"<!-- Generated by `{command} --out {args.out.as_posix()}`. -->\n\n"
             args.out.write_text(header + text + "\n", encoding="utf-8")
+    elif args.beats:
+        if len(args.split) != 1:
+            parser.error("--beats takes one --split")
+        print(head_to_head(*args.beats, args.split[0])[0])
     else:
-        parser.error("nothing to do: pass --summary or --compare")
+        parser.error("nothing to do: pass --summary, --compare or --beats")
 
 
 if __name__ == "__main__":

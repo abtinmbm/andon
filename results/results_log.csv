@@ -161,3 +161,26 @@ timestamp,git_commit,phase,config,model,machine_type,split,seed,auc,pauc,notes
 2026-10-20T00:16:59Z,a9746aa,3,phase3_idcnn_mixup,id_cnn,valve,dev_test,0,0.8642,0.7653,id_00=0.9918/0.9571 id_02=0.6890/0.6232 id_04=0.8961/0.7044 id_06=0.8800/0.7763 train_loss=0.6375 train_acc=0.438
 2026-10-20T00:17:00Z,a9746aa,3,phase3_idcnn_mixup,id_cnn,valve,dev_test,1,0.8777,0.7975,id_00=0.9938/0.9695 id_02=0.7499/0.6947 id_04=0.9002/0.7307 id_06=0.8667/0.7952 train_loss=0.7250 train_acc=0.535
 2026-10-20T00:17:02Z,a9746aa,3,phase3_idcnn_mixup,id_cnn,valve,dev_test,2,0.8869,0.7885,id_00=0.9913/0.9544 id_02=0.7666/0.7092 id_04=0.9143/0.7311 id_06=0.8756/0.7592 train_loss=0.6917 train_acc=0.554
+2026-10-20T05:32:26Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,ToyCar,dev_test,2,0.8773,0.8344,id_01=0.6399/0.6357 id_02=0.9256/0.8685 id_03=0.9485/0.8521 id_04=0.9953/0.9811 train_loss=0.5108 train_acc=0.450
+2026-10-20T05:32:27Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,ToyCar,dev_test,0,0.8690,0.8316,id_01=0.6206/0.6220 id_02=0.8935/0.8334 id_03=0.9640/0.8824 id_04=0.9979/0.9888 train_loss=0.5381 train_acc=0.517
+2026-10-20T05:32:30Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,ToyCar,dev_test,1,0.8652,0.8228,id_01=0.6140/0.6035 id_02=0.8954/0.8362 id_03=0.9528/0.8585 id_04=0.9986/0.9928 train_loss=0.6039 train_acc=0.465
+2026-10-20T05:45:06Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,ToyConveyor,dev_test,1,0.7984,0.6753,id_01=0.9120/0.8112 id_02=0.6779/0.5790 id_03=0.8053/0.6357 train_loss=0.3692 train_acc=0.682
+2026-10-20T05:45:14Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,ToyConveyor,dev_test,2,0.8092,0.6854,id_01=0.8970/0.7968 id_02=0.7101/0.5947 id_03=0.8204/0.6647 train_loss=0.3083 train_acc=0.515
+2026-10-20T05:45:15Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,ToyConveyor,dev_test,0,0.7969,0.6694,id_01=0.8882/0.7816 id_02=0.7275/0.5873 id_03=0.7751/0.6392 train_loss=0.3058 train_acc=0.557
+2026-10-20T06:03:05Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,fan,dev_test,1,0.8523,0.7805,id_00=0.5768/0.5259 id_02=0.9880/0.9370 id_04=0.8448/0.6624 id_06=0.9994/0.9968 train_loss=0.4259 train_acc=0.582
+2026-10-20T06:03:26Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,fan,dev_test,2,0.8431,0.8085,id_00=0.4927/0.5211 id_02=0.9940/0.9682 id_04=0.8864/0.7482 id_06=0.9993/0.9965 train_loss=0.3671 train_acc=0.523
+2026-10-20T06:03:26Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,fan,dev_test,0,0.8428,0.7874,id_00=0.5214/0.5142 id_02=0.9887/0.9405 id_04=0.8612/0.6953 id_06=1.0000/0.9999 train_loss=0.3976 train_acc=0.586
+2026-10-20T06:15:15Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,pump,dev_test,1,0.8793,0.8027,id_00=0.8583/0.7821 id_02=0.7068/0.5728 id_04=0.9968/0.9832 id_06=0.9556/0.8725 train_loss=0.4575 train_acc=0.581
+2026-10-20T06:15:31Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,pump,dev_test,2,0.8730,0.8062,id_00=0.8813/0.7895 id_02=0.6561/0.5718 id_04=0.9951/0.9753 id_06=0.9593/0.8880 train_loss=0.4564 train_acc=0.505
+2026-10-20T06:15:32Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,pump,dev_test,0,0.8938,0.8013,id_00=0.8793/0.7770 id_02=0.7286/0.5429 id_04=0.9940/0.9684 id_06=0.9732/0.9169 train_loss=0.3828 train_acc=0.593
+2026-10-20T06:25:12Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,slider,dev_test,1,0.9674,0.8826,id_00=0.9994/0.9969 id_02=0.9050/0.7175 id_04=0.9665/0.8238 id_06=0.9985/0.9923 train_loss=0.5558 train_acc=0.522
+2026-10-20T06:25:31Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,slider,dev_test,0,0.9651,0.8731,id_00=0.9990/0.9945 id_02=0.8982/0.6903 id_04=0.9669/0.8264 id_06=0.9964/0.9811 train_loss=0.4947 train_acc=0.461
+2026-10-20T06:25:31Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,slider,dev_test,2,0.9668,0.8688,id_00=0.9968/0.9833 id_02=0.9143/0.7232 id_04=0.9593/0.7856 id_06=0.9967/0.9829 train_loss=0.4219 train_acc=0.591
+2026-10-20T06:36:14Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,valve,dev_test,1,0.8329,0.7795,id_00=0.9999/0.9996 id_02=0.6595/0.6487 id_04=0.9160/0.8057 id_06=0.7560/0.6640 train_loss=0.6718 train_acc=0.494
+2026-10-20T06:36:25Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,valve,dev_test,0,0.8397,0.7829,id_00=0.9991/0.9951 id_02=0.6670/0.6434 id_04=0.9172/0.8079 id_06=0.7757/0.6851 train_loss=0.7555 train_acc=0.496
+2026-10-20T06:36:25Z,4db225f,3,phase3_idcnn_mixup_mask,id_cnn,valve,dev_test,2,0.8494,0.8074,id_00=0.9987/0.9929 id_02=0.6724/0.6307 id_04=0.9477/0.9035 id_06=0.7788/0.7026 train_loss=0.7112 train_acc=0.549
+2026-10-20T06:44:34Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyCar,eval,0,0.9012,0.8493,id_05=0.7884/0.7224 id_06=0.9332/0.8809 id_07=0.9820/0.9445 scored_from=checkpoint
+2026-10-20T06:44:39Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyCar,eval,1,0.9014,0.8471,id_05=0.8069/0.7440 id_06=0.9240/0.8751 id_07=0.9734/0.9221 scored_from=checkpoint
+2026-10-20T06:44:43Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyCar,eval,2,0.9060,0.8475,id_05=0.8113/0.7575 id_06=0.9289/0.8563 id_07=0.9777/0.9288 scored_from=checkpoint
+2026-10-20T06:45:16Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyConveyor,eval,0,0.8166,0.6865,id_04=0.8591/0.7383 id_05=0.8295/0.7092 id_06=0.7611/0.6121 scored_from=checkpoint
+2026-10-20T06:45:19Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyConveyor,eval,1,0.8140,0.6713,id_04=0.8825/0.7611 id_05=0.8062/0.6383 id_06=0.7532/0.6144 scored_from=checkpoint
