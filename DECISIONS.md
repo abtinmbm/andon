@@ -12,13 +12,35 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-10-20: Evaluation set, scored once: the mixup CNN beats the autoencoder on 5 of 6 types (Phase 3)
+- **Tried:** the three final models, each scored once on the evaluation test clips with seeds 0, 1, 2. All choices were already made on dev test.
+  - `phase3_idcnn_mixup`, from its checkpoints, with no retraining.
+  - `phase3_baseline_eval`, the autoencoder trained on the additional training set.
+  - `phase2_gmm_id`, refitted per evaluation ID on the additional training set.
+  - Tables are in `results/phase3_comparison.md`.
+- **Result (eval AUC %, mean ± sample std over 3 seeds):**
+  - Mean of the six types: CNN 92.13 ± 0.16, autoencoder 79.70 ± 0.39, per-ID GMM 83.32 ± 0.27. Mean eval pAUC: 85.44 ± 0.24, 63.21 ± 0.18 and 68.47 ± 0.63.
+  - Against the autoencoder, the CNN is higher on ToyCar (90.29 against 79.65), fan (94.47 against 86.10), pump (94.73 against 84.51), slider (98.25 against 81.73) and valve (94.64 against 57.93).
+  - It is lower on ToyConveyor (80.38 ± 2.00 against 88.31 ± 0.38).
+  - The per-ID GMM stays ahead on ToyCar (92.63), ToyConveyor (91.64) and fan (95.58).
+- **Decision:** reported as is. The Phase 3 target (beat the baseline on at least 5 of 6 types) is met on the evaluation set, as it was on dev.
+- **Why it looks this way:** ToyConveyor is the CNN's weak type on both sets, and its seed spread is the largest there (2.00 on eval). The autoencoder's ToyConveyor score rose from 73.20 on dev to 88.31 on eval, so that gap belongs partly to the evaluation IDs, not only to the model. The CNN scoring higher on eval than on dev (92.13 against 86.64) was not investigated; the two sets have different machine IDs, so they are not directly comparable.
+
+### 2026-10-20: Six CNN eval rows are tagged `4db225f-dirty`; five are in commit `1617472` (Phase 3)
+- **Tried:** the eval job started while the eval-table code was still uncommitted, and the commit was made while the job was running.
+- **Result:**
+  - The six `phase3_idcnn_mixup` eval rows for ToyCar and ToyConveyor say `4db225f-dirty`, and five of them were picked up by commit `1617472`. Every later eval row says `1617472`.
+  - The uncommitted files were the comparison-table code in `andon/evaluate.py`, the GMM eval path in `andon/classic.py`, the tests and this log. CNN scoring (`andon/score.py`, `andon/train_idcnn.py`, `andon/models/idcnn.py`) and `evaluate.log_scores` were the same as in `4db225f`.
+- **Decision:** rows left as written. Eval is not re-run, the log is not edited and the pushed commit is not rewritten.
+- **Why:** the scores come from fixed checkpoints, and the code that computed them is identical in both commits. Re-running eval to get a cleaner tag would break the run-once rule.
+
 ### 2026-10-20: Per-ID GMM on the evaluation set is refitted, not retrained under a new config (Phase 3)
 - **Tried:** for eval, `andon.classic --split eval` fits `phase2_gmm_id` on the additional training set (the normal clips of the evaluation IDs, one GMM per ID) and scores the evaluation test clips. The rows are logged under `phase2_gmm_id` with split `eval`. The autoencoder got its own config (`phase3_baseline_eval`) because its eval model is a different training run with its own checkpoints. A per-ID GMM is the same procedure on any ID's normal clips, so it needs neither a new config nor a checkpoint. Eval tables come from `andon.evaluate --compare ... --split dev_test eval`, which keeps dev and eval in separate tables. `--beats` gives the per-type head to head and refuses partial or duplicated runs.
 - **Decision:** kept.
 - **Why:** it is the official protocol for the evaluation set (fit on its IDs' normal training clips), and the GMM fits in under a second per type.
 
 ### 2026-10-20: Spectrogram masking dropped; mixup CNN is the final Phase 3 model (Phase 3)
-- **Tried:** `phase3_idcnn_mixup_mask`: `phase3_idcnn_mixup` plus SpecAugment-style masking of each training patch (2 bands of up to 12 mels, 2 spans of up to 6 frames). The sizes were fixed up front with no sweep. Seeds 0, 1, 2, dev test. The rule set before the run: keep it only if the mean dev AUC beats 86.64 by more than the seed spread.
+- **Tried:** `phase3_idcnn_mixup_mask`: `phase3_idcnn_mixup` plus SpecAugment-style masking of each training patch (2 bands of up to 12 mels, 2 spans of up to 6 frames). The sizes were fixed up front with no sweep. Seeds 0, 1, 2, dev test. The rule set before the run: keep it only if the mean dev AUC beats 86.64 by more than the seed spread. It was set in the step plan before the run, but no committed file had it until this entry. From now on, keep rules go in the config's comment, which is committed before the run.
 - **Result (AUC %, mean ± sample std over 3 seeds):** the mean of the six types went from 86.64 ± 0.57 to 86.79 ± 0.19 (+0.15). Per-seed means went from 86.48 / 86.17 / 87.28 to 86.79 / 86.59 / 86.98. By type: ToyCar 86.69 → 87.05, ToyConveyor 76.18 → 80.15, fan 84.72 → 84.61, pump 87.12 → 88.20, slider 97.52 → 96.64, valve 87.63 → 84.07. Mean pAUC went from 79.24 to 79.44.
 - **Decision:** dropped. `phase3_idcnn_mixup` is the final model and the only CNN scored on the evaluation set.
 - **Why:** +0.15 is about a quarter of mixup's seed spread (0.57), so it fails the rule. Masking moved the types in opposite directions (ToyConveyor +3.97, valve −3.56), which a mean hides; with no clear net gain, the simpler model stays.

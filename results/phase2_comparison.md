@@ -10,7 +10,7 @@
 | valve | **65.96 +/- 0.82** | 52.75 +/- 0.00 | 58.03 +/- 0.47 | 50.06 +/- 0.15 | 54.79 +/- 0.00 | 59.43 +/- 0.05 | 51.27 +/- 0.67 |
 | mean | 73.80 +/- 0.14 | 74.96 +/- 0.00 | 81.72 +/- 0.08 | 57.98 +/- 0.33 | 80.34 +/- 0.00 | **83.25 +/- 0.22** | 63.26 +/- 0.42 |
 
-Dev test, from results_log.csv. Mean +/- sample std (ddof=1) over seeds (seeds per config: phase1_baseline: 3; phase2_mahalanobis_type: 3; phase2_gmm_type: 3; phase2_iforest_type: 3; phase2_mahalanobis_id: 3; phase2_gmm_id: 3; phase2_iforest_id: 3).
+Dev test, from results_log.csv. Mean +/- sample std (ddof=1) over seeds (seeds per config: phase1_baseline: 0, 1, 2; phase2_mahalanobis_type: 0, 1, 2; phase2_gmm_type: 0, 1, 2; phase2_iforest_type: 0, 1, 2; phase2_mahalanobis_id: 0, 1, 2; phase2_gmm_id: 0, 1, 2; phase2_iforest_id: 0, 1, 2).
 
 | PAUC (%) | phase1_baseline | phase2_mahalanobis_type | phase2_gmm_type | phase2_iforest_type | phase2_mahalanobis_id | phase2_gmm_id | phase2_iforest_id |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -22,4 +22,4 @@ Dev test, from results_log.csv. Mean +/- sample std (ddof=1) over seeds (seeds p
 | valve | **51.15 +/- 0.14** | 49.98 +/- 0.00 | 50.96 +/- 0.34 | 50.19 +/- 0.19 | 50.09 +/- 0.00 | 50.99 +/- 0.25 | 50.32 +/- 0.11 |
 | mean | 59.93 +/- 0.31 | 60.14 +/- 0.00 | **66.05 +/- 0.07** | 52.29 +/- 0.18 | 65.43 +/- 0.00 | 65.95 +/- 0.82 | 53.50 +/- 0.39 |
 
-Dev test, from results_log.csv. Mean +/- sample std (ddof=1) over seeds (seeds per config: phase1_baseline: 3; phase2_mahalanobis_type: 3; phase2_gmm_type: 3; phase2_iforest_type: 3; phase2_mahalanobis_id: 3; phase2_gmm_id: 3; phase2_iforest_id: 3).
+Dev test, from results_log.csv. Mean +/- sample std (ddof=1) over seeds (seeds per config: phase1_baseline: 0, 1, 2; phase2_mahalanobis_type: 0, 1, 2; phase2_gmm_type: 0, 1, 2; phase2_iforest_type: 0, 1, 2; phase2_mahalanobis_id: 0, 1, 2; phase2_gmm_id: 0, 1, 2; phase2_iforest_id: 0, 1, 2).

@@ -211,7 +211,7 @@ def test_comparison_table_means_stds_bold_best_and_the_mean_row(tmp_path):
     assert fan == "| fan | 61.00 +/- 1.00 | **74.00 +/- 0.00** |"
     mean = next(line for line in lines if line.startswith("| mean |"))
     assert mean == "| mean | **61.00 +/- 1.00** | n/a |"  # b lacks valve seed 2
-    assert f"{a.name}: 3; {b.name}: 3" in table
+    assert f"{a.name}: 0, 1, 2; {b.name}: 0, 1, 2" in table
 
     append_result(a, "fan", "dev_test", 0, 0.5, 0.5, log=log)
     with pytest.raises(ValueError, match="duplicate"):
@@ -346,6 +346,10 @@ def test_evaluate_cli_compare_with_splits_and_beats(tmp_path, monkeypatch, capsy
     written = Path("results/c.md").read_text(encoding="utf-8")
     assert f"--compare {a.name} {b.name} --split dev_test eval --out results/c.md" in written
     assert written.count("| AUC (%) |") == 2
+    main(["--compare", a.name, "--out", "results/n.md", "--note", "Final model: a."])
+    noted = Path("results/n.md").read_text(encoding="utf-8").splitlines()
+    assert noted[0].endswith('--out results/n.md --note "Final model: a."`. -->')
+    assert noted[2] == "Final model: a."
     capsys.readouterr()
     main(["--beats", a.name, b.name, "--split", "eval"])
     assert f"{a.name} beats {b.name} on 6/6 machine types" in capsys.readouterr().out

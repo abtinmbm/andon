@@ -184,3 +184,52 @@ timestamp,git_commit,phase,config,model,machine_type,split,seed,auc,pauc,notes
 2026-10-20T06:44:43Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyCar,eval,2,0.9060,0.8475,id_05=0.8113/0.7575 id_06=0.9289/0.8563 id_07=0.9777/0.9288 scored_from=checkpoint
 2026-10-20T06:45:16Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyConveyor,eval,0,0.8166,0.6865,id_04=0.8591/0.7383 id_05=0.8295/0.7092 id_06=0.7611/0.6121 scored_from=checkpoint
 2026-10-20T06:45:19Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyConveyor,eval,1,0.8140,0.6713,id_04=0.8825/0.7611 id_05=0.8062/0.6383 id_06=0.7532/0.6144 scored_from=checkpoint
+2026-10-20T06:45:22Z,4db225f-dirty,3,phase3_idcnn_mixup,id_cnn,ToyConveyor,eval,2,0.7807,0.6445,id_04=0.8367/0.7084 id_05=0.7875/0.6366 id_06=0.7180/0.5884 scored_from=checkpoint
+2026-10-20T06:45:35Z,1617472,3,phase3_idcnn_mixup,id_cnn,fan,eval,0,0.9378,0.8921,id_01=0.9995/0.9974 id_03=0.9225/0.8220 id_05=0.8914/0.8569 scored_from=checkpoint
+2026-10-20T06:45:37Z,1617472,3,phase3_idcnn_mixup,id_cnn,fan,eval,1,0.9420,0.8932,id_01=0.9986/0.9927 id_03=0.9029/0.8256 id_05=0.9245/0.8612 scored_from=checkpoint
+2026-10-20T06:45:39Z,1617472,3,phase3_idcnn_mixup,id_cnn,fan,eval,2,0.9544,0.8926,id_01=0.9999/0.9994 id_03=0.9359/0.8131 id_05=0.9275/0.8654 scored_from=checkpoint
+2026-10-20T06:45:47Z,1617472,3,phase3_idcnn_mixup,id_cnn,pump,eval,0,0.9426,0.8550,id_01=0.9827/0.9492 id_03=0.8827/0.7261 id_05=0.9625/0.8896 scored_from=checkpoint
+2026-10-20T06:45:48Z,1617472,3,phase3_idcnn_mixup,id_cnn,pump,eval,1,0.9572,0.8892,id_01=0.9842/0.9614 id_03=0.9042/0.7611 id_05=0.9830/0.9452 scored_from=checkpoint
+2026-10-20T06:45:50Z,1617472,3,phase3_idcnn_mixup,id_cnn,pump,eval,2,0.9422,0.8579,id_01=0.9878/0.9741 id_03=0.8739/0.7014 id_05=0.9648/0.8981 scored_from=checkpoint
+2026-10-20T06:45:57Z,1617472,3,phase3_idcnn_mixup,id_cnn,slider,eval,0,0.9827,0.9446,id_01=0.9937/0.9752 id_03=0.9574/0.8737 id_05=0.9971/0.9849 scored_from=checkpoint
+2026-10-20T06:45:58Z,1617472,3,phase3_idcnn_mixup,id_cnn,slider,eval,1,0.9784,0.9243,id_01=0.9933/0.9734 id_03=0.9445/0.8140 id_05=0.9972/0.9855 scored_from=checkpoint
+2026-10-20T06:46:00Z,1617472,3,phase3_idcnn_mixup,id_cnn,slider,eval,2,0.9863,0.9540,id_01=0.9936/0.9701 id_03=0.9673/0.9018 id_05=0.9981/0.9899 scored_from=checkpoint
+2026-10-20T06:46:08Z,1617472,3,phase3_idcnn_mixup,id_cnn,valve,eval,0,0.9476,0.9095,id_01=1.0000/1.0000 id_03=0.9999/0.9996 id_05=0.8428/0.7289 scored_from=checkpoint
+2026-10-20T06:46:10Z,1617472,3,phase3_idcnn_mixup,id_cnn,valve,eval,1,0.9437,0.9068,id_01=1.0000/1.0000 id_03=0.9997/0.9987 id_05=0.8314/0.7216 scored_from=checkpoint
+2026-10-20T06:46:11Z,1617472,3,phase3_idcnn_mixup,id_cnn,valve,eval,2,0.9478,0.9138,id_01=0.9995/0.9974 id_03=0.9998/0.9987 id_05=0.8440/0.7453 scored_from=checkpoint
+2026-10-20T06:46:16Z,1617472,3,phase3_baseline_eval,dense_autoencoder,ToyCar,eval,0,0.8098,0.6709,id_05=0.7419/0.6385 id_06=0.8443/0.7052 id_07=0.8432/0.6690 scored_from=checkpoint
+2026-10-20T06:46:17Z,1617472,3,phase3_baseline_eval,dense_autoencoder,ToyCar,eval,1,0.7915,0.6604,id_05=0.7245/0.6267 id_06=0.8284/0.6949 id_07=0.8217/0.6594 scored_from=checkpoint
+2026-10-20T06:46:18Z,1617472,3,phase3_baseline_eval,dense_autoencoder,ToyCar,eval,2,0.7881,0.6717,id_05=0.7215/0.6356 id_06=0.8305/0.7115 id_07=0.8123/0.6681 scored_from=checkpoint
+2026-10-20T06:46:20Z,1617472,3,phase3_baseline_eval,dense_autoencoder,ToyConveyor,eval,0,0.8870,0.7079,id_04=0.9469/0.8311 id_05=0.8566/0.6216 id_06=0.8576/0.6709 scored_from=checkpoint
+2026-10-20T06:46:22Z,1617472,3,phase3_baseline_eval,dense_autoencoder,ToyConveyor,eval,1,0.8830,0.7059,id_04=0.9404/0.8190 id_05=0.8588/0.6451 id_06=0.8497/0.6535 scored_from=checkpoint
+2026-10-20T06:46:23Z,1617472,3,phase3_baseline_eval,dense_autoencoder,ToyConveyor,eval,2,0.8794,0.7034,id_04=0.9545/0.8580 id_05=0.8483/0.6176 id_06=0.8354/0.6347 scored_from=checkpoint
+2026-10-20T06:46:25Z,1617472,3,phase3_baseline_eval,dense_autoencoder,fan,eval,0,0.8609,0.6677,id_01=0.8113/0.6164 id_03=0.8903/0.6927 id_05=0.8810/0.6941 scored_from=checkpoint
+2026-10-20T06:46:26Z,1617472,3,phase3_baseline_eval,dense_autoencoder,fan,eval,1,0.8692,0.6831,id_01=0.8231/0.6358 id_03=0.8975/0.6835 id_05=0.8870/0.7300 scored_from=checkpoint
+2026-10-20T06:46:28Z,1617472,3,phase3_baseline_eval,dense_autoencoder,fan,eval,2,0.8529,0.6650,id_01=0.8051/0.6251 id_03=0.8839/0.6754 id_05=0.8697/0.6944 scored_from=checkpoint
+2026-10-20T06:46:29Z,1617472,3,phase3_baseline_eval,dense_autoencoder,pump,eval,0,0.8479,0.6435,id_01=0.8679/0.6906 id_03=0.8127/0.6055 id_05=0.8629/0.6343 scored_from=checkpoint
+2026-10-20T06:46:29Z,1617472,3,phase3_baseline_eval,dense_autoencoder,pump,eval,1,0.8385,0.6512,id_01=0.8658/0.7246 id_03=0.8104/0.5994 id_05=0.8393/0.6297 scored_from=checkpoint
+2026-10-20T06:46:30Z,1617472,3,phase3_baseline_eval,dense_autoencoder,pump,eval,2,0.8488,0.6453,id_01=0.8628/0.7033 id_03=0.8178/0.5994 id_05=0.8658/0.6331 scored_from=checkpoint
+2026-10-20T06:46:31Z,1617472,3,phase3_baseline_eval,dense_autoencoder,slider,eval,0,0.8219,0.5899,id_01=0.9144/0.7182 id_03=0.8268/0.5370 id_05=0.7244/0.5145 scored_from=checkpoint
+2026-10-20T06:46:32Z,1617472,3,phase3_baseline_eval,dense_autoencoder,slider,eval,1,0.8159,0.5933,id_01=0.9140/0.7153 id_03=0.8251/0.5438 id_05=0.7087/0.5210 scored_from=checkpoint
+2026-10-20T06:46:33Z,1617472,3,phase3_baseline_eval,dense_autoencoder,slider,eval,2,0.8141,0.5897,id_01=0.9059/0.7093 id_03=0.8190/0.5399 id_05=0.7174/0.5198 scored_from=checkpoint
+2026-10-20T06:46:34Z,1617472,3,phase3_baseline_eval,dense_autoencoder,valve,eval,0,0.5799,0.5101,id_01=0.5998/0.5171 id_03=0.5682/0.5211 id_05=0.5716/0.4922 scored_from=checkpoint
+2026-10-20T06:46:35Z,1617472,3,phase3_baseline_eval,dense_autoencoder,valve,eval,1,0.5809,0.5103,id_01=0.6053/0.5154 id_03=0.5737/0.5250 id_05=0.5638/0.4905 scored_from=checkpoint
+2026-10-20T06:46:36Z,1617472,3,phase3_baseline_eval,dense_autoencoder,valve,eval,2,0.5772,0.5079,id_01=0.5989/0.5140 id_03=0.5701/0.5193 id_05=0.5625/0.4904 scored_from=checkpoint
+2026-10-20T06:46:44Z,1617472,2,phase2_gmm_id,gmm,ToyCar,eval,0,0.9214,0.7662,id_05=0.8338/0.6172 id_06=0.9509/0.7751 id_07=0.9794/0.9063 fit_per=machine_id fit_s=0.5
+2026-10-20T06:46:45Z,1617472,2,phase2_gmm_id,gmm,ToyCar,eval,1,0.9356,0.8083,id_05=0.8526/0.6426 id_06=0.9746/0.8730 id_07=0.9797/0.9093 fit_per=machine_id fit_s=0.5
+2026-10-20T06:46:45Z,1617472,2,phase2_gmm_id,gmm,ToyCar,eval,2,0.9220,0.7678,id_05=0.8341/0.6177 id_06=0.9526/0.7795 id_07=0.9794/0.9063 fit_per=machine_id fit_s=0.4
+2026-10-20T06:46:48Z,1617472,2,phase2_gmm_id,gmm,ToyConveyor,eval,0,0.9144,0.7701,id_04=0.9721/0.8964 id_05=0.8780/0.6789 id_06=0.8930/0.7351 fit_per=machine_id fit_s=0.5
+2026-10-20T06:46:49Z,1617472,2,phase2_gmm_id,gmm,ToyConveyor,eval,1,0.9166,0.7748,id_04=0.9725/0.8951 id_05=0.8819/0.6840 id_06=0.8953/0.7453 fit_per=machine_id fit_s=0.5
+2026-10-20T06:46:50Z,1617472,2,phase2_gmm_id,gmm,ToyConveyor,eval,2,0.9181,0.7851,id_04=0.9825/0.9376 id_05=0.8791/0.6823 id_06=0.8927/0.7353 fit_per=machine_id fit_s=0.4
+2026-10-20T06:46:52Z,1617472,2,phase2_gmm_id,gmm,fan,eval,0,0.9544,0.7888,id_01=0.9441/0.7104 id_03=0.9562/0.7733 id_05=0.9629/0.8827 fit_per=machine_id fit_s=0.3
+2026-10-20T06:46:53Z,1617472,2,phase2_gmm_id,gmm,fan,eval,1,0.9583,0.7975,id_01=0.9441/0.7104 id_03=0.9562/0.7733 id_05=0.9745/0.9089 fit_per=machine_id fit_s=0.3
+2026-10-20T06:46:53Z,1617472,2,phase2_gmm_id,gmm,fan,eval,2,0.9547,0.7914,id_01=0.9425/0.7016 id_03=0.9406/0.7576 id_05=0.9809/0.9149 fit_per=machine_id fit_s=0.3
+2026-10-20T06:46:56Z,1617472,2,phase2_gmm_id,gmm,pump,eval,0,0.8733,0.6822,id_01=0.8767/0.7686 id_03=0.8065/0.5529 id_05=0.9368/0.7252 fit_per=machine_id fit_s=0.3
+2026-10-20T06:46:56Z,1617472,2,phase2_gmm_id,gmm,pump,eval,1,0.8660,0.7027,id_01=0.8767/0.7686 id_03=0.7843/0.6143 id_05=0.9368/0.7252 fit_per=machine_id fit_s=0.2
+2026-10-20T06:46:56Z,1617472,2,phase2_gmm_id,gmm,pump,eval,2,0.8544,0.6937,id_01=0.8767/0.7686 id_03=0.7443/0.5622 id_05=0.9422/0.7504 fit_per=machine_id fit_s=0.2
+2026-10-20T06:46:59Z,1617472,2,phase2_gmm_id,gmm,slider,eval,0,0.7907,0.5628,id_01=0.8697/0.5961 id_03=0.7454/0.5432 id_05=0.7569/0.5491 fit_per=machine_id fit_s=0.3
+2026-10-20T06:46:59Z,1617472,2,phase2_gmm_id,gmm,slider,eval,1,0.7954,0.5650,id_01=0.8697/0.5961 id_03=0.7454/0.5432 id_05=0.7709/0.5556 fit_per=machine_id fit_s=0.3
+2026-10-20T06:46:59Z,1617472,2,phase2_gmm_id,gmm,slider,eval,2,0.7942,0.5641,id_01=0.8697/0.5961 id_03=0.7454/0.5432 id_05=0.7673/0.5529 fit_per=machine_id fit_s=0.3
+2026-10-20T06:47:03Z,1617472,2,phase2_gmm_id,gmm,valve,eval,0,0.5447,0.5039,id_01=0.4715/0.4912 id_03=0.6299/0.5202 id_05=0.5326/0.5004 fit_per=machine_id fit_s=0.7
+2026-10-20T06:47:04Z,1617472,2,phase2_gmm_id,gmm,valve,eval,1,0.5436,0.5002,id_01=0.4717/0.4912 id_03=0.6293/0.5211 id_05=0.5297/0.4884 fit_per=machine_id fit_s=0.7
+2026-10-20T06:47:04Z,1617472,2,phase2_gmm_id,gmm,valve,eval,2,0.5397,0.5002,id_01=0.4717/0.4912 id_03=0.6138/0.5092 id_05=0.5337/0.5003 fit_per=machine_id fit_s=0.7
