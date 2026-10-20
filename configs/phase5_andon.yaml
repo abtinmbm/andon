@@ -1,0 +1,43 @@
+# Phase 5: the andon light on streamed audio, scored by the final Phase 3 model
+# (phase3_idcnn_mixup, from its checkpoints; nothing is retrained).
+#
+# Protocol, per machine ID of the split's test clips:
+#   - normal clips in name order alternate between calibration (even positions) and
+#     simulation (odd); calibration clips are played back to back and their window
+#     scores fit the limits, and nothing else uses them
+#   - false alarms: the simulation normals back to back; every red counts once and the
+#     light is reset straight after, as an operator who finds nothing would
+#   - detection: a fault is fault_clips consecutive anomaly clips of the ID (name order,
+#     leftovers unused), played after warmup_clips simulation normals; delay is from the
+#     fault's first frame to the end of the window that turned the light red, and a fault
+#     with no red by its last window is a miss
+#
+# Fixed in the Phase 5 plan (D4), then changed once on dev test, seed 0, before any row
+# was logged (D5, D6 in DECISIONS.md): log-scale limits caught no ToyCar or valve fault,
+# because confident windows give log scores a long left tail that inflates sigma; and a
+# real fault lasts longer than one 10 s clip. This is a measurement, not a model choice,
+# so there is no keep rule; eval runs once with exactly these settings.
+phase: 5
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+model:
+  type: id_cnn
+  from_config: configs/phase3_idcnn_mixup.yaml  # weights, features and patch width
+
+limits:            # SPC-style, fitted per machine ID on calibration window scores
+  log_scale: false # mean + k sigma of the raw window scores, a plain Shewhart chart
+  warn_sigma: 2.0  # yellow (warning limit)
+  control_sigma: 3.0  # red (control limit)
+
+light:
+  warn_on: 2   # windows in a row above the warning limit: green -> yellow
+  warn_off: 3  # windows in a row at or below it: yellow -> green
+  red_hold: 3  # windows in a row above the control limit: red, latched until reset
+
+stream:
+  hop_frames: 32    # a new 64-frame (2.05 s) window every 32 frames (1.02 s)
+  warmup_clips: 2   # about 20 s of normal audio before each fault
+  fault_clips: 3    # a fault lasts 3 anomaly clips, about 30 s
