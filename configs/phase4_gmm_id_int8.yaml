@@ -1,0 +1,16 @@
+# Phase 4: the per-ID GMM (phase2_gmm_id), refitted exactly as in Phase 2 (same seed), with
+# its precision Cholesky factors stored as int8 (one scale per column) and the score
+# computed in float from them. Means, log weights and log determinants stay float32.
+# No calibration data: weights only.
+#
+# It is the fallback candidate for the device: much smaller compute than the CNN, but one
+# score per 10 s clip instead of one per second.
+phase: 4
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+model:
+  type: gmm_int8
+  from_config: configs/phase2_gmm_id.yaml

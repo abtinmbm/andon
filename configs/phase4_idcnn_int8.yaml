@@ -1,0 +1,23 @@
+# Phase 4: the final Phase 3 CNN (phase3_idcnn_mixup), quantized to int8 after training.
+# Nothing is retrained: each seed's float checkpoint is loaded, batch norm is folded in,
+# weights go to int8 per output channel and activations to int8 per tensor, with ranges
+# from the min and max seen on calibration patches (andon/quant.py).
+#
+# Calibration: one random patch from each of calib_clips random normal training clips of
+# the type (the clips the CNN trained on: dev train and additional train), drawn with the
+# run seed. No test clip is used.
+#
+# Expected before the run: a small AUC loss (a few tenths of a point). This is a
+# measurement of the quantized final model, not a model choice, so there is no keep rule.
+phase: 4
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+model:
+  type: id_cnn_int8
+  from_config: configs/phase3_idcnn_mixup.yaml  # checkpoints, features, patch width and hop
+
+quantize:
+  calib_clips: 2048

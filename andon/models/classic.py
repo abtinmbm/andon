@@ -53,6 +53,11 @@ class GMM:
     def score(self, x: np.ndarray) -> np.ndarray:
         return -self._gmm.score_samples(x)
 
+    @property
+    def mixture(self) -> GaussianMixture:
+        """The fitted scikit-learn model, for int8 quantization (Phase 4)."""
+        return self._gmm
+
 
 class IForest:
     def __init__(self, n_estimators: int, max_samples: int | str, seed: int):

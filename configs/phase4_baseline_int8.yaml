@@ -1,0 +1,21 @@
+# Phase 4: the reproduced DCASE autoencoder (phase1_baseline), quantized to int8 after
+# training, for the size and accuracy table. Same scheme as phase4_idcnn_int8; the output
+# layer's result is float, and the reconstruction error is computed in float from it.
+#
+# Calibration: calib_vectors random 5-frame windows from the dev training clips (the
+# autoencoder's own training data), drawn with the run seed.
+#
+# Expected before the run: it misses the 256 KB budget (about 264k weights), whatever its
+# AUC. It is in the table as the reference, not as a candidate for the device.
+phase: 4
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+model:
+  type: dense_autoencoder_int8
+  from_config: configs/phase1_baseline.yaml
+
+quantize:
+  calib_vectors: 8192
