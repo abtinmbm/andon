@@ -34,6 +34,7 @@ from andon.evaluate import _cells, _mean_sd, comparison_tables, log_scores, per_
 from andon.evaluate import clip_scores as ae_clip_scores
 from andon.experiment import RESULTS_LOG, Config, is_logged, load_config, read_results, set_seed
 from andon.models.classic import GMM, build_detector
+from andon.models.idcnn import IdCNN
 from andon.score import split_clips
 
 CACHE_DIR = Path("data/cache")
@@ -135,6 +136,19 @@ def check_float_matches_log(
 # --- one model type each ----------------------------------------------------------------
 
 
+def calibrated_cnn(
+    model: IdCNN, train_feats: SplitFeatures, width: int, n_calib: int, seed: int
+) -> quant.QuantIdCNN:
+    """Quantize ``model`` with one random patch from each of ``n_calib`` random training
+    clips, drawn with ``seed``. The C export calls this too, so it exports exactly the
+    model that was scored."""
+    rng = np.random.default_rng(seed)
+    idx = rng.choice(train_feats.n_clips, size=n_calib, replace=False)
+    frames = torch.from_numpy(train_feats.frames)
+    calib = train_idcnn.random_patches(frames, train_feats.offsets, idx, width, rng)
+    return quant.quantize_idcnn(model, calib)
+
+
 def run_cnn(
     cfg: Config,
     src: Config,
@@ -151,7 +165,6 @@ def run_cnn(
     feats = load_or_extract(clips, src.logmel, cache_dir, cache_name)
     index = {mid: k for k, mid in enumerate(classes)}
     true_ids = np.array([index[c.machine_id] for c in clips])
-    frames = torch.from_numpy(train_feats.frames)
     out = []
     for seed in seeds:
         model, ckpt = train_idcnn.load_checkpoint(src.checkpoint_path(machine_type, seed), src, CPU)
@@ -160,11 +173,8 @@ def run_cnn(
         float_scores = train_idcnn.score_clips(src, model, classes, clips, feats, CPU)
         check_float_matches_log(src, machine_type, seed, split, clips, float_scores, log)
 
-        rng = np.random.default_rng(seed)
         n_calib = min(int(cfg.raw["quantize"]["calib_clips"]), train_feats.n_clips)
-        idx = rng.choice(train_feats.n_clips, size=n_calib, replace=False)
-        calib = train_idcnn.random_patches(frames, train_feats.offsets, idx, width, rng)
-        qmodel = quant.quantize_idcnn(model, calib)
+        qmodel = calibrated_cnn(model, train_feats, width, n_calib, seed)
         scores, sat = cnn_clip_scores(qmodel, feats, true_ids, width, hop)
         anomaly = np.array([c.is_anomaly for c in clips])
 
@@ -389,17 +399,42 @@ def budget_table(configs: list[str], split: str = "dev_test", log: Path = RESULT
     return "\n".join(lines)
 
 
-def summary(configs: list[str], split: str = "dev_test", log: Path = RESULTS_LOG) -> str:
-    sources = [source_config(load_config(Path("configs") / f"{c}.yaml")).name for c in configs]
-    paired = [name for pair in zip(sources, configs, strict=True) for name in pair]
-    return budget_table(configs, split, log) + "\n\n" + comparison_tables(paired, [split], log)
+SPLIT_TITLES = {
+    "dev_test": "Dev test: every model, used to choose",
+    "eval": "Eval: the chosen model only, scored once",
+}
+
+
+def summary(configs: list[str], splits: list[str], log: Path = RESULTS_LOG) -> str:
+    """A budget table and per-type AUC tables for each split; a config with no rows in a
+    split (only the chosen model has eval rows) is left out of that split."""
+    logged = {(r["config"], r["split"]) for r in read_results(log)}
+    sections = []
+    for split in splits:
+        here = [c for c in configs if (c, split) in logged]
+        if not here:
+            raise ValueError(f"no {split} rows for any of {configs}")
+        cfgs = [load_config(Path("configs") / f"{c}.yaml") for c in here]
+        sources = [source_config(c).name for c in cfgs]
+        paired = [name for pair in zip(sources, here, strict=True) for name in pair]
+        sections.append(
+            f"## {SPLIT_TITLES[split]}\n\n{budget_table(here, split, log)}\n\n"
+            + comparison_tables(paired, [split], log)
+        )
+    return "\n\n".join(sections)
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Quantize a model to int8 and score it.")
     parser.add_argument("--config", nargs="+", required=True, help="one to run; several to sum")
     parser.add_argument("--seed", type=int, nargs="+", help="one or more seeds")
-    parser.add_argument("--split", choices=["dev_test", "eval"], default="dev_test")
+    parser.add_argument(
+        "--split",
+        nargs="+",
+        choices=["dev_test", "eval"],
+        default=["dev_test"],
+        help="one to run; with --summary, one or more",
+    )
     parser.add_argument("--machines", nargs="*", help="machine types (default: all in the config)")
     parser.add_argument("--threads", type=int, help="CPU threads (default: PyTorch's choice)")
     parser.add_argument("--summary", action="store_true", help="print the tables, run nothing")
@@ -409,6 +444,7 @@ def main(argv: list[str] | None = None) -> None:
     if args.summary:
         names = [Path(c).stem for c in args.config]
         command = "uv run python -m andon.quantize --summary --config " + " ".join(names)
+        command += " --split " + " ".join(args.split)
         if args.out:
             command += f" --out {args.out.as_posix()}"
         text = f"<!-- Generated by `{command}`. -->\n\n{summary(names, args.split)}\n"
@@ -417,13 +453,13 @@ def main(argv: list[str] | None = None) -> None:
             args.out.write_text(text, encoding="utf-8")
         return
 
-    if not args.seed or len(args.config) != 1:
-        parser.error("a run needs --seed and exactly one --config")
+    if not args.seed or len(args.config) != 1 or len(args.split) != 1:
+        parser.error("a run needs --seed, exactly one --config and exactly one --split")
     if args.threads:
         torch.set_num_threads(args.threads)
     cfg = load_config(args.config[0])
     print(f"config {cfg.name}, seeds {args.seed}, split {args.split}")
-    run(cfg, args.seed, args.machines or cfg.machine_types, args.split)
+    run(cfg, args.seed, args.machines or cfg.machine_types, args.split[0])
 
 
 if __name__ == "__main__":

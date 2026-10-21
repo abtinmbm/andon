@@ -30,3 +30,8 @@ jobs:
 
       - name: Test
         run: uv run pytest -q
+
+      # A seeded model with the final CNN's shapes: writes the C headers, reads them back and
+      # checks every test vector. Real-model headers need the training audio and stay local.
+      - name: Export C headers
+        run: uv run python -m andon.export_c --synthetic --out firmware/build/model

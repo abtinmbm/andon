@@ -20,6 +20,7 @@ def int8_cfg(tmp_path: Path, name: str, source: Path, model_type: str, **extra) 
     raw = yaml.safe_load((CONFIGS / f"{name}.yaml").read_text())
     raw["data"] = {"root": str(tmp_path / "data"), "machine_types": ["fan"]}
     raw["model"] = {"type": model_type, "from_config": str(source)}
+    raw.pop("final", None)  # a test opts in to eval explicitly
     raw.update(extra)
     return write_cfg(Config(f"tiny_{name}", raw), tmp_path / f"tiny_{name}.yaml")
 
@@ -126,15 +127,16 @@ def test_autoencoder_and_gmm_int8_runs(tmp_path, monkeypatch):
 
 
 def test_phase4_configs_point_at_the_logged_float_models():
-    for name, source, model in [
-        ("phase4_idcnn_int8", "phase3_idcnn_mixup", "id_cnn_int8"),
-        ("phase4_baseline_int8", "phase1_baseline", "dense_autoencoder_int8"),
-        ("phase4_gmm_id_int8", "phase2_gmm_id", "gmm_int8"),
+    for name, source, model, final in [
+        ("phase4_idcnn_int8", "phase3_idcnn_mixup", "id_cnn_int8", True),
+        ("phase4_baseline_int8", "phase1_baseline", "dense_autoencoder_int8", False),
+        ("phase4_gmm_id_int8", "phase2_gmm_id", "gmm_int8", False),
     ]:
         cfg = load_config(CONFIGS / f"{name}.yaml")
         assert quantize.source_config(cfg).name == source
         assert cfg.model == model and cfg.phase == 4
-        assert cfg.raw.get("final") is not True  # set only once the dev choice is logged
+        # Only the model chosen on dev test may be scored on eval.
+        assert (cfg.raw.get("final") is True) == final
         assert cfg.machine_types == list(MACHINE_TYPES)
 
 
@@ -173,8 +175,10 @@ def test_budget_table_pairs_each_int8_model_with_its_float_model(tmp_path, monke
     assert cells[11] == f"{mean - 0.2:.2f} +/- 0.10"
     assert cells[12] == "-0.20 +/- 0.00"
 
-    full = quantize.summary(["int8_model"], log=log)
+    full = quantize.summary(["int8_model"], ["dev_test"], log=log)
     assert "| AUC (%) | float_model | int8_model |" in full
+    with pytest.raises(ValueError, match="no eval rows"):
+        quantize.summary(["int8_model"], ["dev_test", "eval"], log=log)
 
 
 def test_budget_table_refuses_partial_runs(tmp_path, monkeypatch):

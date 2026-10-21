@@ -16,8 +16,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
-# Firmware build output
+# Firmware build output, and real-model headers (weights trained on CC BY-NC-SA data,
+# regenerated with andon.export_c)
 firmware/build/
+firmware/model/
 
 # OS and editor files
 .DS_Store

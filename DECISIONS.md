@@ -12,6 +12,46 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-10-21: C export: CI exports a seeded synthetic model; real headers stay local (Phase 4)
+- **Tried:** `andon/export_c.py` writes `andon_model.h` (weights, biases, fixed-point multipliers and shifts, normalisation, input quantization) and `andon_test_vectors.h`: int16 audio, its log-mel frames for H4, three patches cut from them, and for each patch the int8 input, every conv layer's int8 output, the head's int32 sums, the logits and the score, for H5. After writing, it reads both headers back, rebuilds the model from them and checks every vector: the int8 tensors and int32 sums must match exactly. The CI step `python -m andon.export_c --synthetic` does this for a seeded model with the final CNN's layer shapes, built from synthetic audio. A test compiles both headers as strict C11 (`-Wall -Wextra -Werror -pedantic`) when a compiler is installed.
+- **Result:** the real export of `phase4_idcnn_int8` (fan, seed 0) is 98.7 KB of model data and reproduces its vectors. It quantizes with the same calibration patches `andon.quantize` used; re-scoring fan seed 0 through the shared code gave the logged dev AUC (0.8459) again.
+- **Decision:** kept (PM decision at the Phase 4 plan). Real headers go to `firmware/model/`, which is gitignored.
+- **Why:**
+  - Real weights need the training audio for calibration, which CI doesn't have, and they are trained on CC BY-NC-SA data. A synthetic model tests every line of the export without either.
+  - The input is quantized in double on the device, as in the Python reference, rather than changing the reference after its rows were logged. That is 128 divisions per frame, so software double is cheap.
+
+### 2026-10-21: The int8 CNN is the model for the microcontroller (Phase 4)
+- **Tried:** the three int8 models on dev test, seeds 0, 1, 2 (`results/phase4_mcu.md`).
+- **Result:**
+  - `phase4_idcnn_int8`: 98.7 KB, 7,373,696 MACs per 64-frame window scored every 32 frames, about 3.27 ms per frame (98.32 ms per window); mean dev AUC 86.64 ± 0.60.
+  - `phase4_gmm_id_int8`: 145.1 KB, about 0.20 ms per frame, one score per 10 s clip; 83.22 ± 0.23.
+  - `phase4_baseline_int8`: 272.1 KB, over the 256 KB budget; 73.85 ± 0.09.
+- **Decision:** `phase4_idcnn_int8` goes to the device and to H3. Its config is marked `final: true`, the only Phase 4 config `andon.quantize` will score on eval, once.
+- **Why:** of the two models that fit, it has the higher mean dev AUC, by more than ten times either seed spread. The per-ID GMM is still ahead on dev for ToyCar (93.78 against 86.62) and ToyConveyor (88.19 against 76.15); it stays the documented fallback. The choice uses dev test only.
+
+### 2026-10-21: Int8 costs no measurable AUC on dev test (Phase 4)
+- **Tried:** post-training int8 of the three Phase 1 to 3 reference models, no retraining: `phase4_idcnn_int8` (from `phase3_idcnn_mixup`), `phase4_baseline_int8` (from `phase1_baseline`) and `phase4_gmm_id_int8` (from `phase2_gmm_id`). Before each int8 model was scored, its float model was re-scored on the same clips and had to match its logged row within 0.0005; all 54 runs did.
+- **Result (mean dev AUC of six types, mean ± sample std over seeds; the change is taken per seed):**
+  - CNN 86.64 ± 0.57 → 86.64 ± 0.60, change −0.01 ± 0.04. pAUC 79.24 ± 0.71 → 79.24 ± 0.73.
+  - Autoencoder 73.80 ± 0.14 → 73.85 ± 0.09, change +0.05 ± 0.06.
+  - Per-ID GMM 83.25 ± 0.22 → 83.22 ± 0.23, change −0.03 ± 0.02.
+  - No CNN input value hit the int8 limits on dev test, for normal or anomalous clips (`input_sat_*_pct` = 0.000 in all 18 rows).
+- **Decision:** reported as is. Calibration stays min/max; nothing was tuned.
+- **Why it looks this way:** every change is inside its seed spread. The scores are averages over many windows and frames, which smooths out per-value rounding. The synthetic test faults show the limit: a fault much louder than any normal audio saturates the int8 input, whose range comes from normal clips, and its score falls (a test tone at about 36 normalised units against a calibrated top of about 6). Real faults on the Stage 2 fan could be loud, so H3 checks `input_sat_anomaly_pct` before trusting an AUC.
+
+### 2026-10-21: Phase 4 dev rows are tagged `7af0e8c-dirty` (Phase 4)
+- **Tried:** the dev-test job started before the Phase 4 code was committed. All 54 `phase4_*` dev rows say `7af0e8c-dirty`. The code was committed as `907e7ac` 20 minutes after the last row.
+- **Result:** the rows carry the `input_sat_*_pct` notes, which were the last change to `andon/` before the run; after it only test files were edited until the commit. So the rows come from the code in `907e7ac`.
+- **Decision:** rows left as written, as for the Phase 3 rows tagged `4db225f-dirty`. Nothing is re-run and the log is not edited.
+- **Why:** re-running to get a cleaner tag adds nothing, and the log is never edited by hand.
+
+### 2026-10-21: Own int8 reference instead of PyTorch quantization; budget estimated from MACs (Phase 4)
+- **Tried:** `andon/quant.py` folds batch norm, stores weights as int8 with one scale per output channel, and activations as int8 with one scale and zero point per tensor (min/max of normal training data). Each layer's int32 sums are rescaled with a 31-bit fixed-point multiplier and a shift, rounding half up. The CNN is integer-only up to its last layer's sums; the logits and the score are float, since the Cortex-M33 has an FPU. The GMM stores only its precision Cholesky factors as int8 and scores in float. `andon/budget.py` counts MACs per score and converts them at an assumed 0.5 MAC per cycle at 150 MHz, spreading a window's cost over the frames between windows.
+- **Decision:** kept (PM decisions at the Phase 4 plan). The GMM tweaks deferred from Phase 3 were dropped: the CNN fits the budget, and H3 retrains on the real fan anyway.
+- **Why:**
+  - PyTorch's quantized kernels round in ways that aren't specified, so a C port could only approximate them. Our own reference defines every integer operation, so the C code can match it exactly on the test vectors.
+  - Compute is an estimate until H5 measures it. One CNN window takes about 98 ms in one go, more than a 32 ms frame. Averaged over its 32 frames it is about 3 ms per frame, and the RP2350's second core can run it while the first keeps up with the audio.
+
 ### 2026-10-20: The headline is reproduced from released checkpoints, not by retraining (Phase 6)
 - **Tried:** `andon.reproduce`, the second of the two "done when" commands after `uv sync`. It downloads only the evaluation test clips and labels (Zenodo, MD5-checked) and the 18 `phase3_idcnn_mixup` checkpoints (SHA-256 pinned in the code). It re-scores the evaluation set through `andon.score`'s code path and compares every machine type and seed with its logged row.
 - **Result:** on this machine, with the data and checkpoints already on disk, all 36 eval AUC and pAUC values matched the log exactly (largest difference 0.0000), and the mean came out at the logged 92.13 ± 0.16. On 2026-10-21 a fresh clone of `e5bff26` in an empty folder, with `uv sync` and `uv run python -m andon.reproduce` only, downloaded the eval test clips and the 18 checkpoints from release `checkpoints-v1` and gave the same result: all 36 values matched (largest difference 0.0000), 92.13 ± 0.16, "Reproduced". The clone's working tree, including `results/results_log.csv`, was unchanged afterwards.

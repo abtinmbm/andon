@@ -9,7 +9,12 @@
 #
 # Expected before the run: a small AUC loss (a few tenths of a point). This is a
 # measurement of the quantized final model, not a model choice, so there is no keep rule.
+#
+# Chosen for the device on dev test (DECISIONS.md, Phase 4): it fits the budget and has
+# the highest dev AUC of the models that do. Only then was it marked final, which lets
+# andon.quantize score it on eval, once.
 phase: 4
+final: true
 
 data:
   root: data
