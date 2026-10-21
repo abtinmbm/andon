@@ -103,12 +103,16 @@ def archives(machine_type: str, dataset: str = "dev_data") -> list[Archive]:
     raise ValueError(f"unknown dataset: {dataset}")
 
 
-def md5sum(path: Path) -> str:
-    digest = hashlib.md5()
+def file_digest(path: Path, algorithm: str = "md5") -> str:
+    digest = hashlib.new(algorithm)
     with path.open("rb") as f:
         for block in iter(lambda: f.read(_CHUNK), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def md5sum(path: Path) -> str:
+    return file_digest(path, "md5")
 
 
 def _progress(done: int, total: int | None, name: str) -> None:
@@ -120,13 +124,16 @@ def _progress(done: int, total: int | None, name: str) -> None:
     sys.stderr.flush()
 
 
-def download(url: str, dest: Path, expected_md5: str | None = None) -> Path:
+def download(
+    url: str, dest: Path, expected_hash: str | None = None, algorithm: str = "md5"
+) -> Path:
     """Download ``url`` to ``dest``, resuming from ``dest.part`` if it exists.
 
-    Skips the download when ``dest`` already exists with the right MD5.
+    Skips the download when ``dest`` already exists with the right hash. ``expected_hash``
+    is checked with ``algorithm``: Zenodo publishes MD5s, the checkpoint release SHA-256s.
     """
     dest.parent.mkdir(parents=True, exist_ok=True)
-    if dest.exists() and (expected_md5 is None or md5sum(dest) == expected_md5):
+    if dest.exists() and (expected_hash is None or file_digest(dest, algorithm) == expected_hash):
         print(f"  {dest.name}: already downloaded")
         return dest
 
@@ -140,16 +147,17 @@ def download(url: str, dest: Path, expected_md5: str | None = None) -> Path:
         _stream(request, part, have, dest.name)
     except urllib.error.HTTPError as err:
         # 416 means the .part file already holds every byte (the last run stopped
-        # before renaming it), so go straight to the MD5 check.
+        # before renaming it), so go straight to the hash check.
         if err.code != 416 or not have:
             raise
 
-    if expected_md5 is not None:
-        actual = md5sum(part)
-        if actual != expected_md5:
+    if expected_hash is not None:
+        actual = file_digest(part, algorithm)
+        if actual != expected_hash:
             part.unlink()
             raise RuntimeError(
-                f"{dest.name}: MD5 mismatch (got {actual}, expected {expected_md5}). "
+                f"{dest.name}: {algorithm.upper()} mismatch (got {actual}, "
+                f"expected {expected_hash}). "
                 "The partial file was deleted; run the command again."
             )
     part.replace(dest)
@@ -219,8 +227,18 @@ def is_extracted(
     return all(any((folder / split).glob("*.wav")) for split in splits)
 
 
-def fetch(machine_type: str, root: Path, keep_zip: bool = False, dataset: str = "dev_data") -> None:
+def fetch(
+    machine_type: str,
+    root: Path,
+    keep_zip: bool = False,
+    dataset: str = "dev_data",
+    splits: tuple[str, ...] | None = None,
+) -> None:
+    """Download and unpack one machine type; ``splits`` limits it to the zips holding only those
+    folders (``("test",)`` skips the additional training set)."""
     for archive in archives(machine_type, dataset):
+        if splits is not None and not set(archive.splits) <= set(splits):
+            continue
         label = f"{machine_type} ({archive.file_name})"
         if is_extracted(root, machine_type, archive.dataset, archive.splits):
             print(f"{label}: already extracted, skipping")

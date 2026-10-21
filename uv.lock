@@ -39,6 +39,7 @@ dependencies = [
 [package.dev-dependencies]
 dashboard = [
     { name = "matplotlib" },
+    { name = "pillow" },
     { name = "pyarrow" },
     { name = "streamlit" },
 ]
@@ -59,6 +60,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dashboard = [
     { name = "matplotlib", specifier = ">=3.11.2" },
+    { name = "pillow", specifier = ">=12.3.0" },
     { name = "pyarrow", specifier = "<26" },
     { name = "streamlit", specifier = ">=1.66.0" },
 ]

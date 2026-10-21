@@ -17,6 +17,7 @@ dependencies = [
 # Phase 5: the live andon dashboard and the GIF renderer. Not needed to train or score.
 dashboard = [
     "matplotlib>=3.11.2",
+    "pillow>=12.3.0",  # andon.demo writes the GIF with it directly
     # <26: Windows Smart App Control blocks pyarrow 26's unsigned DLLs (streamlit needs it).
     "pyarrow<26",
     "streamlit>=1.66.0",

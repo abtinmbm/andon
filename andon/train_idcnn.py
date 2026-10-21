@@ -225,6 +225,23 @@ def load_checkpoint(path: Path, cfg: Config, device: torch.device) -> tuple[IdCN
     return model, ckpt
 
 
+def train_and_save(
+    cfg: Config, machine_type: str, seed: int, device: torch.device, cache_dir: Path = CACHE_DIR
+) -> tuple[IdCNN, list[str], list[dict[str, float]]]:
+    """Train one machine type's classifier and save its checkpoint; logs nothing."""
+    feats, clips, classes = training_data(cfg, machine_type, cache_dir)
+    labels = np.array([classes.index(c.machine_id) for c in clips])
+    print(f"[{machine_type} seed {seed}] {len(clips)} normal train clips, IDs {classes}")
+    set_seed(seed)  # per machine type, so each model is the same in any run order
+    tic = time.perf_counter()
+    model, history = train_idcnn(feats, labels, len(classes), cfg, device)
+    mins = (time.perf_counter() - tic) / 60
+    print(f"[{machine_type} seed {seed}] trained in {mins:.1f} min")
+    path = cfg.checkpoint_path(machine_type, seed)
+    save_checkpoint(path, model, cfg, machine_type, seed, classes, history)
+    return model, classes, history
+
+
 def run(
     cfg: Config,
     seed: int,
@@ -243,15 +260,7 @@ def run(
             model, ckpt = load_checkpoint(ckpt_path, cfg, device)
             classes, history = ckpt["classes"], ckpt["history"]
         else:
-            feats, clips, classes = training_data(cfg, machine_type, cache_dir)
-            labels = np.array([classes.index(c.machine_id) for c in clips])
-            print(f"[{machine_type} seed {seed}] {len(clips)} normal train clips, IDs {classes}")
-            set_seed(seed)  # per machine type, so each model is the same in any run order
-            tic = time.perf_counter()
-            model, history = train_idcnn(feats, labels, len(classes), cfg, device)
-            mins = (time.perf_counter() - tic) / 60
-            print(f"[{machine_type} seed {seed}] trained in {mins:.1f} min")
-            save_checkpoint(ckpt_path, model, cfg, machine_type, seed, classes, history)
+            model, classes, history = train_and_save(cfg, machine_type, seed, device, cache_dir)
         test = dev_test_clips(cfg.data_root, machine_type)
         feats_test = load_or_extract(test, cfg.logmel, cache_dir, f"{machine_type}_test")
         scores = score_clips(cfg, model, classes, test, feats_test, device)

@@ -12,6 +12,41 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-10-20: The headline is reproduced from released checkpoints, not by retraining (Phase 6)
+- **Tried:** `andon.reproduce`, the second of the two "done when" commands after `uv sync`. It downloads only the evaluation test clips and labels (Zenodo, MD5-checked) and the 18 `phase3_idcnn_mixup` checkpoints (SHA-256 pinned in the code). It re-scores the evaluation set through `andon.score`'s code path and compares every machine type and seed with its logged row.
+- **Result:** on this machine, with the data and checkpoints already on disk, all 36 eval AUC and pAUC values matched the log exactly (largest difference 0.0000), and the mean came out at the logged 92.13 ± 0.16. The clean-clone run is recorded in the Phase 6 handover.
+- **Decision:** kept, with these rules:
+  - The re-scored rows go to `data/reproduced_eval.csv` (gitignored), never to `results/results_log.csv`.
+  - It refuses any config or seed that has no logged eval row, before downloading, training or scoring anything, and it refuses any model other than the machine-ID CNN.
+  - Tolerance: 0.0005 per AUC or pAUC.
+  - `--train` retrains only the missing checkpoints.
+- **Why:**
+  - Retraining needs about 15 GB of audio and many hours on a CPU, which isn't a two-command check. Scoring fixed checkpoints is deterministic.
+  - The eval-once rule is about choosing a model. Re-scoring the logged model to check it adds no new number to choose from. The guard stops the command from being used to look at eval for a model that was never scored.
+  - The tolerance allows for another CPU or PyTorch build rounding floats differently and swapping two near-tied clips.
+
+### 2026-10-20: Checkpoints published as a GitHub release under CC BY-NC-SA 4.0 (Phase 6)
+- **Tried:** the 18 float32 checkpoints (about 412 KB each) as assets of release `checkpoints-v1`. Each checkpoint holds the weights, the config, the machine type, the seed, the ID list and the training history, and nothing machine-specific.
+- **Decision:** kept (PM decision at the Phase 6 plan).
+- **Why:** `.pt` files stay out of git. A release is a fixed URL next to the code, and the pinned hashes catch a replaced file. The weights are trained on CC BY-NC-SA 4.0 data, so they are shared under the same licence.
+
+### 2026-10-20: README and model card figures are tested against the generated tables (Phase 6)
+- **Tried:** `tests/test_docs.py` fails if `README.md` or `docs/model_card.md` quotes a two-decimal figure that is in none of `results/*.md`. It also fails on a mean paired with a spread that no table pairs it with, and on a relative link to a missing file. The only figures allowed from outside the tables are the published DCASE baseline values in `andon.evaluate`.
+- **Decision:** kept.
+- **Why:** the tables are generated from `results/results_log.csv`, so a hand-typed or stale figure fails CI. The test can't tell whether a figure is attributed to the right config or split; that was checked by hand in the Phase 6 review.
+
+### 2026-10-20: pillow declared; CI actions moved to Node 24 releases (Phase 6)
+- **Tried:**
+  - `pillow>=12.3.0` added to the `dashboard` group. It was already installed through matplotlib, but `andon/demo.py` imports it directly.
+  - `actions/checkout@v4` → `@v7` and `astral-sh/setup-uv@v6` → `@v10.3.0`, both on Node 24. setup-uv has no floating major tag after v7, so it is pinned exactly.
+- **Decision:** kept (PM decisions at the Phase 6 plan).
+- **Why:** a direct import should be declared, not rely on another package's dependencies. CI had warned that Node 20 actions are deprecated.
+
+### 2026-10-20: Detection rate at 1 % false alarms deferred to H7 (Phase 6)
+- **Tried:** nothing. It is the one PLAN.md operating metric that has not been computed.
+- **Decision:** deferred to Phase H7 (PM decision).
+- **Why:** on eval it would mean re-scoring the final model to read off a new number. In H7 it is measured on the real fan, where the operating point is chosen anyway.
+
 ### 2026-10-20: Evaluation set, scored once: the andon light catches 65.57 % of faults at 5.53 false alarms per hour (Phase 5)
 - **Tried:** `phase5_andon` with every setting frozen after the dev run, seeds 0, 1, 2, `--split eval`, run once. Rows are tagged `4c3956c`. Tables are in `results/phase5_simulator.md`.
 - **Result (mean of six types, mean ± sample std over seeds):**
