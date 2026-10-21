@@ -14,7 +14,7 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ### 2026-10-20: The headline is reproduced from released checkpoints, not by retraining (Phase 6)
 - **Tried:** `andon.reproduce`, the second of the two "done when" commands after `uv sync`. It downloads only the evaluation test clips and labels (Zenodo, MD5-checked) and the 18 `phase3_idcnn_mixup` checkpoints (SHA-256 pinned in the code). It re-scores the evaluation set through `andon.score`'s code path and compares every machine type and seed with its logged row.
-- **Result:** on this machine, with the data and checkpoints already on disk, all 36 eval AUC and pAUC values matched the log exactly (largest difference 0.0000), and the mean came out at the logged 92.13 ± 0.16. The clean-clone run is recorded in the Phase 6 handover.
+- **Result:** on this machine, with the data and checkpoints already on disk, all 36 eval AUC and pAUC values matched the log exactly (largest difference 0.0000), and the mean came out at the logged 92.13 ± 0.16. On 2026-10-21 a fresh clone of `e5bff26` in an empty folder, with `uv sync` and `uv run python -m andon.reproduce` only, downloaded the eval test clips and the 18 checkpoints from release `checkpoints-v1` and gave the same result: all 36 values matched (largest difference 0.0000), 92.13 ± 0.16, "Reproduced". The clone's working tree, including `results/results_log.csv`, was unchanged afterwards.
 - **Decision:** kept, with these rules:
   - The re-scored rows go to `data/reproduced_eval.csv` (gitignored), never to `results/results_log.csv`.
   - It refuses any config or seed that has no logged eval row, before downloading, training or scoring anything, and it refuses any model other than the machine-ID CNN.
