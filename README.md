@@ -110,7 +110,7 @@ uv run python -m andon.export_c --config configs/phase4_idcnn_int8.yaml --machin
 
 uv run python -m andon.simulate --seed 0 1 2 --split dev_test       # andon light on streamed audio
 uv sync --all-groups                                                # adds the dashboard packages
-uv run --group dashboard streamlit run dashboard/app.py             # live dashboard
+uv run --group dashboard streamlit run dashboard/app.py             # live dashboard, plays the audio being scored
 uv run --group dashboard python -m andon.demo --gif docs/andon_demo.gif
 ```
 

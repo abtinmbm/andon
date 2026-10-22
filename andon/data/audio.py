@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import wave
 from pathlib import Path
+from typing import BinaryIO
 
 import numpy as np
 
@@ -30,10 +31,13 @@ def read_wav(path: str | Path) -> tuple[np.ndarray, int]:
     return samples.astype(np.float32) / _INT16_SCALE, sample_rate
 
 
-def write_wav(path: str | Path, samples: np.ndarray, sample_rate: int) -> None:
-    """Write float samples in [-1, 1] as mono 16-bit PCM (clipping anything outside)."""
+def write_wav(path: str | Path | BinaryIO, samples: np.ndarray, sample_rate: int) -> None:
+    """Write float samples in [-1, 1] as mono 16-bit PCM (clipping anything outside).
+
+    ``path`` may also be an open binary file, such as a ``BytesIO`` for the dashboard.
+    """
     pcm = np.clip(np.round(samples * _INT16_SCALE), -32768, 32767).astype("<i2")
-    with wave.open(str(path), "wb") as wf:
+    with wave.open(str(path) if isinstance(path, (str, Path)) else path, "wb") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(sample_rate)

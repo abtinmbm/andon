@@ -7,12 +7,15 @@ The stream is built exactly as the simulator builds its streams (same limits, sa
 calibration clips, same windows), for the one machine ID named in the config: the first
 ``normal_clips`` simulation normals, then the ID's first fault. The dashboard
 (``dashboard/app.py``) replays it live; ``--gif`` renders the same replay to a file.
-Both draw with :func:`draw`, so the GIF shows what the dashboard shows.
+Both draw with :func:`draw`, so the GIF shows what the dashboard shows. The dashboard
+also plays the stream's audio (:func:`stream_audio`), kept in step with the chart by
+:class:`ReplayClock`.
 """
 
 from __future__ import annotations
 
 import argparse
+import io
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -20,6 +23,7 @@ import numpy as np
 import torch
 
 from andon import score, simulate, train_idcnn
+from andon.data.audio import read_wav, write_wav
 from andon.data.features import load_or_extract
 from andon.experiment import Config, load_config, set_seed
 from andon.light import AndonLight, Light, LightSettings, Limits, fit_limits
@@ -41,6 +45,12 @@ class DemoTrace:
     settings: LightSettings
     fault_start_s: float
     fault_end_s: float
+    # The clips the stream is made of, for playing its audio; each clip's frame count sets
+    # how much of the timeline it fills.
+    clip_paths: tuple[Path, ...] = ()
+    clip_frames: tuple[int, ...] = ()
+    frame_samples: int = 512  # audio samples per log-mel frame (the hop)
+    sample_rate: int = 16000
 
 
 def states(trace: DemoTrace) -> list[Light]:
@@ -89,7 +99,67 @@ def build_trace(
         settings=st.light,
         fault_start_s=onset * st.frame_s,
         fault_end_s=len(stream) * st.frame_s,
+        clip_paths=tuple(clips[i].path for i in normals + fault),
+        clip_frames=tuple(int(off[i + 1] - off[i]) for i in normals + fault),
+        frame_samples=source.logmel.hop_length,
+        sample_rate=source.logmel.sample_rate,
     )
+
+
+def stream_audio(trace: DemoTrace) -> np.ndarray:
+    """The stream's audio, with second ``t`` of the audio at second ``t`` of the chart.
+
+    A 10 s clip gives 313 centred frames, 10.016 s of timeline, so each clip is padded
+    with silence (or trimmed) to its frames' length; otherwise the sound would drift ahead
+    of the chart by 16 ms a clip.
+    """
+    parts = []
+    for path, frames in zip(trace.clip_paths, trace.clip_frames, strict=True):
+        samples, sr = read_wav(path)
+        if sr != trace.sample_rate:
+            raise ValueError(f"{path}: {sr} Hz, the stream is {trace.sample_rate} Hz")
+        n = frames * trace.frame_samples
+        parts.append(np.pad(samples[:n], (0, max(0, n - len(samples)))))
+    return np.concatenate(parts) if parts else np.zeros(0, dtype=np.float32)
+
+
+def wav_bytes(samples: np.ndarray, sample_rate: int) -> bytes:
+    buf = io.BytesIO()
+    write_wav(buf, samples, sample_rate)
+    return buf.getvalue()
+
+
+def windows_ready(trace: DemoTrace, t_s: float) -> int:
+    """How many windows have been scored by second ``t_s`` of the stream."""
+    return int(np.searchsorted(trace.times_s, t_s, side="right"))
+
+
+@dataclass
+class ReplayClock:
+    """Where the replay is in the stream, driven by the wall clock while playing.
+
+    The chart and the audio both follow it, so the chart can't fall behind the sound
+    when drawing is slow, and pausing, changing speed or restarting keeps them together.
+    """
+
+    pos_s: float = 0.0  # stream position when last started or stopped
+    started_at: float | None = None  # wall-clock time of the last start; None when paused
+    speed: float = 1.0
+
+    @property
+    def playing(self) -> bool:
+        return self.started_at is not None
+
+    def position(self, now: float) -> float:
+        if self.started_at is None:
+            return self.pos_s
+        return self.pos_s + (now - self.started_at) * self.speed
+
+    def start(self, now: float, speed: float) -> None:
+        self.pos_s, self.started_at, self.speed = self.position(now), now, speed
+
+    def stop(self, now: float) -> None:
+        self.pos_s, self.started_at = self.position(now), None
 
 
 def draw(fig, trace: DemoTrace, n: int, lights: list[Light]) -> None:

@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt  # noqa: E402
 from PIL import Image  # noqa: E402
 
 from andon import demo  # noqa: E402
+from andon.data.audio import read_wav, write_wav  # noqa: E402
 from andon.experiment import load_config  # noqa: E402
 from andon.light import Light, LightSettings, Limits  # noqa: E402
 
@@ -76,3 +77,51 @@ def test_render_gif_writes_one_frame_per_window_plus_a_hold(tmp_path):
     assert n == 15 + 5
     with Image.open(path) as im:
         assert im.format == "GIF" and im.is_animated
+
+
+def test_windows_ready_counts_scores_available_by_a_time():
+    t = trace()  # windows end at 1, 2, ..., 15 s
+    assert [demo.windows_ready(t, x) for x in (0.0, 0.99, 1.0, 7.5, 15.0, 99.0)] == [
+        0,
+        0,
+        1,
+        7,
+        15,
+        15,
+    ]
+
+
+def test_replay_clock_follows_the_wall_clock_through_pause_and_speed_changes():
+    c = demo.ReplayClock()
+    assert not c.playing and c.position(50.0) == 0.0
+    c.start(100.0, speed=4)
+    assert c.playing and c.position(102.0) == 8.0
+    c.stop(102.0)
+    assert c.position(500.0) == 8.0  # paused: the stream stays put
+    c.start(600.0, speed=4)
+    c.start(601.0, speed=2)  # speed change: keeps the position reached at the old speed
+    assert c.position(601.0) == 12.0 and c.position(603.0) == 16.0
+
+
+def test_stream_audio_lines_up_with_the_frame_timeline(tmp_path):
+    rng = np.random.default_rng(0)
+    long, short = rng.uniform(-0.5, 0.5, 1000), rng.uniform(-0.5, 0.5, 450)
+    paths = [tmp_path / "a.wav", tmp_path / "b.wav"]
+    write_wav(paths[0], long, 16000)
+    write_wav(paths[1], short, 16000)
+    t = demo.DemoTrace(**{**trace().__dict__, "clip_paths": tuple(paths), "clip_frames": (8, 5),
+                          "frame_samples": 100})  # fmt: skip
+    audio = demo.stream_audio(t)
+    assert len(audio) == (8 + 5) * 100  # one frame of timeline = one hop of audio
+    np.testing.assert_array_equal(audio[:800], read_wav(paths[0])[0][:800])  # trimmed
+    np.testing.assert_array_equal(audio[800:1250], read_wav(paths[1])[0])
+    assert not audio[1250:].any()  # padded with silence
+
+
+def test_wav_bytes_is_a_playable_wav(tmp_path):
+    samples = np.linspace(-0.5, 0.5, 320).astype(np.float32)
+    path = tmp_path / "x.wav"
+    path.write_bytes(demo.wav_bytes(samples, 16000))
+    back, sr = read_wav(path)
+    assert sr == 16000
+    np.testing.assert_allclose(back, samples, atol=1 / 32768)
