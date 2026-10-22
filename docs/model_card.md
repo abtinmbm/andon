@@ -28,6 +28,8 @@ DCASE 2020 Task 2 (ToyADMOS and MIMII, CC BY-NC-SA 4.0): ToyCar, ToyConveyor, fa
 
 On eval, per type, AUC runs from 80.38 ± 2.00 (ToyConveyor) to 98.25 ± 0.40 (slider). The DCASE autoencoder baseline scores 79.70 ± 0.39 on eval, and a Gaussian mixture per machine 83.32 ± 0.27.
 
+**Int8 version for the microcontroller** (`phase4_idcnn_int8`, the same weights converted without retraining; [results/phase4_mcu.md](../results/phase4_mcu.md)). Weights are int8 with one scale per output channel, activations int8 with ranges taken from normal training audio, and each layer's sums are rescaled with integer arithmetic only. It is 98.7 KB of model data against 383.0 KB in float32, at an estimated 3.27 ms of compute per 32 ms frame (from the multiply-add count, at an assumed 0.5 per cycle on a 150 MHz Cortex-M33; not measured yet). AUC, mean of six types: 86.64 ± 0.60 on dev and 92.08 ± 0.17 on eval (scored once), a change of −0.04 ± 0.02 points from float on eval.
+
 **As an andon light on streamed audio** (`phase5_andon`; limits at mean + 2σ and 3σ of window scores on half of each machine's normal test clips): on eval, 5.53 ± 1.79 false alarms per hour of normal audio, 65.57 ± 1.02 % of 30 s faults caught, 10.57 ± 0.24 s mean time to red.
 
 ## Intended use
@@ -42,7 +44,8 @@ A research baseline and the reference model for the Stage 2 device, which monito
 - **False alarm rates rest on little audio.** For fan, pump, slider and valve each rate comes from 0.42 to 0.56 h of normal audio per type, so one false alarm moves it by about 2 per hour. Pump's eval rate is 14.38 ± 7.19 per hour.
 - **Eval above dev.** Eval AUC is higher than dev AUC (92.13 against 86.64). This was not investigated: the two sets have different machine IDs, so they are not directly comparable.
 - **Recording conditions.** Lab recordings of toys and single industrial machines with noise mixed in; there are no results yet on a real line, a different microphone, or a machine that drifts as it wears.
-- **Size.** Float32 on a PC. Int8 quantization and the microcontroller budget are Phase 4.
+- **Int8 input range comes from normal audio.** A fault much louder than any normal recording clips at the int8 input, and the int8 model then scores it lower than the float model would. On the DCASE sets at most 0.003 % of input values clipped (anomalous pump clips on eval), but a real machine's faults may be louder; Stage 2 checks the share of clipped inputs on the real fan.
+- **Compute is estimated, not measured.** One 2 s window costs about 98 ms in one go, more than a 32 ms frame; the 3.27 ms per frame assumes the window's cost is spread over the 32 frames between windows, for example on the second core.
 
 ## Licence
 

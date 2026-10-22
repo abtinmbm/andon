@@ -55,8 +55,20 @@ def test_synthetic_export_round_trips_through_the_headers(exported):
         (128, 64, 3, 3),
     ]
     tv, d = export_c.read_header((out / export_c.VECTORS_HEADER).read_text(encoding="utf-8"))
-    assert d["ANDON_TV_N"] == 2 and d["ANDON_TV_FRAMES"] == 64 + 32
-    assert tv["andon_tv_conv3"].size == 2 * 128 * 8 * 4
+    assert d["ANDON_TV_N"] == 3 and d["ANDON_TV_N_AUDIO"] == 2  # 2 from the audio + stress
+    assert d["ANDON_TV_FRAMES"] == 64 + 32
+    assert tv["andon_tv_conv3"].size == 3 * 128 * 8 * 4
+
+
+def test_stress_vector_hits_the_int8_clamps(exported):
+    """The last vector saturates the input at both ends and every conv layer at 127."""
+    _, out = exported
+    tv, d = export_c.read_header((out / export_c.VECTORS_HEADER).read_text(encoding="utf-8"))
+    n = d["ANDON_TV_N"]
+    stress = tv["andon_tv_input"].reshape(n, -1)[-1]
+    assert (stress == -128).any() and (stress == 127).any()
+    for i in range(4):
+        assert (tv[f"andon_tv_conv{i}"].reshape(n, -1)[-1] == 127).any()
 
 
 def test_verify_catches_a_changed_weight(exported, tmp_path):

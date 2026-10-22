@@ -35,6 +35,7 @@ from andon.models.autoencoder import DenseAutoencoder
 from andon.models.idcnn import IdCNN
 
 INT8_MIN, INT8_MAX = -128, 127
+INT32_MAX = 2**31 - 1
 
 
 @dataclass(frozen=True)
@@ -170,14 +171,30 @@ class QLayer:
         return self.weight.size + 4 * self.bias.size + 5 * self.mult.size + 2 * 4
 
 
+def to_int32(x: np.ndarray, what: str) -> np.ndarray:
+    """Round to int32, refusing values the C code's int32 would silently wrap."""
+    r = np.round(x)
+    if np.abs(r).max(initial=0) > INT32_MAX:
+        raise ValueError(f"{what} overflows int32 (largest {np.abs(r).max():.3g})")
+    return r.astype(np.int32)
+
+
+def check_int32(acc: np.ndarray, what: str) -> np.ndarray:
+    """Pass ``acc`` through, raising if the C code's int32 accumulator would overflow."""
+    if np.abs(acc).max(initial=0) > INT32_MAX:
+        raise ValueError(f"{what} overflows the int32 accumulator")
+    return acc
+
+
 def _requant_layer(
     w_float: np.ndarray, b_float: np.ndarray, in_qp: QParams, out_qp: QParams, **kw
 ) -> QLayer:
     wq, ws = quantize_weights(w_float)
     acc_scale = in_qp.scale * ws
-    bias = np.round(b_float / acc_scale).astype(np.int64)
+    # A batch-norm channel with gamma near zero gives a tiny weight scale and a huge bias.
+    bias = to_int32(b_float / acc_scale, "a bias")
     mult, shift = quantize_multiplier(acc_scale / out_qp.scale)
-    return QLayer(wq, bias.astype(np.int32), mult, shift, out_qp, **kw)
+    return QLayer(wq, bias, mult, shift, out_qp, **kw)
 
 
 def _per_channel(v: np.ndarray, ndim: int) -> np.ndarray:
@@ -213,6 +230,7 @@ class QuantIdCNN:
                 q = maxpool2(q)
             acc = conv2d_acc(q.astype(np.int32) - zero, layer.weight, layer.stride, 1)
             acc += _per_channel(layer.bias.astype(np.int64), 4)
+            check_int32(acc, "a conv layer's sum")
             mult, shift = _per_channel(layer.mult, 4), _per_channel(layer.shift, 4)
             q = requantize(acc, mult, shift, layer.out.zero_point)
             zero = layer.out.zero_point
@@ -222,7 +240,7 @@ class QuantIdCNN:
         if positions != self.pool_size:
             raise ValueError(f"patch gives {positions} pooled positions, not {self.pool_size}")
         pooled = (q.astype(np.int64) - zero).sum(axis=(2, 3))  # the 1/HW is in head_scale
-        return linear_acc(pooled, self.head_weight) + self.head_bias
+        return check_int32(linear_acc(pooled, self.head_weight) + self.head_bias, "the head's sum")
 
     def logits(self, patches: np.ndarray) -> np.ndarray:
         return self.head_acc(self.quantize_input(patches)) * self.head_scale
@@ -272,14 +290,14 @@ def quantize_idcnn(model: IdCNN, calib: torch.Tensor) -> QuantIdCNN:
     pool_size = int(x.shape[2] * x.shape[3])
     wq, ws = quantize_weights(model.head.weight.detach().double().numpy())
     head_scale = in_qp.scale * ws / pool_size
-    head_bias = np.round(model.head.bias.detach().double().numpy() / head_scale)
+    head_bias = to_int32(model.head.bias.detach().double().numpy() / head_scale, "head bias")
     return QuantIdCNN(
         band_mean=model.band_mean.numpy().astype(np.float32),
         band_std=model.band_std.numpy().astype(np.float32),
         input_q=input_q,
         convs=convs,
         head_weight=wq,
-        head_bias=head_bias.astype(np.int32),
+        head_bias=head_bias,
         head_scale=head_scale,
         pool_size=pool_size,
     )
@@ -342,8 +360,8 @@ def quantize_autoencoder(model: DenseAutoencoder, calib: torch.Tensor) -> QuantA
     last = mods[linears[-1]]
     wq, ws = quantize_weights(last.weight.detach().double().numpy())
     out_scale = in_qp.scale * ws
-    out_bias = np.round(last.bias.detach().double().numpy() / out_scale)
-    return QuantAutoencoder(input_q, hidden, wq, out_bias.astype(np.int32), out_scale)
+    out_bias = to_int32(last.bias.detach().double().numpy() / out_scale, "output bias")
+    return QuantAutoencoder(input_q, hidden, wq, out_bias, out_scale)
 
 
 @dataclass

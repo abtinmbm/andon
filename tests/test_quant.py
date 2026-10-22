@@ -202,3 +202,12 @@ def test_linear_acc_is_exact_integer_arithmetic():
     got = quant.linear_acc(x, w)
     assert got.dtype == np.int64
     np.testing.assert_array_equal(got, x.astype(np.int64) @ w.T.astype(np.int64))
+
+
+def test_biases_and_sums_that_overflow_int32_are_refused():
+    assert quant.to_int32(np.array([2.0**31 - 1.4]), "x")[0] == 2**31 - 1
+    with pytest.raises(ValueError, match="overflows int32"):
+        quant.to_int32(np.array([-(2.0**31) - 1]), "a bias")
+    acc = np.array([2**31], dtype=np.int64)
+    with pytest.raises(ValueError, match="int32 accumulator"):
+        quant.check_int32(acc, "a conv layer's sum")

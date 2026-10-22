@@ -18,9 +18,11 @@ Two headers are written, then read back and checked against the Python reference
   shifts, stride, whether a 2x2 max pool comes first, and the output zero point; then the
   head (int8 weights ``[class][channel]``, int32 biases, float logit scales).
 - ``andon_test_vectors.h``: int16 audio; its log-mel frames (H4 checks its C front end
-  against them); ``ANDON_TV_N`` patches cut from those frames; and for each patch the int8
-  input, every conv layer's int8 output, the head's int32 sums, the logits and the
-  anomaly score ``-log p(true ID)`` (H5 checks its kernels against them).
+  against them); ``ANDON_TV_N_AUDIO`` patches cut from those frames, plus one stress
+  patch whose int8 input saturates at both -128 and 127 (the clamps a port most often
+  gets wrong); and for each patch the int8 input, every conv layer's int8 output, the
+  head's int32 sums, the logits and the anomaly score ``-log p(true ID)`` (H5 checks its
+  kernels against them).
 
 Layouts: a log-mel patch is ``[frame][mel]``, as Python stores it. The int8 tensors are
 ``[channel][mel][frame]`` (channel-major, mels on the height axis), as the CNN sees them.
@@ -58,7 +60,8 @@ from andon.models.idcnn import IdCNN
 CONFIGS = Path(__file__).resolve().parents[1] / "configs"
 MODEL_HEADER = "andon_model.h"
 VECTORS_HEADER = "andon_test_vectors.h"
-N_VECTORS = 3  # patches in the test vectors
+N_VECTORS = 3  # patches cut from the audio for the test vectors
+STRESS_DB = 100  # stress patch: patch 0 with this added to half its frames, taken off the rest
 _PER_LINE = 16
 
 
@@ -170,6 +173,15 @@ class Vectors:
     scores: np.ndarray  # (n,) float64
 
 
+def stress_patch(patch: np.ndarray) -> np.ndarray:
+    """A patch far louder, then far quieter, than any normal audio."""
+    out = patch.copy()
+    half = len(out) // 2
+    out[:half] += STRESS_DB
+    out[half:] -= STRESS_DB
+    return out
+
+
 def reference_vectors(ex: Export, n: int) -> Vectors:
     """Run the audio through the Python front end and the int8 reference."""
     frames = logmel(ex.audio.astype(np.float32) / 32768, ex.logmel_cfg)
@@ -177,7 +189,10 @@ def reference_vectors(ex: Export, n: int) -> Vectors:
     if starts[-1] + ex.width > len(frames):
         raise ValueError(f"{len(frames)} frames hold fewer than {n} patches")
     patches = frames[starts[:, None] + np.arange(ex.width)]
+    patches = np.concatenate([patches, stress_patch(patches[0])[None]])
     inputs = ex.qmodel.quantize_input(patches)
+    if not ((inputs[-1] == quant.INT8_MIN).any() and (inputs[-1] == quant.INT8_MAX).any()):
+        raise ValueError("the stress patch does not saturate the int8 input at both ends")
     trace: list[np.ndarray] = []
     acc = ex.qmodel.head_acc(inputs, trace)
     logits = acc * ex.qmodel.head_scale
@@ -192,12 +207,16 @@ def vectors_header(ex: Export, v: Vectors) -> str:
         + _define("ANDON_TV_AUDIO_LEN", ex.audio.size)
         + _define("ANDON_TV_FRAMES", len(v.logmel))
         + _define("ANDON_TV_N", n)
+        + _define("ANDON_TV_N_AUDIO", n - 1)
+        + _define("ANDON_TV_STRESS_DB", STRESS_DB)
         + _define("ANDON_TV_TRUE_ID", ex.true_id),
         "/* Audio as int16 PCM; the front end sees sample / 32768.0f. */\n"
         + c_array("int16_t", "andon_tv_audio", ex.audio),
         "/* Log-mel of the audio, centred frames, reflect-padded at both ends. */\n"
         + c_array("float", "andon_tv_logmel", v.logmel, "[frame][mel]"),
-        f"/* Patch k is frames k * {ex.hop} to k * {ex.hop} + {ex.width - 1} of the log-mel. */\n"
+        f"/* Patch k < ANDON_TV_N_AUDIO is frames k * {ex.hop} to k * {ex.hop} + {ex.width - 1}"
+        " of the log-mel. The last patch is the stress patch: patch 0 with ANDON_TV_STRESS_DB"
+        f" added to its first {ex.width // 2} frames and taken off the rest. */\n"
         + c_array("float", "andon_tv_patch", v.patches, "[n][frame][mel]")
         + c_array("int8_t", "andon_tv_input", v.inputs, "[n][1][mel][frame]"),
     ]
@@ -282,15 +301,16 @@ def verify(out_dir: Path, logmel_cfg: LogMelConfig) -> None:
     model_text = (out_dir / MODEL_HEADER).read_text(encoding="utf-8")
     tv, d = read_header((out_dir / VECTORS_HEADER).read_text(encoding="utf-8"))
     qmodel = model_from_header(model_text)
-    n = d["ANDON_TV_N"]
+    n, n_audio = d["ANDON_TV_N"], d["ANDON_TV_N_AUDIO"]
     _, md = read_header(model_text)
     width, hop, n_mels = md["ANDON_PATCH_FRAMES"], md["ANDON_SCORE_HOP"], md["ANDON_N_MELS"]
 
     frames = logmel(tv["andon_tv_audio"].astype(np.float32) / 32768, logmel_cfg)
     np.testing.assert_array_equal(frames.ravel(), tv["andon_tv_logmel"])
     patches = tv["andon_tv_patch"].reshape(n, width, n_mels)
-    starts = np.arange(n) * hop
-    np.testing.assert_array_equal(patches, frames[starts[:, None] + np.arange(width)])
+    starts = np.arange(n_audio) * hop
+    np.testing.assert_array_equal(patches[:n_audio], frames[starts[:, None] + np.arange(width)])
+    np.testing.assert_array_equal(patches[n_audio:], stress_patch(patches[0])[None])
 
     inputs = qmodel.quantize_input(patches)
     np.testing.assert_array_equal(inputs.ravel(), tv["andon_tv_input"])
@@ -416,7 +436,10 @@ def main(argv: list[str] | None = None) -> None:
         ex = synthetic_export(args.seed, args.vectors)
     for path in write(ex, args.out, args.vectors):
         print(f"wrote {path} ({path.stat().st_size / 1024:.0f} KB)")
-    print(f"verified: {args.vectors} test vectors reproduce through the header model")
+    print(
+        f"verified: {args.vectors} test vectors and 1 stress vector reproduce"
+        " through the header model"
+    )
     print(f"model data: {ex.qmodel.nbytes() / 1024:.1f} KB int8 ({ex.source})")
 
 

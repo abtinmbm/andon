@@ -36,6 +36,17 @@ The CNN beats the autoencoder baseline on 5 of the 6 machine types. It loses on 
 
 Per-type tables: [results/phase5_simulator.md](results/phase5_simulator.md). The limits of the model and of these numbers are in the [model card](docs/model_card.md).
 
+**Small enough for a microcontroller.** The Stage 2 budget is at most 256 KB of model and under 20 ms of compute for every 32 ms of audio. With every weight and activation stored as an 8-bit integer (int8), the CNN fits with room to spare and scores almost the same:
+
+| Machine-ID CNN | Float32 (PC) | Int8 (microcontroller) |
+| --- | ---: | ---: |
+| Model size | 383.0 KB | 98.7 KB |
+| Estimated compute per 32 ms of audio | | 3.27 ms |
+| Development AUC, mean of six types (%) | 86.64 ± 0.57 | 86.64 ± 0.60 |
+| Evaluation AUC, mean of six types (%), scored once | 92.13 ± 0.16 | 92.08 ± 0.17 |
+
+Configs `phase3_idcnn_mixup` and `phase4_idcnn_int8`, seeds 0, 1, 2. The int8 version is the same trained model, converted without retraining; on eval it changes AUC by −0.04 ± 0.02 points, a small, consistent drop that is smaller than the spread between seeds. Compute is estimated from the count of multiply-adds, assuming 0.5 per clock cycle on the 150 MHz Cortex-M33; Stage 2 will measure it. `andon.export_c` writes the int8 model as C headers, with test vectors that the C version must match bit for bit up to the last layer's integer sums (the float logits and scores within a small tolerance); CI runs it on every push with a seeded synthetic model of the same shape. All three models, with size, compute and AUC before and after int8: [results/phase4_mcu.md](results/phase4_mcu.md).
+
 ## Reproduce the headline number
 
 Requires [uv](https://docs.astral.sh/uv/) and about 5 GB of free disk (2.3 GB of evaluation audio, 1.2 GB of cached features, and the Python environment). After cloning:
@@ -74,6 +85,8 @@ The development test set was used for every choice. The evaluation set (other ma
 - **Valve with average-spectrum models.** Every classic detector scored 50.06 to 59.43 on valve on dev: close to guessing. The CNN, which looks at 2 s windows, reaches 87.63 ± 1.14 there.
 - **Control limits on log scores.** On dev they gave 0.30 ± 0.30 false alarms per hour but caught only 24.87 ± 0.72 % of faults, and almost none for ToyCar or valve (`phase5_andon_log`).
 - **The light misses many faults.** Even with a clip AUC above 90 % on eval, the light catches 65.57 ± 1.02 % of eval faults, and only 21.75 ± 2.22 % for valve. A single 2 s window is weak evidence, and limits set for few false alarms let many faulty windows through. With 10 s faults instead of 30 s, the dev catch rate falls to 32.79 ± 0.41 % (`phase5_andon_1clip`).
+- **The autoencoder baseline doesn't fit the microcontroller.** Even at int8 it needs 272.1 KB, over the 256 KB budget.
+- **Very loud faults can clip the int8 input.** The int8 input range is set from normal audio. In a test with a synthetic fault far louder than any normal clip, the input clipped and the int8 model scored the fault far lower than the float model did. On the DCASE evaluation set at most 0.003 % of input values clipped, all in anomalous pump clips, but a real fan fault could be much louder, so Stage 2 checks this.
 - **False alarms.** 5.53 ± 1.79 false alarms per hour on eval, and 14.38 ± 7.19 for pump, would be too many on a real line. The limits trade false stops against missed faults; Stage 2 will pick that trade-off for one real machine.
 
 ## Run everything
@@ -89,17 +102,24 @@ uv run python -m andon.classic --config configs/phase2_gmm_id.yaml --seed 0 1 2 
 uv run python -u -m andon.train_idcnn --config configs/phase3_idcnn_mixup.yaml --seed 0 --threads 6   # final CNN; repeat for seeds 1, 2
 uv run python -m andon.evaluate --compare phase1_baseline phase2_gmm_id phase3_idcnn_mixup   # tables
 
+uv run python -u -m andon.quantize --config configs/phase4_idcnn_int8.yaml --seed 0 1 2 --threads 6   # int8 CNN, dev test
+uv run python -m andon.quantize --config configs/phase4_baseline_int8.yaml --seed 0 1 2    # int8 autoencoder
+uv run python -m andon.quantize --config configs/phase4_gmm_id_int8.yaml --seed 0 1 2      # int8 Gaussian mixture
+uv run python -m andon.quantize --summary --config phase4_idcnn_int8 phase4_baseline_int8 phase4_gmm_id_int8 --split dev_test eval --out results/phase4_mcu.md
+uv run python -m andon.export_c --config configs/phase4_idcnn_int8.yaml --machine fan --out firmware/model   # C headers
+
 uv run python -m andon.simulate --seed 0 1 2 --split dev_test       # andon light on streamed audio
 uv sync --all-groups                                                # adds the dashboard packages
 uv run --group dashboard streamlit run dashboard/app.py             # live dashboard
 uv run --group dashboard python -m andon.demo --gif docs/andon_demo.gif
 ```
 
-Each training and scoring command appends its rows to `results/results_log.csv` and skips rows that are already there, so the evaluation set can't be scored twice for the same config. The committed log already holds every run, so on a fresh clone these commands skip everything; to rerun from scratch, move `results/results_log.csv` aside in your copy first. Evaluation is scored with `--split eval` on `andon.score`, `andon.classic` and `andon.simulate`. Training is CPU-only; the autoencoder took about 6.5 h for 18 runs on a laptop.
+Each training and scoring command appends its rows to `results/results_log.csv` and skips rows that are already there, so the evaluation set can't be scored twice for the same config. The committed log already holds every run, so on a fresh clone these commands skip everything; to rerun from scratch, move `results/results_log.csv` aside in your copy first. Evaluation is scored with `--split eval` on `andon.score`, `andon.classic` and `andon.simulate`, and on `andon.quantize` only for a config marked `final: true`. Training is CPU-only; the autoencoder took about 6.5 h for 18 runs on a laptop.
 
 ```
 andon/          Python package: data download and loading, log-mel features, models,
-                training, scoring, the andon light and the streaming simulator
+                training, scoring, the andon light, the streaming simulator,
+                int8 quantization and the C export
 configs/        one YAML file per experiment
 results/        results_log.csv (one row per run) and the generated tables
 dashboard/      Streamlit dashboard
