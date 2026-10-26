@@ -223,6 +223,25 @@ def comparison_table(
     return "\n".join(lines)
 
 
+def type_stats(
+    config: str, split: str, metric: str = "auc", log: Path = RESULTS_LOG
+) -> dict[str, tuple[float, float]]:
+    """Per machine type, plus ``"mean"`` of the six, the mean +/- std over seeds in %.
+
+    Same figures as :func:`comparison_table`: the mean averages the types within each
+    seed first, so every type needs the same seeds.
+    """
+    rows = [r for r in read_results(log) if r["split"] == split and r["config"] == config]
+    by_cell = _cells(rows, metric)
+    seed_sets = [set(by_cell[(config, t)]) for t in MACHINE_TYPES]
+    if not seed_sets[0] or any(s != seed_sets[0] for s in seed_sets):
+        raise ValueError(f"{config} {split}: every machine type needs rows for the same seeds")
+    stats = {t: _mean_sd(list(by_cell[(config, t)].values())) for t in MACHINE_TYPES}
+    per_seed = [np.mean([by_cell[(config, t)][s] for t in MACHINE_TYPES]) for s in seed_sets[0]]
+    stats["mean"] = _mean_sd(per_seed)
+    return stats
+
+
 def comparison_tables(configs: list[str], splits: list[str], log: Path = RESULTS_LOG) -> str:
     """AUC and pAUC tables for each split.
 
