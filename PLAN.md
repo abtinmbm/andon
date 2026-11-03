@@ -135,7 +135,7 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
 
 ### Phase H2: Microphone and dataset
 
-- A PDM MEMS microphone, using Arm's open-source microphone-library-for-pico (C, Pico SDK). Capture at 16 kHz, the same rate as the DCASE data.
+- An I2S MEMS microphone (Adafruit ICS-43434 breakout), read by a PIO program with DMA (C, Pico SDK). Capture at 16 kHz, the same rate as the DCASE data; at that rate the mic runs in its low-power mode. It sends 24-bit samples, so there is no PDM filter to run or port. Check the clock limits against the TDK datasheet first.
 - Stream raw audio to the PC over USB. A Python recorder on the PC saves labelled WAV files.
 - Record about 30 minutes of normal running at two fan speeds.
 - Record anomalies created safely:
@@ -184,8 +184,7 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
 | Part | Job |
 | --- | --- |
 | Raspberry Pi Pico 2 (or Pico 2 H, which has headers pre-soldered) | Microcontroller (RP2350, 150 MHz Cortex-M33, 520 KB SRAM) |
-| Adafruit PDM MEMS microphone breakout | Microphone |
-| MAX9814 analog microphone module | Backup microphone, read with the ADC |
+| Adafruit I2S MEMS microphone breakout, ICS-43434 | Microphone |
 | 5 V DC fan, 40 to 60 mm, 2-wire | The machine being watched |
 | Logic-level MOSFET module, or a MOSFET and a 1N4001 flyback diode | Kill switch |
 | Red, yellow and green LEDs, 220 Ω resistors, a pushbutton | Andon light and reset button |
@@ -263,7 +262,7 @@ These are the numbers the project exists to measure. Fill them with real results
 | The PyTorch baseline doesn't match the 2020 numbers | Accept within 2 AUC points over 3 seeds. If a gap remains, document the likely cause (for example, a different normalization) instead of chasing it for weeks. |
 | Training is slow on a laptop CPU | The autoencoder is small. For the Phase 3 CNN, use free GPU time on Colab or Kaggle, or shrink the model. |
 | 8.1 GB of data is too much disk | Start with fan and ToyConveyor, and add the other machine types one at a time. |
-| The PDM mic library misbehaves on the Pico 2 | Switch to the analog MAX9814 microphone on the ADC, or use an original Pico. |
+| The I2S mic capture misbehaves on the Pico 2 | Try an Adafruit SPH0645 I2S breakout (same wiring), then an analog MAX9814 microphone on the ADC. |
 | The pico-tflmicro port doesn't build for the Pico 2 | Hand-write the int8 layers in C. |
 | Python and C features don't match | Compare one step at a time against the test vectors: window, FFT, mel, log. |
 | Background noise ruins the recordings | Record at quiet times with the mic close to the fan, and add noise augmentation during training. |
@@ -306,5 +305,5 @@ andon/
 - Development dataset (Zenodo): https://zenodo.org/records/3678171
 - Official baseline: https://github.com/y-kawagu/dcase2020_task2_baseline
 - Official evaluator: https://github.com/y-kawagu/dcase2020_task2_evaluator
-- Microphone library for Pico: https://github.com/ArmDeveloperEcosystem/microphone-library-for-pico
+- Adafruit ICS-43434 I2S microphone breakout: https://www.adafruit.com/product/6049
 - TensorFlow Lite Micro for Pico: https://github.com/raspberrypi/pico-tflmicro

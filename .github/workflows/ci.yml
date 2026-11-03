@@ -35,3 +35,29 @@ jobs:
       # checks every test vector. Real-model headers need the training audio and stay local.
       - name: Export C headers
         run: uv run python -m andon.export_c --synthetic --out firmware/build/model
+
+  # Cross-compiles the Pico 2 firmware, so a change that breaks the device build fails CI
+  # even though the host tests (in the job above) still pass.
+  firmware:
+    runs-on: ubuntu-latest
+    env:
+      PICO_SDK_PATH: ${{ github.workspace }}/../pico-sdk
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the Arm toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi \
+            libstdc++-arm-none-eabi-newlib libusb-1.0-0-dev pkg-config
+
+      - name: Fetch the Pico SDK
+        run: |
+          git clone --depth 1 --branch 2.3.1 https://github.com/raspberrypi/pico-sdk "$PICO_SDK_PATH"
+          git -C "$PICO_SDK_PATH" submodule update --init --depth 1 lib/tinyusb
+
+      - name: Build
+        run: |
+          cmake -S firmware -B firmware/build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build firmware/build
+          arm-none-eabi-size firmware/build/andon.elf

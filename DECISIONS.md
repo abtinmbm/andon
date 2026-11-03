@@ -12,6 +12,17 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-03: I2S microphone (Adafruit ICS-43434) instead of a PDM breakout (Stage 2 parts)
+- **Tried:** compared the planned Adafruit PDM breakout (MP34DT01-M, with Arm's microphone-library-for-pico) against I2S mics for H2: unbranded INMP441 modules and Adafruit's ICS-43434 and SPH0645 breakouts.
+- **Decision:** one Adafruit ICS-43434 breakout; the SPH0645 breakout is the fallback. One Pico 2 H, one fan and one MOSFET; the spares and the MAX9814 were dropped. No Debug Probe for now: BOOTSEL flashing and USB serial cover the early phases, and one can be bought if a crash needs a debugger.
+- **Why:** an I2S mic delivers 24-bit PCM, so the Pico spends no CPU turning a 1-bit PDM stream into 16 kHz samples, and there is one less stage to port to C and check against Python. Capture becomes a short PIO program instead of a library that only documents the RP2040. The ICS-43434 supports 16 kHz natively (in its low-power mode), has a slightly better SNR than the INMP441 (64 to 65 dBA against 61), and comes from a known supplier with a datasheet; the SPH0645 only reaches 16 kHz at the bottom of its clock range.
+
+### 2026-10-22: The dashboard plays the audio being scored (Phase 5 follow-up)
+- **Tried:** `dashboard/app.py` plays the demo stream's recording in the page, sped up with the replay speed (the browser keeps the pitch). The chart and the sound both follow one wall-clock `ReplayClock` (`andon/demo.py`); the player works out its start position when it can actually play, so loading time doesn't put it behind. Each clip is padded with silence to its frames' length (313 frames = 10.016 s), so second `t` of the audio is second `t` of the chart.
+- **Result:** the stream's audio is 150.24 s, the same as its score timeline. A headless run at 16x scored all 145 windows in 9.7 s of wall time. No results rows: the demo produces none.
+- **Decision:** kept.
+- **Why:** someone watching the demo can hear the fan change and see the light react at the same moment, which a chart alone doesn't show. A fixed sleep per window let the chart fall behind at high speeds, because drawing takes time; driving both from one clock removes that drift.
+
 ### 2026-10-21: The int8 CNN on eval, scored once (Phase 4)
 - **Tried:** `phase4_idcnn_int8` on the evaluation set, seeds 0, 1, 2, once, after the choice (entry below) was committed (`8c4ec4d`). As on dev, the float model `phase3_idcnn_mixup` was re-scored first and matched its logged eval rows.
 - **Result:** mean eval AUC 92.13 ± 0.16 (float) → 92.08 ± 0.17 (int8), change −0.04 ± 0.02; pAUC 85.44 ± 0.24 → 85.40 ± 0.25. The largest change for a single machine type is ToyConveyor, 80.38 ± 2.00 → 80.22 ± 2.01. Saturated input values: none for normal clips, and 0.001 to 0.003 % for anomalous pump clips; zero for everything else.
