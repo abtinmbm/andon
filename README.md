@@ -131,8 +131,8 @@ The numbers above are only worth something if the test was fair, so the project 
 | --- | --- | --- |
 | H0 First light | Pico SDK in C, LED heartbeat, button cycles a 3-LED andon light | in progress |
 | H1 Kill switch | 5 V fan through a logic-level MOSFET, off within 100 ms of a command | |
-| H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of the real fan with safe, staged faults | |
-| H3 Retrain | the Phase 4 model on the real fan's normal audio, AUC under the Stage 1 split rules | |
+| H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of three real fans with safe, staged faults | |
+| H3 Retrain | the Phase 4 model on the fans' normal audio, each fan a machine ID, AUC under the Stage 1 split rules | |
 | H4 Features in C | log-mel in C, matched against the Python test vectors in CI | |
 | H5 Inference in C | int8 CNN on the Pico 2, measured time, RAM and flash | |
 | H6 Jidoka | the full loop on the device: hear a fault, go red, stop the fan, wait for reset | |

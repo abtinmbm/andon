@@ -131,15 +131,18 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
 
 - A 5 V fan, switched through a logic-level MOSFET module with a flyback diode. The Pico's pin only ever drives the MOSFET, never the fan directly.
 - The fan turns on and off from serial commands, then from the andon state.
+- Try a second, lower speed: PWM on the MOSFET gate at about 25 kHz, listening for whine or stalling. If PWM misbehaves, a 10 Ω or 20 Ω series resistor lowers the fan's voltage instead. A second speed is optional (H3 has three fans as classes without it).
 - **Done when:** a serial command turns the fan off within 100 ms, confirmed with a timestamp log.
 
 ### Phase H2: Microphone and dataset
 
 - An I2S MEMS microphone (Adafruit ICS-43434 breakout), read by a PIO program with DMA (C, Pico SDK). Capture at 16 kHz, the same rate as the DCASE data; at that rate the mic runs in its low-power mode. It sends 24-bit samples, so there is no PDM filter to run or port. Check the clock limits against the TDK datasheet first.
 - Stream raw audio to the PC over USB. A Python recorder on the PC saves labelled WAV files.
-- Record about 30 minutes of normal running at two fan speeds.
-- Record anomalies created safely:
-  - tape or a small washer on one blade (imbalance)
+- Fix the recording setup and write it down before the first recording: mic position and distance, fan mount, room, gain, and the conversion from the mic's 24-bit samples to the 16-bit scale the Python front end expects. The recorder saves exactly the samples the C front end will see. Every session uses this setup, so recordings from different days and of different fans can be pooled.
+- Three fans, each a machine ID: the Sunon MF40100V2 and two identical ANVISION YDM4010B05 (5 V, 2-pin, 40 x 40 x 10 mm). Swap fans in the same mount; only one is wired at a time.
+- Record 1 to 2 hours of normal running per fan (and per speed, if H1 gives a second one), over separate sessions on different days. The DCASE data has about 2.8 hours per machine ID; the real-fan normals also have to cover training, the SPC calibration and false-alarm counting.
+- Record anomalies created safely, on each fan:
+  - a small piece of tape or Blu-Tack on one blade (imbalance; a washer is too heavy for a 40 mm fan)
   - a card partly blocking the intake (obstruction)
   - a loosened mount (rattle)
 - **Done when:** the dataset has a written labelling protocol and the recordings play back cleanly.
@@ -147,7 +150,10 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
 ### Phase H3: Retrain for the real fan
 
 - A model trained on the DCASE fans will not transfer to a desk fan, because the sound, the mic and the background noise are all different. Calibrating on the machine being watched is normal practice.
-- Train the Phase 4 model on the fan's normal recordings only, and test it on the labelled anomalies.
+- The machine-ID CNN needs at least two machines to tell apart (with one class, p(true ID) is always 1 and the score is always 0), so the three fans are its classes, as the DCASE machine IDs were. If H1 gives a second speed, each fan and speed can be its own class; that choice is made on dev. Mixup stays on.
+- The per-ID GMM (Phase 2 settings, one per fan) is trained and scored alongside as the comparison and fallback; a streaming version scores the mean log-mel spectrum of a sliding window.
+- Splits: the earlier recording sessions are dev (train on their normal clips, choose and tune on their labelled faults); the last session is eval, scored once per final model.
+- Every choice is made on dev only, with the keep rules written in the config comments before the runs.
 - **Done when:** there is an AUC on the real-fan data, produced under the same split rules as Stage 1.
 
 ### Phase H4: Features in C
@@ -185,7 +191,7 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
 | --- | --- |
 | Raspberry Pi Pico 2 (or Pico 2 H, which has headers pre-soldered) | Microcontroller (RP2350, 150 MHz Cortex-M33, 520 KB SRAM) |
 | Adafruit I2S MEMS microphone breakout, ICS-43434 | Microphone |
-| 5 V DC fan, 40 to 60 mm, 2-wire | The machine being watched |
+| Three 5 V DC fans, 40 mm, 2-wire (one Sunon MF40100V2, two ANVISION YDM4010B05) | The machines being watched; each is a machine ID |
 | Logic-level MOSFET module, or a MOSFET and a 1N4001 flyback diode | Kill switch |
 | Red, yellow and green LEDs, 220 Ω resistors, a pushbutton | Andon light and reset button |
 | Breadboard, jumper wires, micro-USB data cable | Wiring and programming |

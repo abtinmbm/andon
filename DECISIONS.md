@@ -12,6 +12,14 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-04: Three fans as machine IDs for H3 (Stage 2 plan)
+- **Tried:** nothing yet; a plan review found that the machine-ID CNN cannot be trained on a single machine. Its score is `-log p(true ID)`, and with one class that probability is always 1. Two one-fan options were weighed: the two fan speeds as the CNN's classes, or the per-ID GMM alone.
+- **Decision:** three fans, each a machine ID: the Sunon MF40100V2 already ordered and an ANVISION YDM4010B05 2-pack (5 V, 2-pin, 0.2 A, 40 x 40 x 10 mm; checked against the circuit). A second speed (PWM, or a series resistor) is tried in H1 and is optional. The per-ID GMM is trained alongside as the comparison and fallback. H2 fixes and documents the recording setup and records 1 to 2 hours of normal running per fan over separate sessions; the last session is the real-fan eval set.
+- **Why:**
+  - Several machines of one type is the setup the CNN was built and evaluated for on DCASE, so the device can run the Stage 1 model. Speeds alone are easy to tell apart, so the classifier would likely grow overconfident (as on ToyConveyor without mixup), and the speeds depended on PWM working with a 2-wire fan.
+  - The GMM alone needs one machine, but it averages the spectrum over seconds, which nearly failed on valve's short events (dev AUC 59.43 ± 0.05); a loosened-mount rattle is that kind of fault. It would also need its own C export and test vectors.
+  - The two identical ANVISION fans differ only in small unit-to-unit details, which forces the CNN to learn each fan's normal sound closely; the Sunon is an easier third class. Three identical fans would match DCASE more closely but would mean a second 2-pack.
+
 ### 2026-11-03: I2S microphone (Adafruit ICS-43434) instead of a PDM breakout (Stage 2 parts)
 - **Tried:** compared the planned Adafruit PDM breakout (MP34DT01-M, with Arm's microphone-library-for-pico) against I2S mics for H2: unbranded INMP441 modules and Adafruit's ICS-43434 and SPH0645 breakouts.
 - **Decision:** one Adafruit ICS-43434 breakout; the SPH0645 breakout is the fallback. One Pico 2 H, one fan and one MOSFET; the spares and the MAX9814 were dropped. No Debug Probe for now: BOOTSEL flashing and USB serial cover the early phases, and one can be bought if a crash needs a debugger.
