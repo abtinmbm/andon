@@ -13,7 +13,9 @@ it and checks the whole export path.
 
 Two headers are written, then read back and checked against the Python reference:
 
-- ``andon_model.h``: per-band normalisation, the input quantization, and for each conv
+- ``andon_model.h``: the front end (FFT size, hop, and the mel filterbank stored sparse:
+  for each band its first FFT bin, its number of bins and their float32 weights), per-band
+  normalisation, the input quantization, and for each conv
   layer its int8 weights ``[out][in][3][3]``, int32 biases, fixed-point multipliers and
   shifts, stride, whether a 2x2 max pool comes first, and the output zero point; then the
   head (int8 weights ``[class][channel]``, int32 biases, float logit scales).
@@ -54,7 +56,7 @@ from andon import quant, quantize, train_idcnn
 from andon.data.audio import read_wav
 from andon.data.dataset import dev_test_clips
 from andon.experiment import Config, load_config
-from andon.features.logmel import LogMelConfig, logmel
+from andon.features.logmel import LogMelConfig, logmel, mel_filterbank
 from andon.models.idcnn import IdCNN
 
 CONFIGS = Path(__file__).resolve().parents[1] / "configs"
@@ -119,10 +121,58 @@ def _guard(name: str, doc: str, body: list[str]) -> str:
     )
 
 
+def sparse_filterbank(cfg: LogMelConfig) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """The mel filterbank as ``(start, length, weights)``: band ``m`` covers FFT bins
+    ``start[m]`` to ``start[m] + length[m] - 1``, and its weights follow band ``m - 1``'s.
+
+    Each band is a triangle, so this holds only its nonzero run (a few KB instead of the
+    dense 128 x 513 floats) and the C front end uses the exact weights Python uses.
+    """
+    fmax = cfg.fmax if cfg.fmax is not None else cfg.sample_rate / 2
+    fb = mel_filterbank(cfg.sample_rate, cfg.n_fft, cfg.n_mels, cfg.fmin, fmax)
+    starts, lengths, weights = [], [], []
+    for band in fb:
+        nz = np.flatnonzero(band)
+        if nz.size == 0:
+            raise ValueError("a mel band has no FFT bins; use fewer mels or a larger FFT")
+        lo, hi = int(nz[0]), int(nz[-1]) + 1  # zeros inside the run are kept, so it is exact
+        starts.append(lo)
+        lengths.append(hi - lo)
+        weights.append(band[lo:hi])
+    return np.array(starts), np.array(lengths), np.concatenate(weights).astype(np.float32)
+
+
+def dense_filterbank(
+    start: np.ndarray, length: np.ndarray, weights: np.ndarray, n_bins: int
+) -> np.ndarray:
+    """Inverse of :func:`sparse_filterbank`."""
+    fb = np.zeros((len(start), n_bins), dtype=np.float32)
+    offsets = np.concatenate([[0], np.cumsum(length)])
+    for m, (lo, n) in enumerate(zip(start, length, strict=True)):
+        fb[m, lo : lo + n] = weights[offsets[m] : offsets[m] + n]
+    return fb
+
+
 def model_header(ex: Export) -> str:
     q = ex.qmodel
     n_mels = q.band_mean.size
+    cfg = ex.logmel_cfg
+    # The C front end computes a power spectrum and frames the audio itself; only the
+    # baseline's settings are ported.
+    if cfg.power != 2.0 or cfg.n_mels != n_mels:
+        raise ValueError(f"the C front end needs power 2 and {n_mels} mels, got {cfg}")
+    mel_start, mel_len, mel_weight = sparse_filterbank(cfg)
     body = [
+        _define("ANDON_SAMPLE_RATE", cfg.sample_rate)
+        + _define("ANDON_N_FFT", cfg.n_fft)
+        + _define("ANDON_HOP_LENGTH", cfg.hop_length)
+        + _define("ANDON_MEL_WEIGHTS", mel_weight.size),
+        "/* Mel band m: FFT bins andon_mel_start[m] .. + andon_mel_len[m] - 1, weights in"
+        " order, band after band. log-mel = 10 * log10(sum(weight * |X|^2) + eps), with"
+        " eps = 2.220446049250313e-16 (float64 machine epsilon, as in Python). */\n"
+        + c_array("int16_t", "andon_mel_start", mel_start)
+        + c_array("int16_t", "andon_mel_len", mel_len)
+        + c_array("float", "andon_mel_weight", mel_weight),
         _define("ANDON_N_MELS", n_mels)
         + _define("ANDON_PATCH_FRAMES", ex.width)
         + _define("ANDON_SCORE_HOP", ex.hop)
@@ -204,6 +254,9 @@ def vectors_header(ex: Export, v: Vectors) -> str:
     n = len(v.patches)
     body = [
         _define("ANDON_TV_SAMPLE_RATE", ex.logmel_cfg.sample_rate)
+        + _define("ANDON_TV_HOP_LENGTH", ex.logmel_cfg.hop_length)
+        + _define("ANDON_TV_N_MELS", ex.logmel_cfg.n_mels)
+        + _define("ANDON_TV_PATCH_HOP", ex.hop)
         + _define("ANDON_TV_AUDIO_LEN", ex.audio.size)
         + _define("ANDON_TV_FRAMES", len(v.logmel))
         + _define("ANDON_TV_N", n)
@@ -302,8 +355,22 @@ def verify(out_dir: Path, logmel_cfg: LogMelConfig) -> None:
     tv, d = read_header((out_dir / VECTORS_HEADER).read_text(encoding="utf-8"))
     qmodel = model_from_header(model_text)
     n, n_audio = d["ANDON_TV_N"], d["ANDON_TV_N_AUDIO"]
-    _, md = read_header(model_text)
+    ma, md = read_header(model_text)
     width, hop, n_mels = md["ANDON_PATCH_FRAMES"], md["ANDON_SCORE_HOP"], md["ANDON_N_MELS"]
+    if (md["ANDON_N_FFT"], md["ANDON_HOP_LENGTH"]) != (logmel_cfg.n_fft, logmel_cfg.hop_length):
+        raise ValueError("the header's FFT size or hop differs from the front end's")
+    fmax = logmel_cfg.fmax if logmel_cfg.fmax is not None else logmel_cfg.sample_rate / 2
+    np.testing.assert_array_equal(
+        dense_filterbank(
+            ma["andon_mel_start"],
+            ma["andon_mel_len"],
+            ma["andon_mel_weight"],
+            logmel_cfg.n_fft // 2 + 1,
+        ),
+        mel_filterbank(
+            logmel_cfg.sample_rate, logmel_cfg.n_fft, logmel_cfg.n_mels, logmel_cfg.fmin, fmax
+        ),
+    )
 
     frames = logmel(tv["andon_tv_audio"].astype(np.float32) / 32768, logmel_cfg)
     np.testing.assert_array_equal(frames.ravel(), tv["andon_tv_logmel"])
