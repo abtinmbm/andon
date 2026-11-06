@@ -45,3 +45,29 @@ pico_enable_stdio_uart(andon 0)
 
 # Writes andon.uf2 (drag onto the board in BOOTSEL mode) next to the .elf.
 pico_add_extra_outputs(andon)
+
+# andon_bench.uf2: the C log-mel and int8 CNN checked against the Python test vectors and
+# timed on the board. Needs the headers from andon.export_c (real or --synthetic), which are
+# generated, not in git; without them only the andon target is built.
+set(ANDON_MODEL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/model CACHE PATH "andon.export_c output")
+if(EXISTS ${ANDON_MODEL_DIR}/andon_model.h AND EXISTS ${ANDON_MODEL_DIR}/andon_test_vectors.h)
+    set(BENCH_SOURCES
+        src/bench.c
+        src/selftest.c
+        src/logmel.c
+        src/model.c
+        src/model_params.c
+    )
+    add_executable(andon_bench ${BENCH_SOURCES})
+    # The generated headers define every array static; each file uses only some of them.
+    set_source_files_properties(${BENCH_SOURCES} PROPERTIES
+        COMPILE_OPTIONS "-Wall;-Wextra;-Werror;-Wno-unused-const-variable")
+    target_include_directories(andon_bench PRIVATE src ${ANDON_MODEL_DIR})
+    target_link_libraries(andon_bench pico_stdlib)
+    pico_enable_stdio_usb(andon_bench 1)
+    pico_enable_stdio_uart(andon_bench 0)
+    pico_add_extra_outputs(andon_bench)
+else()
+    message(STATUS "No model headers in ${ANDON_MODEL_DIR}: skipping andon_bench "
+                   "(uv run python -m andon.export_c ... --out firmware/model)")
+endif()

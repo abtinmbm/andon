@@ -51,6 +51,18 @@ jobs:
           sudo apt-get install -y cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi \
             libstdc++-arm-none-eabi-newlib libusb-1.0-0-dev pkg-config
 
+      # andon_bench needs the model and test-vector headers; a synthetic model has the real
+      # one's shapes and needs no training data.
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          enable-cache: true
+
+      - name: Export synthetic model headers
+        run: |
+          uv python install 3.12
+          uv sync --locked
+          uv run python -m andon.export_c --synthetic --out firmware/model
+
       - name: Fetch the Pico SDK
         run: |
           git clone --depth 1 --branch 2.3.1 https://github.com/raspberrypi/pico-sdk "$PICO_SDK_PATH"
@@ -60,4 +72,4 @@ jobs:
         run: |
           cmake -S firmware -B firmware/build -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build firmware/build
-          arm-none-eabi-size firmware/build/andon.elf
+          arm-none-eabi-size firmware/build/andon.elf firmware/build/andon_bench.elf

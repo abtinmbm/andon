@@ -133,8 +133,8 @@ The numbers above are only worth something if the test was fair, so the project 
 | H1 Kill switch | 5 V fan through a logic-level MOSFET, off within 100 ms of a command | |
 | H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of three real fans with safe, staged faults | |
 | H3 Retrain | the Phase 4 model on the fans' normal audio, each fan a machine ID, AUC under the Stage 1 split rules | |
-| H4 Features in C | log-mel in C, matched against the Python test vectors in CI | |
-| H5 Inference in C | int8 CNN on the Pico 2, measured time, RAM and flash | |
+| H4 Features in C | log-mel in C, matched against the Python test vectors in CI | done on the PC (CI) |
+| H5 Inference in C | int8 CNN on the Pico 2, measured time, RAM and flash | bit-exact on the PC (CI); timing on the board next |
 | H6 Jidoka | the full loop on the device: hear a fault, go red, stop the fan, wait for reset | |
 | H7 Measure | an hour of normal running for false stops, 10 trials per fault type, a demo video | |
 
@@ -195,7 +195,9 @@ andon/          Python package: data, log-mel features, models, training, scorin
 configs/        one YAML file per experiment
 results/        results_log.csv (one row per run) and the generated tables
 dashboard/      Streamlit dashboard
-firmware/       Pico 2 firmware in C (Pico SDK), with host-compiled tests
+firmware/       Pico 2 firmware in C (Pico SDK): the andon light, the log-mel front end and
+                int8 CNN, and andon_bench (checks both against Python on the board);
+                every hardware-free file is also compiled and tested on the PC
 docs/           model card, demo GIF and charts
 tests/          pytest, on tiny synthetic data
 ```
