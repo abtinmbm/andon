@@ -19,6 +19,8 @@
 #define PIN_RED 12
 #define PIN_BUTTON 14
 #define HEARTBEAT_MS 500u
+// The boot line is printed before a terminal can open the port, so repeat the state.
+#define STATUS_MS 5000u
 
 static const uint LIGHT_PINS[] = {PIN_GREEN, PIN_YELLOW, PIN_RED};
 
@@ -53,10 +55,16 @@ int main(void) {
     button_init(&button, button_is_down(), to_ms_since_boot(get_absolute_time()));
     show_light(light);
     printf("andon h0: light=%s\n", andon_light_name(light));
+    uint32_t next_status_ms = STATUS_MS;
 
     while (true) {
         uint32_t now_ms = to_ms_since_boot(get_absolute_time());
         heartbeat(now_ms);
+        // Signed difference, so the check survives the 32-bit ms counter wrapping (~49.7 days).
+        if ((int32_t)(now_ms - next_status_ms) >= 0) {
+            printf("t=%lu ms alive light=%s\n", (unsigned long)now_ms, andon_light_name(light));
+            next_status_ms += STATUS_MS;
+        }
         if (button_pressed(&button, button_is_down(), now_ms)) {
             light = andon_light_next(light);
             show_light(light);

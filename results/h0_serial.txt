@@ -1,0 +1,15 @@
+# Phase H0 done-when: button presses on the Pico 2 H (andon.uf2), USB serial on COM6, 2026-11-07.
+# Wiring: GP10/11/12 -> 220 ohm -> green/yellow/red LED -> GND; button GP14 -> GND (internal pull-up).
+# Verbatim capture; the physical LEDs matched every line.
+t=400000 ms alive light=green
+t=401350 ms light=yellow
+t=404173 ms light=red
+t=405000 ms alive light=red
+t=407103 ms light=green
+t=410000 ms alive light=green
+t=415000 ms alive light=green
+t=420000 ms alive light=green
+t=421511 ms light=yellow
+t=423868 ms light=red
+t=425000 ms alive light=red
+t=425328 ms light=green

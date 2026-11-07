@@ -1,0 +1,25 @@
+# andon_bench.uf2 on a Pico 2 H (RP2350, 150 MHz, one core), USB serial on COM6, 2026-11-07.
+# Built from commit 9c7fc79 with the real fan model headers (seed 0). Verbatim capture of runs 2-4.
+== andon bench, run 2, clk_sys 150000000 Hz
+log-mel: 128 frames, worst |C - Python| 1.53e-05 dB (tol 1e-03), 1.456 ms/frame avg, 1.737 ms max
+cnn: 4 patches, head sum mismatches 0, worst score err 2.48e-07 (tol 1e-05)
+end to end: 3 patches, int8 input diffs 0 of 24576, worst score err 2.48e-07 (tol 1e-03), 886.58 ms/patch avg, 886.96 ms max
+real time: 29.162 ms of compute per 32 ms of audio (fits)
+static RAM: 178176 bytes
+self-test: PASS
+
+== andon bench, run 3, clk_sys 150000000 Hz
+log-mel: 128 frames, worst |C - Python| 1.53e-05 dB (tol 1e-03), 1.457 ms/frame avg, 1.738 ms max
+cnn: 4 patches, head sum mismatches 0, worst score err 2.48e-07 (tol 1e-05)
+end to end: 3 patches, int8 input diffs 0 of 24576, worst score err 2.48e-07 (tol 1e-03), 886.38 ms/patch avg, 886.39 ms max
+real time: 29.157 ms of compute per 32 ms of audio (fits)
+static RAM: 178176 bytes
+self-test: PASS
+
+== andon bench, run 4, clk_sys 150000000 Hz
+log-mel: 128 frames, worst |C - Python| 1.53e-05 dB (tol 1e-03), 1.457 ms/frame avg, 1.734 ms max
+cnn: 4 patches, head sum mismatches 0, worst score err 2.48e-07 (tol 1e-05)
+end to end: 3 patches, int8 input diffs 0 of 24576, worst score err 2.48e-07 (tol 1e-03), 886.36 ms/patch avg, 886.37 ms max
+real time: 29.156 ms of compute per 32 ms of audio (fits)
+static RAM: 178176 bytes
+self-test: PASS
