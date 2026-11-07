@@ -1,0 +1,26 @@
+# andon.fan_latency, 2026-11-07T10:11:43+00:00, port COM6, firmware bafe954-dirty, speed 50%, 10 trials, spin 0.3 s, stop 1.0 s
+build=bafe954-dirty
+pc_rtt_us=3118 ack cmd="status" result=ok t_rx_us=143463137 t_set_us=143463140 t_pin_us=143463142 pin=0 duty=0 light=green speed=100 want_on=0 kick=0
+pc_rtt_us=2013 ack cmd="fan off" result=ok t_rx_us=143465727 t_set_us=143465730 t_pin_us=143465733 pin=0 duty=0 light=green speed=100 want_on=0 kick=0
+pc_rtt_us=2085 ack cmd="fan speed 50" result=ok t_rx_us=144467964 t_set_us=144467967 t_pin_us=144467968 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=2089 ack cmd="fan on" result=ok t_rx_us=144470176 t_set_us=144470179 t_pin_us=144470221 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=3352 ack cmd="fan off" result=ok t_rx_us=144773031 t_set_us=144773034 t_pin_us=144773052 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=2470 ack cmd="fan on" result=ok t_rx_us=145776324 t_set_us=145776327 t_pin_us=145776368 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=1943 ack cmd="fan off" result=ok t_rx_us=146079184 t_set_us=146079187 t_pin_us=146079212 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=2714 ack cmd="fan on" result=ok t_rx_us=147082423 t_set_us=147082427 t_pin_us=147082469 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=2634 ack cmd="fan off" result=ok t_rx_us=147385293 t_set_us=147385296 t_pin_us=147385332 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=1963 ack cmd="fan on" result=ok t_rx_us=148387532 t_set_us=148387534 t_pin_us=148387575 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=1657 ack cmd="fan off" result=ok t_rx_us=148689389 t_set_us=148689392 t_pin_us=148689412 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=1770 ack cmd="fan on" result=ok t_rx_us=149691624 t_set_us=149691627 t_pin_us=149691669 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=2459 ack cmd="fan off" result=ok t_rx_us=149994486 t_set_us=149994489 t_pin_us=149994492 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=1500 ack cmd="fan on" result=ok t_rx_us=150996769 t_set_us=150996773 t_pin_us=150996815 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=2668 ack cmd="fan off" result=ok t_rx_us=151299626 t_set_us=151299628 t_pin_us=151299652 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=2444 ack cmd="fan on" result=ok t_rx_us=152302864 t_set_us=152302867 t_pin_us=152302909 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=2449 ack cmd="fan off" result=ok t_rx_us=152605723 t_set_us=152605726 t_pin_us=152605732 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=2664 ack cmd="fan on" result=ok t_rx_us=153608945 t_set_us=153608949 t_pin_us=153608990 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=2734 ack cmd="fan off" result=ok t_rx_us=153911803 t_set_us=153911805 t_pin_us=153911813 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=1887 ack cmd="fan on" result=ok t_rx_us=154917028 t_set_us=154917031 t_pin_us=154917073 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=2451 ack cmd="fan off" result=ok t_rx_us=155219952 t_set_us=155219955 t_pin_us=155219972 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=1940 ack cmd="fan on" result=ok t_rx_us=156222175 t_set_us=156222178 t_pin_us=156222220 pin=1 duty=100 light=green speed=50 want_on=1 kick=1
+pc_rtt_us=2359 ack cmd="fan off" result=ok t_rx_us=156525035 t_set_us=156525037 t_pin_us=156525053 pin=0 duty=0 light=green speed=50 want_on=0 kick=0
+pc_rtt_us=1908 ack cmd="fan speed 100" result=ok t_rx_us=157527295 t_set_us=157527299 t_pin_us=157527301 pin=0 duty=0 light=green speed=100 want_on=0 kick=0

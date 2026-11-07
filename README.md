@@ -105,6 +105,18 @@ The int8 model is the trained float model converted without retraining, by a Num
 
 </details>
 
+### Cutting the fan (Stage 2, H1)
+
+The Pico 2 switches a 5 V fan through a logic-level MOSFET (IRLZ44N, with a 1N4007 flyback diode); its pin only ever drives the MOSFET's gate. A serial `fan off` or a red andon light cuts the fan's power, and on red only the reset button restarts it. Measured on the board with `andon.fan_latency`, every log naming the firmware build it ran:
+
+| Test | `fan off` trials | Gate drive (GP16) low after the command, median / max | PC round trip, median / max |
+| --- | ---: | ---: | ---: |
+| Full speed ([table](results/h1_fan_latency.md)) | 20 | 29 / 41 µs | 2.01 / 2.76 ms |
+| 50 %, after the kick-start ([table](results/h1_fan_latency_50.md)) | 10 | 6 / 16 µs | 2.00 / 2.61 ms |
+| 50 %, during the kick-start ([table](results/h1_fan_latency_kick.md)) | 10 | 20 / 39 µs | 2.46 / 3.35 ms |
+
+The target was under 100 ms. Every trial passed, and each `fan off` followed a start that had powered the fan. The round trip runs from the PC writing the command to the Pico's reply arriving, so it includes USB both ways. Pressing the button to red cut the fan within the same millisecond, `fan on` was refused while red, and the reset restarted it ([raw log](results/h1_andon_red.txt)). "Off" means the fan has no power. The blades then coast to a stop over a few seconds. The fan is also off at boot, so a reset or a power blip never restarts the machine by itself.
+
 ## How it's evaluated
 
 The numbers above are only worth something if the test was fair, so the project follows fixed rules:
@@ -125,6 +137,7 @@ The numbers above are only worth something if the test was fair, so the project 
 - **Isolation forest** was the weakest detector: 57.98 ± 0.33 mean dev AUC per machine type, 63.26 ± 0.42 per machine.
 - **Average-spectrum models can't hear valve faults:** every classic detector scored 50.06 to 59.43 on valve on dev, close to guessing. The CNN reaches 87.63 ± 1.14.
 - **The autoencoder baseline doesn't fit the microcontroller:** 272.1 KB even at int8, over the 256 KB budget.
+- **A 2-wire fan can't start at half power.** With PWM on the MOSFET, the Sunon fan ran smoothly at 70 % and 50 % once spinning, but from standstill at 50 % it only jittered. The firmware now runs any start from stopped at a part speed at full power for 1 s first. At 30 % it ran but rattled, which sounds too much like a loose-mount fault to use as a normal speed. These speed results were judged by ear.
 - **Very loud faults can clip the int8 input**, whose range is set from normal audio. On the DCASE evaluation set at most 0.003 % of input values clipped, but a real fan fault could be much louder, so Stage 2 checks it.
 
 ## Stage 2 roadmap
@@ -132,7 +145,7 @@ The numbers above are only worth something if the test was fair, so the project 
 | Phase | Goal | Status |
 | --- | --- | --- |
 | H0 First light | Pico SDK in C, LED heartbeat, button cycles a 3-LED andon light | done |
-| H1 Kill switch | 5 V fan through a logic-level MOSFET, off within 100 ms of a command | |
+| H1 Kill switch | 5 V fan through a logic-level MOSFET, off within 100 ms of a command | done: worst 3.35 ms over 40 trials on the board; red cuts it, reset restarts it ([timing](results/h1_fan_latency.md)) |
 | H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of three real fans with safe, staged faults | |
 | H3 Retrain | the Phase 4 model on the fans' normal audio, each fan a machine ID, AUC under the Stage 1 split rules | |
 | H4 Features in C | log-mel in C, matched against the Python test vectors in CI | done on the PC (CI) |
@@ -179,6 +192,8 @@ uv run python -m andon.quantize --config configs/phase4_baseline_int8.yaml --see
 uv run python -m andon.quantize --config configs/phase4_gmm_id_int8.yaml --seed 0 1 2      # int8 Gaussian mixture
 uv run python -m andon.quantize --summary --config phase4_idcnn_int8 phase4_baseline_int8 phase4_gmm_id_int8 --split dev_test eval --out results/phase4_mcu.md
 uv run python -m andon.export_c --config configs/phase4_idcnn_int8.yaml --machine fan --out firmware/model   # C headers
+uv run python -m andon.fan_latency --port COM6 --trials 20 --out results/h1_fan_latency.txt   # kill-switch timing, andon.uf2 on the board
+uv run python -m andon.fan_latency results/h1_fan_latency.txt --out results/h1_fan_latency.md   # its table
 
 uv run python -m andon.simulate --seed 0 1 2 --split dev_test       # andon light on streamed audio
 uv sync --all-groups                                                # adds the dashboard packages
@@ -197,8 +212,9 @@ andon/          Python package: data, log-mel features, models, training, scorin
 configs/        one YAML file per experiment
 results/        results_log.csv (one row per run) and the generated tables
 dashboard/      Streamlit dashboard
-firmware/       Pico 2 firmware in C (Pico SDK): the andon light, the log-mel front end and
-                int8 CNN, and andon_bench (checks both against Python on the board);
+firmware/       Pico 2 firmware in C (Pico SDK): the andon light, the fan's kill switch and
+                serial commands, the log-mel front end and int8 CNN, and andon_bench
+                (checks both against Python on the board);
                 every hardware-free file is also compiled and tested on the PC
 docs/           model card, demo GIF and charts
 tests/          pytest, on tiny synthetic data

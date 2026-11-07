@@ -8,6 +8,7 @@ exported locally (its weights come from the training data, so it is not in git).
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -36,6 +37,27 @@ FLAGS = [
 HEADER_SETS = ["synthetic"] + (["real"] if (REAL_MODEL / export_c.VECTORS_HEADER).exists() else [])
 
 
+# Windows Smart App Control sometimes blocks a freshly built .exe (WinError 4551), and keeps
+# blocking that file, while a rebuild under a new name runs. Only that error is retried; a
+# failed check is never retried.
+SAC_BLOCKED = 4551
+SAC_ATTEMPTS = 3
+
+
+def _build_and_run(cmd: list[str], exe: Path) -> subprocess.CompletedProcess:
+    for attempt in range(SAC_ATTEMPTS):
+        out = exe.with_name(f"{exe.stem}_{attempt}{exe.suffix}")
+        build = subprocess.run([*cmd, "-o", str(out)], capture_output=True, text=True)
+        assert build.returncode == 0, build.stderr
+        try:
+            return subprocess.run([str(out)], capture_output=True, text=True, timeout=60)
+        except OSError as e:
+            if getattr(e, "winerror", None) != SAC_BLOCKED or attempt == SAC_ATTEMPTS - 1:
+                raise
+            time.sleep(1.0)
+    raise AssertionError("unreachable")
+
+
 @pytest.fixture(scope="module")
 def synthetic_headers(tmp_path_factory) -> Path:
     out = tmp_path_factory.mktemp("synthetic_model")
@@ -57,13 +79,7 @@ def test_firmware_host(test_src: Path, headers: str, synthetic_headers: Path, tm
     exe = tmp_path / (test_src.stem + (".exe" if sys.platform == "win32" else ""))
     sources = [str(test_src), *map(str, HOST_SOURCES)]
     includes = [f"-I{FIRMWARE / 'src'}", f"-I{model_dir}"]
-    build = subprocess.run(
-        [COMPILER, *FLAGS, *includes, *sources, "-lm", "-o", str(exe)],
-        capture_output=True,
-        text=True,
-    )
-    assert build.returncode == 0, build.stderr
-    run = subprocess.run([str(exe)], capture_output=True, text=True, timeout=60)
+    run = _build_and_run([COMPILER, *FLAGS, *includes, *sources, "-lm"], exe)
     print(run.stdout)  # measured errors and RAM sizes, shown with pytest -s
     assert run.returncode == 0, run.stdout + run.stderr
     assert "all checks passed" in run.stdout

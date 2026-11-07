@@ -1,0 +1,37 @@
+# andon.fan_latency, 2026-11-07T10:12:51+00:00, port COM6, firmware bafe954-dirty, listen 45.0 s, fan on every 5.0 s
+build=bafe954-dirty
+pc_rtt_us=2573 ack cmd="status" result=ok t_rx_us=180255394 t_set_us=180255397 t_pin_us=180255399 pin=0 duty=0 light=green speed=100 want_on=0 kick=0
+pc_rtt_us=2123 ack cmd="fan on" result=ok t_rx_us=180257735 t_set_us=180257738 t_pin_us=180257780 pin=1 duty=100 light=green speed=100 want_on=1 kick=0
+pc_s=4.7 t=185000 ms alive build=bafe954-dirty light=green fan duty=100
+pc_s=5.2 sent: fan on
+pc_s=5.2 ack cmd="fan on" result=ok t_rx_us=185419355 t_set_us=185419357 t_pin_us=185419399 pin=1 duty=100 light=green speed=100 want_on=1 kick=0
+pc_s=6.5 t=186715 ms light=yellow
+pc_s=6.8 t=187043 ms light=red
+pc_s=6.8 fan update t_set_us=187043868 t_pin_us=187043893 pin=0 duty=0 light=red kick=0
+pc_s=9.7 t=190000 ms alive build=bafe954-dirty light=red fan duty=0
+pc_s=10.1 sent: fan on
+pc_s=10.1 ack cmd="fan on" result=refused_red t_rx_us=190401723 t_set_us=190401726 t_pin_us=190401727 pin=0 duty=0 light=red speed=100 want_on=1 kick=0
+pc_s=10.1 the light is red: press the button to reset; the fan restarts if it was running
+pc_s=14.7 t=195000 ms alive build=bafe954-dirty light=red fan duty=0
+pc_s=15.1 sent: fan on
+pc_s=15.2 ack cmd="fan on" result=refused_red t_rx_us=195411188 t_set_us=195411193 t_pin_us=195411196 pin=0 duty=0 light=red speed=100 want_on=1 kick=0
+pc_s=15.2 the light is red: press the button to reset; the fan restarts if it was running
+pc_s=19.7 t=200000 ms alive build=bafe954-dirty light=red fan duty=0
+pc_s=20.1 sent: fan on
+pc_s=20.1 ack cmd="fan on" result=refused_red t_rx_us=200410689 t_set_us=200410693 t_pin_us=200410695 pin=0 duty=0 light=red speed=100 want_on=1 kick=0
+pc_s=20.1 the light is red: press the button to reset; the fan restarts if it was running
+pc_s=24.4 t=204686 ms light=green
+pc_s=24.4 fan update t_set_us=204686464 t_pin_us=204686506 pin=1 duty=100 light=green kick=0
+pc_s=24.7 t=205000 ms alive build=bafe954-dirty light=green fan duty=100
+pc_s=25.2 sent: fan on
+pc_s=25.2 ack cmd="fan on" result=ok t_rx_us=205421394 t_set_us=205421397 t_pin_us=205421439 pin=1 duty=100 light=green speed=100 want_on=1 kick=0
+pc_s=29.7 t=210000 ms alive build=bafe954-dirty light=green fan duty=100
+pc_s=30.2 sent: fan on
+pc_s=30.2 ack cmd="fan on" result=ok t_rx_us=210421689 t_set_us=210421692 t_pin_us=210421733 pin=1 duty=100 light=green speed=100 want_on=1 kick=0
+pc_s=34.7 t=215000 ms alive build=bafe954-dirty light=green fan duty=100
+pc_s=35.2 sent: fan on
+pc_s=35.2 ack cmd="fan on" result=ok t_rx_us=215422982 t_set_us=215422984 t_pin_us=215423025 pin=1 duty=100 light=green speed=100 want_on=1 kick=0
+pc_s=39.7 t=220000 ms alive build=bafe954-dirty light=green fan duty=100
+pc_s=40.2 sent: fan on
+pc_s=40.2 ack cmd="fan on" result=ok t_rx_us=220421292 t_set_us=220421295 t_pin_us=220421336 pin=1 duty=100 light=green speed=100 want_on=1 kick=0
+pc_s=44.7 t=225000 ms alive build=bafe954-dirty light=green fan duty=100

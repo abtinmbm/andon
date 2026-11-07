@@ -30,14 +30,23 @@ set(ANDON_SOURCES
     src/main.c
     src/andon_light.c
     src/button.c
+    src/command.c
+    src/fan.c
 )
 add_executable(andon ${ANDON_SOURCES})
 
 # Strict warnings on our files only; the SDK sources compiled into the target are left alone.
 set_source_files_properties(${ANDON_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wall;-Wextra;-Werror")
 
-target_include_directories(andon PRIVATE src)
-target_link_libraries(andon pico_stdlib)
+# andon_version.h names the git commit in the boot line and the status reply.
+set(ANDON_VERSION_H ${CMAKE_CURRENT_BINARY_DIR}/generated/andon_version.h)
+add_custom_target(andon_version ALL
+    COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_SOURCE_DIR} -DOUT=${ANDON_VERSION_H}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/andon_version.cmake
+    BYPRODUCTS ${ANDON_VERSION_H})
+add_dependencies(andon andon_version)
+target_include_directories(andon PRIVATE src ${CMAKE_CURRENT_BINARY_DIR}/generated)
+target_link_libraries(andon pico_stdlib hardware_pwm)
 
 # printf goes over the USB cable as a serial port; no UART adapter needed.
 pico_enable_stdio_usb(andon 1)
