@@ -12,6 +12,12 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-07: Session 1 recorded; one interrupted take, one uneven take kept (Phase H2)
+- **Tried:** session s1 in the order id_00, id_01, id_02: 30 min normal plus 3 min of each fault per fan, all at gain 4 (`configs/h2_recording.yaml`).
+- **Result (`results/h2_dataset.md`):** 9 takes, 405033 frames, 0 breaks, 0 missing, 0 corrupt, 0 clipped samples. Biggest fault-vs-normal band per take: id_00 imbalance +6.6 dB (0-125 Hz), obstruction +14.0 dB (250-500 Hz); id_01 imbalance +5.3 dB (0-125 Hz), obstruction +11.4 dB (500-1000 Hz); id_02 imbalance +6.2 dB (0-125 Hz), obstruction +11.1 dB (500-1000 Hz).
+- **Decision:** the first id_00 imbalance take was stopped with Ctrl+C after about 10 s because the table touched the blade edges. The recorder saves nothing from a take that does not finish, so no clips or manifest rows exist for it, and the take was recorded again as a single 3 min take. The id_01 imbalance take is kept although its 0-125 Hz change varies from −1.0 to +8.2 dB across clips: the tape was still on the blade at the end, possibly not pressed fully flat.
+- **Why:** takes are dropped only for a physical reason (the fault not in place, or something touching the fan), never for how strong the fault looks, or the anomaly set would be biased towards easy faults. From id_02 on, the tape is pressed flat before each imbalance take.
+
 ### 2026-11-07: Review fixes: fan off at boot, a stronger gate pull-down, and red before printing (H1)
 - **Tried:** an independent review of H1 found that the button's red reached the fan only after one or more USB prints, that the fan started at boot, and that the latency log came from a build that no longer existed.
 - **Decision (all kept):**
