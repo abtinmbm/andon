@@ -32,8 +32,12 @@ set(ANDON_SOURCES
     src/button.c
     src/command.c
     src/fan.c
+    src/mic.c
+    src/mic_stream.c
+    src/recorder.c
 )
 add_executable(andon ${ANDON_SOURCES})
+pico_generate_pio_header(andon ${CMAKE_CURRENT_SOURCE_DIR}/src/mic.pio)
 
 # Strict warnings on our files only; the SDK sources compiled into the target are left alone.
 set_source_files_properties(${ANDON_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wall;-Wextra;-Werror")
@@ -46,7 +50,10 @@ add_custom_target(andon_version ALL
     BYPRODUCTS ${ANDON_VERSION_H})
 add_dependencies(andon andon_version)
 target_include_directories(andon PRIVATE src ${CMAKE_CURRENT_BINARY_DIR}/generated)
-target_link_libraries(andon pico_stdlib hardware_pwm)
+target_link_libraries(andon pico_stdlib hardware_pwm hardware_pio hardware_dma)
+# A USB transmit buffer that holds several mic frames (526 B each), so the stream can check
+# for room and never wait on the PC (recorder.h). The SDK's default is 64 B.
+target_compile_definitions(andon PRIVATE CFG_TUD_CDC_TX_BUFSIZE=4096)
 
 # printf goes over the USB cable as a serial port; no UART adapter needed.
 pico_enable_stdio_usb(andon 1)

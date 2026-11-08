@@ -18,8 +18,8 @@ from andon import export_c
 FIRMWARE = Path(__file__).resolve().parents[1] / "firmware"
 REAL_MODEL = FIRMWARE / "model"
 COMPILER = shutil.which("gcc") or shutil.which("cc")
-# main.c and bench.c call the Pico SDK; everything else in src must build on the PC.
-DEVICE_ONLY = {"main.c", "bench.c"}
+# These call the Pico SDK; everything else in src must build on the PC.
+DEVICE_ONLY = {"main.c", "bench.c", "mic.c", "recorder.c"}
 HOST_SOURCES = sorted(p for p in (FIRMWARE / "src").glob("*.c") if p.name not in DEVICE_ONLY)
 TESTS = sorted((FIRMWARE / "test").glob("test_*.c"))
 # The generated headers define every array static, so a file that uses only some of them

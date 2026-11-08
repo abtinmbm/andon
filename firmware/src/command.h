@@ -2,7 +2,7 @@
 // builds on the PC.
 //
 // Commands are one per line, ended by '\n' or '\r' (terminals send either):
-//   fan on | fan off | fan speed <0-100> | status
+//   fan on | fan off | fan speed <0-100> | status | rec start <gain 0-8> | rec stop
 #ifndef COMMAND_H
 #define COMMAND_H
 
@@ -17,11 +17,13 @@ typedef enum {
     CMD_FAN_OFF,
     CMD_FAN_SPEED,
     CMD_STATUS,
+    CMD_REC_START,  // stream the mic over USB at a gain shift of arg (mic_stream.h)
+    CMD_REC_STOP,
 } command_kind_t;
 
 typedef struct {
     command_kind_t kind;
-    int arg;  // the speed for CMD_FAN_SPEED, else 0
+    int arg;  // the speed for CMD_FAN_SPEED, the gain shift for CMD_REC_START, else 0
 } command_t;
 
 typedef struct {

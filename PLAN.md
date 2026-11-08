@@ -144,7 +144,7 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
 - Record anomalies created safely, on each fan:
   - a small piece of tape or Blu-Tack on one blade (imbalance; a washer is too heavy for a 40 mm fan)
   - a card partly blocking the intake (obstruction)
-  - a loosened mount (rattle)
+  - a loosened mount (rattle): tried in the pilot and dropped, see DECISIONS.md (2026-11-07)
 - **Done when:** the dataset has a written labelling protocol and the recordings play back cleanly.
 
 ### Phase H3: Retrain for the real fan

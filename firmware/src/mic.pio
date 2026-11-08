@@ -1,0 +1,66 @@
+; I2S receiver for one ICS-43434 microphone with SEL tied low (left channel).
+;
+; The Pico is the I2S master: side-set drives BCLK (pin base, GP18) and WS (base + 1, GP19);
+; DOUT is read on GP20. Every instruction is half a BCLK period (clock divider set for
+; 128 instructions per sample frame), so BCLK has an exact 50 % duty cycle within the
+; divider's jitter. The datasheet (DS-000069 v1.2) wants 64 BCLK per frame, the MSB one BCLK
+; after the WS falling edge, and the data valid within 75 ns of a falling BCLK edge, so the
+; bit is read on the rising edge, half a period later.
+;
+; Bits of a frame, named by BCLK cycle: L0..L31 while WS is low, R0..R31 while it is high.
+; The 32 bits L1..L31, R0 are read into one word: the 24-bit sample (L1..L24, MSB first) in
+; its top 24 bits and the tristated slot after it in the low 8 bits, which are ignored.
+; Autopush at 32 bits sends exactly one word per frame. The right half is clocked but never
+; read, so one frame can never shift into the next word.
+;
+; tests/test_mic_pio.py runs this program in a small simulator against a model of the mic.
+
+.program i2s_mic
+.side_set 2                        ; side-set bit 0 = BCLK, bit 1 = WS
+
+public entry_point:
+.wrap_target
+    set x, 29           side 0b00  ; fall L1
+left_bits:
+    in pins, 1          side 0b01  ; rise L1 .. L30: read
+    jmp x-- left_bits   side 0b00  ; fall L2 .. L31
+    in pins, 1          side 0b01  ; rise L31: read
+    nop                 side 0b10  ; fall R0: WS high
+    in pins, 1          side 0b11  ; rise R0: read the word's 32nd bit (autopush)
+    set x, 29           side 0b10  ; fall R1
+right_bits:
+    nop                 side 0b11  ; rise R1 .. R30
+    jmp x-- right_bits  side 0b10  ; fall R2 .. R31
+    nop                 side 0b11  ; rise R31
+    nop                 side 0b00  ; fall L0: WS low, a new frame
+    nop                 side 0b01  ; rise L0
+.wrap
+
+% c-sdk {
+#include "hardware/clocks.h"
+
+// 128 instructions per frame: 64 BCLK cycles of two halves each.
+#define I2S_MIC_CYCLES_PER_FRAME 128u
+
+static inline void i2s_mic_program_init(PIO pio, uint sm, uint offset, uint pin_bclk,
+                                        uint pin_dout, uint sample_rate_hz) {
+    pio_sm_config c = i2s_mic_program_get_default_config(offset);
+    sm_config_set_sideset_pins(&c, pin_bclk);  // BCLK = pin_bclk, WS = pin_bclk + 1
+    sm_config_set_in_pins(&c, pin_dout);
+    // Shift left so the first bit read (the MSB) ends up in bit 31; push every 32 bits.
+    sm_config_set_in_shift(&c, false, true, 32);
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+    float div = (float)clock_get_hz(clk_sys) / (float)(sample_rate_hz * I2S_MIC_CYCLES_PER_FRAME);
+    sm_config_set_clkdiv(&c, div);
+
+    pio_gpio_init(pio, pin_bclk);
+    pio_gpio_init(pio, pin_bclk + 1);
+    pio_gpio_init(pio, pin_dout);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_bclk, 2, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_dout, 1, false);
+    // Start at entry_point with BCLK and WS low, as if WS had just fallen.
+    pio_sm_set_pins_with_mask(pio, sm, 0, 3u << pin_bclk);
+    pio_sm_init(pio, sm, offset + i2s_mic_offset_entry_point, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}

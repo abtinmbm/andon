@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "mic_stream.h"
+
 #define MAX_WORDS 3
 
 void command_reader_init(command_reader_t *r) {
@@ -89,8 +91,13 @@ command_t command_parse(const char *line) {
     } else if (count == 3 && word_is(w[0], n[0], "fan") && word_is(w[1], n[1], "speed") &&
                parse_small_uint(w[2], n[2], &cmd.arg)) {
         cmd.kind = CMD_FAN_SPEED;
+    } else if (count == 3 && word_is(w[0], n[0], "rec") && word_is(w[1], n[1], "start") &&
+               parse_small_uint(w[2], n[2], &cmd.arg) && cmd.arg <= (int)MIC_GAIN_SHIFT_MAX) {
+        cmd.kind = CMD_REC_START;
+    } else if (count == 2 && word_is(w[0], n[0], "rec") && word_is(w[1], n[1], "stop")) {
+        cmd.kind = CMD_REC_STOP;
     }
-    if (cmd.kind != CMD_FAN_SPEED) {
+    if (cmd.kind != CMD_FAN_SPEED && cmd.kind != CMD_REC_START) {
         cmd.arg = 0;
     }
     return cmd;

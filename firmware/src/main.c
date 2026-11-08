@@ -1,14 +1,16 @@
 // Andon firmware: the andon light, the reset button and the fan's kill switch.
 //
-// H0 added the light and the button; H1 adds the fan. The button steps the light green ->
+// H0 added the light and the button, H1 the fan and H2 the microphone. The button steps the light green ->
 // yellow -> red -> green (until the detector drives it in H6). Red cuts the fan, and only the
 // button (red -> green) starts it again. Serial commands, one per line:
-//   fan on | fan off | fan speed <0-100> | status
+//   fan on | fan off | fan speed <0-100> | status | rec start <gain 0-8> | rec stop
 // Every command is answered with one "ack" line carrying the Pico's timer (microseconds) when
 // the command arrived, when the PWM was changed and when the gate pin was read back at its
 // new level, so the time to cut the fan can be measured from the log (andon.fan_latency).
 // Starting from stopped at a part speed runs a 1 s full-speed kick first (see fan.h). The fan
-// is off at boot: a reset or power blip never restarts the machine by itself.
+// is off at boot: a reset or power blip never restarts the machine by itself. "rec start"
+// streams the microphone to the PC as binary frames (recorder.h, mic_stream.h) until
+// "rec stop"; andon/record.py turns them into WAV files.
 //
 // Wiring (Pico 2 physical pin in brackets):
 //   GP10 [14] -> 220 ohm -> green LED  -> GND [13]
@@ -20,6 +22,8 @@
 //              near 2 V against a weaker pull-down). Fan + to VBUS [40] (5 V from USB),
 //              fan - to the drain, source to GND [23]; 1N4007 across the fan, stripe to
 //              +5 V. The pin only drives the gate, never the fan.
+//   GP18 [24] -> mic BCLK, GP19 [25] -> mic LRCLK (WS), GP20 [26] <- mic DOUT; mic 3V to
+//              3V3(OUT) [36], GND to GND [38], SEL to GND (left channel). See mic.h.
 //   GP25 is the onboard LED on the Pico 2 (no wiring).
 #include <stdio.h>
 
@@ -33,6 +37,9 @@
 #include "button.h"
 #include "command.h"
 #include "fan.h"
+#include "mic.h"
+#include "mic_stream.h"
+#include "recorder.h"
 
 #define PIN_GREEN 10
 #define PIN_YELLOW 11
@@ -139,6 +146,15 @@ static bool update_fan(const fan_t *fan, fan_output_t *out, andon_light_t light,
     return true;
 }
 
+static void print_recorder(void) {
+    const recorder_stats_t *r = recorder_stats();
+    printf("rec streaming=%d gain=%u frames_sent=%lu frames_dropped=%lu overruns=%lu "
+           "frames_clipped=%lu\n",
+           r->streaming, r->gain_shift, (unsigned long)r->frames_sent,
+           (unsigned long)r->frames_dropped, (unsigned long)r->overruns,
+           (unsigned long)r->frames_clipped);
+}
+
 static fan_result_t run_command(fan_t *fan, command_t cmd, andon_light_t light) {
     switch (cmd.kind) {
     case CMD_FAN_ON:
@@ -148,6 +164,12 @@ static fan_result_t run_command(fan_t *fan, command_t cmd, andon_light_t light) 
         return FAN_OK;
     case CMD_FAN_SPEED:
         return fan_set_speed(fan, cmd.arg);
+    case CMD_REC_START:
+        recorder_start((unsigned)cmd.arg);
+        return FAN_OK;
+    case CMD_REC_STOP:
+        recorder_stop();
+        return FAN_OK;
     default:
         return FAN_OK;  // status, and invalid lines (reported by the caller)
     }
@@ -165,7 +187,7 @@ static void poll_serial(command_reader_t *reader, fan_t *fan, fan_output_t *out,
         command_t cmd = command_parse(reader->line);
         if (cmd.kind == CMD_INVALID) {
             printf("error: unknown command \"%s\" (fan on | fan off | fan speed <0-100> | "
-                   "status)\n",
+                   "status | rec start <gain 0-8> | rec stop)\n",
                    reader->line);
             continue;
         }
@@ -182,6 +204,9 @@ static void poll_serial(command_reader_t *reader, fan_t *fan, fan_output_t *out,
                (unsigned long long)t_rx_us);
         print_drive(&d, light);
         printf(" speed=%u want_on=%d kick=%d\n", fan->speed_pct, fan->want_on, out->kicking);
+        if (cmd.kind == CMD_STATUS || cmd.kind == CMD_REC_START || cmd.kind == CMD_REC_STOP) {
+            print_recorder();
+        }
         if (result == FAN_REFUSED_RED) {
             printf("  the light is red: press the button to reset; the fan restarts if it was "
                    "running\n");
@@ -193,6 +218,7 @@ int main(void) {
     stdio_init_all();
     init_pins();
     init_fan_pwm();
+    recorder_init();
 
     andon_light_t light = ANDON_GREEN;
     fan_t fan;
@@ -205,9 +231,12 @@ int main(void) {
     command_reader_init(&reader);
     show_light(light);
     uint8_t duty_pct = 0;  // the PWM starts at 0 % and the fan is off at boot
-    printf("andon h1 build=%s: light=%s fan duty=%u pwm=%lu Hz wrap=%lu\n", ANDON_BUILD,
+    printf("andon h2 build=%s: light=%s fan duty=%u pwm=%lu Hz wrap=%lu\n", ANDON_BUILD,
            andon_light_name(light), duty_pct, (unsigned long)FAN_PWM_HZ,
            (unsigned long)fan_pwm_wrap);
+    printf("mic i2s rate=%lu Hz bclk=GP%u ws=GP%u dout=GP%u ring=%lu B frame=%lu B\n",
+           (unsigned long)MIC_SAMPLE_RATE_HZ, MIC_PIN_BCLK, MIC_PIN_BCLK + 1u, MIC_PIN_DOUT,
+           (unsigned long)mic_ring_bytes(), (unsigned long)MIC_FRAME_BYTES);
     uint32_t next_status_ms = STATUS_MS;
 
     while (true) {
@@ -233,6 +262,7 @@ int main(void) {
             print_drive(&d, light);
             printf(" kick=%d\n", fan_out.kicking);
         }
+        recorder_poll();
         poll_serial(&reader, &fan, &fan_out, light, &duty_pct);
         // Signed difference, so the check survives the 32-bit ms counter wrapping (~49.7 days).
         if ((int32_t)(now_ms - next_status_ms) >= 0) {
