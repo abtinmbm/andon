@@ -1,0 +1,53 @@
+# H3 pilot on session s1 only, run before s2 and s3 are recorded, to check the dataset while
+# the recording protocol can still change. It answers three questions:
+#   1. can the machine-ID CNN tell the three fans apart at all (the Sunon is unlike the two
+#      ANVISION fans, which are the same model)?
+#   2. is each fault detectable on each fan, by the CNN and by the per-fan GMM?
+#   3. would a fault's sound fall outside the range the int8 input is calibrated on?
+#
+# This is not an H3 result. s1 is dev data; s3 (eval) does not exist yet. Nothing is tuned
+# here: the model settings are copied from phase3_idcnn_mixup and phase2_gmm_id unchanged, and
+# no keep rule applies because nothing is being chosen. The output is results/h3_pilot.md.
+#
+# Split, per fan: the normal take's clips in recording order; the first train_clips train
+# both models, the rest are the normal test clips. A block split, not an alternating one,
+# so a test clip's neighbours are not in training. Every fault clip is a test clip.
+phase: H3
+
+data:
+  root: data/realfan
+  session: s1
+  train_clips: 120   # the first 20 min of each fan's 30 min normal take
+  # A take-effect check, not a score: the 6 normal clips of id_01 recorded in the pilot
+  # session at the same gain, about 80 min before its s1 normal take, with the fan taken off
+  # the mount and put back in between. The protocol keeps the pilot session out of training
+  # and scoring; these clips enter no fault AUC, they only show whether normal audio from
+  # another take looks abnormal to a model trained on one take.
+  control: {session: pilot, gain_shift: 4}
+
+features:            # identical to the Stage 1 front end
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+model:               # phase3_idcnn_mixup, with the three fans as the classes
+  type: id_cnn
+  channels: [16, 32, 64, 128]
+  patch_frames: 64
+  score_hop: 32
+
+train:
+  epochs: 100
+  batch_size: 128
+  learning_rate: 0.001
+  mixup_alpha: 0.2
+  spec_mask: null
+
+gmm:                 # phase2_gmm_id, one mixture per fan on each clip's mean log-mel spectrum
+  type: gmm
+  fit_per: machine_id
+  n_components: 4
+  covariance_type: full
+  reg_covar: 0.01
