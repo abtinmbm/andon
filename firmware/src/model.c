@@ -11,6 +11,11 @@ static int8_t act_a[MODEL_ACT_MAX];
 static int8_t act_b[MODEL_ACT_MAX];
 static int8_t pooled[MODEL_ACT_MAX / 4];
 static int8_t input_buf[MODEL_INPUT_MAX];
+// The 3x3 neighbourhoods of a strip of output positions (see conv3x3): 16 KB, which holds
+// 14 positions of the widest layer (64 input channels) and 910 of the first.
+#define MODEL_PATCH_BUF 8192
+static int16_t patches[MODEL_PATCH_BUF];
+_Static_assert(MODEL_PATCH_BUF >= MODEL_MAX_IN_CH * 9, "one neighbourhood must fit");
 
 static int32_t clamp_int8(int64_t v) {
     return (int32_t)(v < INT8_LO ? INT8_LO : (v > INT8_HI ? INT8_HI : v));
@@ -45,36 +50,70 @@ static void maxpool2(const int8_t *in, int ch, int h, int w, int8_t *out) {
     }
 }
 
+// The 3x3 neighbourhood of one output position across every input channel, as
+// (q_in - in_zero), in the weights' order [in][ky][kx]. A tap that falls in the padding is
+// stored as 0, which is what "padding is real zero" means once the zero point is taken off.
+static void gather_patch(const int8_t *in, int in_ch, int h, int w, int cy, int cx,
+                         int32_t in_zero, int16_t *dst) {
+    for (int i = 0; i < in_ch; i++) {
+        const int8_t *plane = &in[i * h * w];
+        for (int ky = 0; ky < 3; ky++) {
+            const int iy = cy + ky - 1;
+            for (int kx = 0; kx < 3; kx++) {
+                const int ix = cx + kx - 1;
+                const int inside = iy >= 0 && iy < h && ix >= 0 && ix < w;
+                *dst++ = inside ? (int16_t)(plane[iy * w + ix] - in_zero) : 0;
+            }
+        }
+    }
+}
+
+// Dot product of one output channel's weights with one gathered neighbourhood; n is a
+// multiple of 9. Written out nine taps at a time so the loop overhead is paid once per
+// input channel, not once per multiply.
+static int32_t dot9(const int8_t *w, const int16_t *p, int n) {
+    // |sum| <= 127 * 255 * 9 * 64 < 2^25, so int32 cannot overflow here.
+    int32_t sum = 0;
+    for (int j = 0; j < n; j += 9, w += 9, p += 9) {
+        sum += w[0] * p[0] + w[1] * p[1] + w[2] * p[2] + w[3] * p[3] + w[4] * p[4] +
+               w[5] * p[5] + w[6] * p[6] + w[7] * p[7] + w[8] * p[8];
+    }
+    return sum;
+}
+
 // acc = bias + sum(w * (q_in - in_zero)) with zero padding, then the fixed-point rescale
 // q = clamp(((acc * mult + 2^(shift-1)) >> shift) + out_zero).
+//
+// The first version checked the padding on every tap and measured 886 ms per window on the
+// Pico 2. Here the neighbourhoods of a strip of output positions are gathered once, and
+// each output channel then runs a plain dot product over the strip. Keeping the channel
+// loop outside the strip's positions means one channel's weights (at most 576 bytes) are
+// read many times in a row, which matters because they sit in flash behind a 16 KB cache.
+// The integer sums are the same in any order, so the result is still bit-exact.
 static void conv3x3(const conv_layer_t *L, int32_t in_zero, const int8_t *in, int h, int w,
                     int8_t *out, int oh, int ow) {
-    for (int o = 0; o < L->out_ch; o++) {
-        const int8_t *wo = &L->weight[o * L->in_ch * 9];
-        const int shift = L->shift[o];
-        const int64_t rounding = (int64_t)1 << (shift - 1);
-        for (int y = 0; y < oh; y++) {
-            for (int x = 0; x < ow; x++) {
-                // |sum| <= 127 * 255 * 9 * 64 < 2^25, so int32 cannot overflow here.
-                int32_t sum = 0;
-                for (int i = 0; i < L->in_ch; i++) {
-                    const int8_t *wi = &wo[i * 9];
-                    const int8_t *plane = &in[i * h * w];
-                    for (int ky = 0; ky < 3; ky++) {
-                        const int iy = y * L->stride + ky - 1;
-                        if (iy < 0 || iy >= h) continue;  // padding is real zero
-                        for (int kx = 0; kx < 3; kx++) {
-                            const int ix = x * L->stride + kx - 1;
-                            if (ix < 0 || ix >= w) continue;
-                            sum += wi[ky * 3 + kx] * (plane[iy * w + ix] - in_zero);
-                        }
-                    }
-                }
+    const int n = L->in_ch * 9;
+    const int positions = oh * ow;
+    const int strip = MODEL_PATCH_BUF / n;  // at least 1: in_ch <= MODEL_MAX_IN_CH
+    for (int first = 0; first < positions; first += strip) {
+        const int count = positions - first < strip ? positions - first : strip;
+        for (int k = 0; k < count; k++) {
+            const int y = (first + k) / ow, x = (first + k) % ow;
+            gather_patch(in, L->in_ch, h, w, y * L->stride, x * L->stride, in_zero,
+                         &patches[k * n]);
+        }
+        for (int o = 0; o < L->out_ch; o++) {
+            const int8_t *wo = &L->weight[o * n];
+            const int shift = L->shift[o];
+            const int64_t rounding = (int64_t)1 << (shift - 1);
+            const int64_t bias = L->bias[o], mult = L->mult[o];
+            int8_t *dst = &out[o * positions + first];
+            for (int k = 0; k < count; k++) {
                 // The bias can be large, so add it and rescale in 64 bits. >> on a negative
                 // int64 is an arithmetic shift (floor) with GCC, as in the Python reference.
-                const int64_t acc = (int64_t)sum + L->bias[o];
-                const int64_t v = (acc * L->mult[o] + rounding) >> shift;
-                out[(o * oh + y) * ow + x] = (int8_t)clamp_int8(v + L->out_zero);
+                const int64_t acc = (int64_t)dot9(wo, &patches[k * n], n) + bias;
+                const int64_t v = (acc * mult + rounding) >> shift;
+                dst[k] = (int8_t)clamp_int8(v + L->out_zero);
             }
         }
     }
@@ -91,7 +130,7 @@ int model_head_acc(const model_t *m, const int8_t *input, int32_t *head_acc,
     int8_t *bufs[2] = {act_a, act_b};
     for (int i = 0; i < m->n_conv; i++) {
         const conv_layer_t *L = &m->conv[i];
-        if (L->in_ch != ch) return -1;
+        if (L->in_ch != ch || ch > MODEL_MAX_IN_CH) return -1;
         if (L->pool_before) {
             if (ch * (h / 2) * (w / 2) > (int)sizeof pooled) return -1;
             maxpool2(in, ch, h, w, pooled);
@@ -153,5 +192,6 @@ float model_score_patch(const model_t *m, const float *patch, int true_id) {
 }
 
 uint32_t model_ram_bytes(void) {
-    return (uint32_t)(sizeof act_a + sizeof act_b + sizeof pooled + sizeof input_buf);
+    return (uint32_t)(sizeof act_a + sizeof act_b + sizeof pooled + sizeof input_buf +
+                      sizeof patches);
 }

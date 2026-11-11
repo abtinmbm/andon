@@ -10,6 +10,8 @@
 
 #define MODEL_MAX_CONV 4
 #define MODEL_MAX_CLASSES 16
+// Most input channels a conv layer may have (the last layer reads 64).
+#define MODEL_MAX_IN_CH 64
 // Largest int8 activation the static buffers hold: the first conv's output, 16 x 64 x 32.
 #define MODEL_ACT_MAX (16 * 64 * 32)
 // The int8 input patch, 128 mels x 64 frames.

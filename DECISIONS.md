@@ -12,6 +12,12 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-10: Convolution kernel rewritten for speed; not yet timed on the board (H5)
+- **Tried:** a new `conv3x3` in `firmware/src/model.c`. The first version checked the padding on every tap inside the innermost loop. The new one gathers the 3x3 neighbourhoods of a strip of output positions once, as `q - zero` in int16 with 0 for padded taps (a 16 KB static buffer), then runs one dot product per output channel and position, written nine taps at a time. The output-channel loop stays outside the strip's positions, so one channel's weights (at most 576 bytes, in flash) are reused many times in a row.
+- **Result:** bit-exact on the PC: the 13 firmware host tests pass, including every layer's int8 output and the head sums against the Python vectors. Cross-compiled for the Pico 2 (`-O3`), the inner loop is 3 instructions per multiply (two loads and one `smlabb`) plus 8 per nine taps, with no branches inside the nine. No timing is claimed: the board was not available. The 886.44 ms per score in `results/h5_bench_pico2.md` is the old kernel's and stays until the bench is run again.
+- **Decision:** kept, pending the on-board bench (`andon_bench.uf2`, then `andon.bench`). If the measured time is still over budget, the next steps are the CNN on core 1 and the Cortex-M33 DSP instructions (two multiplies per instruction).
+- **Why:** plain C keeps one code path for the PC tests and the board, so the bit-exact check covers exactly what runs on the device. Integer sums don't depend on the order of addition and can't overflow int32 here, so reordering the loops can't change a result.
+
 ### 2026-11-10: Stage 1 audit: every scorer guards eval, tables are tested against the log (Phase 6 follow-up)
 - **Tried:** a read-only audit of Stage 1: data splits and normalisation, the results log and its git history, the four generated tables, the README and model card figures (recomputed from the log by a separate script), and `andon.reproduce`.
 - **Result:** no leakage, no row removed or edited in the log's history, one eval run per final config, and all four `results/phase*.md` tables regenerate unchanged. `andon.reproduce` gave 92.13 ± 0.16, largest difference 0.0000, "Reproduced". No logged number changed.
