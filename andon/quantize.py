@@ -32,7 +32,15 @@ from andon.data.features import (
 )
 from andon.evaluate import _cells, _mean_sd, comparison_tables, log_scores, per_id_metrics
 from andon.evaluate import clip_scores as ae_clip_scores
-from andon.experiment import RESULTS_LOG, Config, is_logged, load_config, read_results, set_seed
+from andon.experiment import (
+    RESULTS_LOG,
+    Config,
+    is_logged,
+    load_config,
+    read_results,
+    require_final,
+    set_seed,
+)
 from andon.models.classic import GMM, build_detector
 from andon.models.idcnn import IdCNN
 from andon.score import split_clips
@@ -300,8 +308,7 @@ def run(
     cache_dir: Path = CACHE_DIR,
     log: Path = RESULTS_LOG,
 ) -> None:
-    if split == "eval" and cfg.raw.get("final") is not True:
-        raise ValueError(f"{cfg.name} is not marked final: true; eval is for the chosen model")
+    require_final(cfg, split)
     src = source_config(cfg)
     runner = RUNNERS[cfg.model]
     for machine_type in machine_types:

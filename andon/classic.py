@@ -29,7 +29,7 @@ from andon.data.dataset import (
 )
 from andon.data.features import clip_means, load_or_extract
 from andon.evaluate import log_scores
-from andon.experiment import RESULTS_LOG, Config, is_logged, load_config, set_seed
+from andon.experiment import RESULTS_LOG, Config, is_logged, load_config, require_final, set_seed
 from andon.models.classic import fit_and_score
 
 CACHE_DIR = Path("data/cache")
@@ -51,6 +51,7 @@ def run(
 ) -> None:
     if split not in SPLITS:
         raise ValueError(f"split must be one of {sorted(SPLITS)}, got {split}")
+    require_final(cfg, split)
     train_of, test_of, train_suffix, test_suffix = SPLITS[split]
     for machine_type in machine_types:
         todo = [s for s in seeds if not is_logged(cfg, machine_type, s, split, log=log)]

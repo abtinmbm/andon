@@ -15,8 +15,8 @@ The final Stage 1 anomaly detector. Every figure below comes from [results/resul
 
 DCASE 2020 Task 2 (ToyADMOS and MIMII, CC BY-NC-SA 4.0): ToyCar, ToyConveyor, fan, pump, slider and valve, recorded in a lab with factory noise mixed in. Clips are about 10 s long.
 
-- **Development test** (same machine IDs as training): every model choice was made here.
-- **Evaluation test** (machine IDs no choice was tuned on): scored once, after all choices were fixed.
+- **Development test** (the development machine IDs): every model choice was made here.
+- **Evaluation test** (other machines of the same types): scored once, after all choices were fixed. As in DCASE 2020, these machines are not unseen: the CNN trains on their normal clips from the additional training set, as it does for the development IDs. No choice was tuned on them.
 - No test clip of either set is used for training.
 
 ## Metrics
@@ -41,6 +41,7 @@ A research baseline and the reference model for the Stage 2 device, which monito
 - **Closed set of machines.** It can only score machine IDs it was trained on. A new machine needs its normal recordings added and the model retrained.
 - **ToyConveyor.** It is the weakest type on both sets; on eval the autoencoder beats it (88.31 ± 0.38). A per-machine Gaussian mixture also beats it on eval on ToyCar, ToyConveyor and fan.
 - **Clip AUC is not catch rate.** Valve has an eval AUC of 94.64 ± 0.23 but the light catches only 21.75 ± 2.22 % of valve faults. Single 2 s windows rarely cross the control limit 3 times in a row there.
+- **How the simulator counts.** A false alarm that happens to fall inside a fault counts as a catch, so the caught rate includes a few chance reds; at the logged false-alarm rates this is small next to the seed spread, but it was not measured. The limits are fitted on normal clips that alternate by file name with the normal clips the light is judged on, so the two halves come from the same recording conditions; on a real line, where conditions drift after the limits are set, false alarms would likely be more frequent.
 - **False alarm rates rest on little audio.** For fan, pump, slider and valve each rate comes from 0.42 to 0.56 h of normal audio per type, so one false alarm moves it by about 2 per hour. Pump's eval rate is 14.38 ± 7.19 per hour.
 - **Eval above dev.** Eval AUC is higher than dev AUC (92.13 against 86.64). This was not investigated: the two sets have different machine IDs, so they are not directly comparable.
 - **Recording conditions.** Lab recordings of toys and single industrial machines with noise mixed in; there are no results yet on a real line, a different microphone, or a machine that drifts as it wears.

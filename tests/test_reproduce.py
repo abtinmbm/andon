@@ -77,7 +77,9 @@ def scored(tmp_path, monkeypatch):
     """A tiny model trained, checkpointed and scored once on eval into the results log."""
     monkeypatch.chdir(tmp_path)
     make_dataset(tmp_path / "data")
-    cfg = write_cfg(tiny_cfg(tmp_path / "data"), tmp_path / "tiny_idcnn.yaml")
+    tiny = tiny_cfg(tmp_path / "data")
+    tiny.raw["final"] = True  # eval needs a config marked final
+    cfg = write_cfg(tiny, tmp_path / "tiny_idcnn.yaml")
     log = tmp_path / "results" / "results_log.csv"
     train_idcnn.train_and_save(cfg, "fan", 0, CPU)
     score.run(cfg, [0], ["fan"], "eval", CPU, log=log)

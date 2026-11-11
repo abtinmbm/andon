@@ -46,6 +46,7 @@ from andon.experiment import (
     is_logged,
     load_config,
     read_results,
+    require_final,
     set_seed,
 )
 from andon.light import AndonLight, Light, LightSettings, Limits, fit_limits
@@ -276,6 +277,7 @@ def run(
     cache_dir: Path = CACHE_DIR,
     log: Path = RESULTS_LOG,
 ) -> None:
+    require_final(cfg, split)
     source = source_config(cfg)
     st = sim_settings(cfg, source)
     todo = {

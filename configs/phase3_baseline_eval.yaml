@@ -3,6 +3,7 @@
 # baseline does for the evaluation set. Everything else is identical to phase1_baseline.
 # Training only checkpoints; andon.score scores the evaluation set once, at the end.
 phase: 3
+final: true  # may be scored on eval, once; flag added 2026-11-10, after that run (DECISIONS.md)
 
 data:
   root: data

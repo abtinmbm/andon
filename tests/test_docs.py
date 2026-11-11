@@ -72,3 +72,60 @@ def test_the_checks_catch_a_made_up_figure():
     allowed = set(NUMBER.findall(tables)) | published_figures()
     assert "92.14" not in allowed  # ...and a one-digit slip is not
     assert ("92.13", "0.17") not in set(PAIR.findall(tables))
+
+
+# The generated tables, each with the configs and splits its header names.
+EVAL_TABLES = {
+    "phase2_comparison.md": (
+        "evaluate",
+        [
+            "phase1_baseline",
+            "phase2_mahalanobis_type",
+            "phase2_gmm_type",
+            "phase2_iforest_type",
+            "phase2_mahalanobis_id",
+            "phase2_gmm_id",
+            "phase2_iforest_id",
+        ],
+        ["dev_test"],
+    ),
+    "phase3_comparison.md": (
+        "evaluate",
+        [
+            "phase1_baseline",
+            "phase3_baseline_eval",
+            "phase2_gmm_id",
+            "phase3_idcnn",
+            "phase3_idcnn_mixup",
+            "phase3_idcnn_mixup_mask",
+        ],
+        ["dev_test", "eval"],
+    ),
+    "phase4_mcu.md": (
+        "quantize",
+        ["phase4_idcnn_int8", "phase4_baseline_int8", "phase4_gmm_id_int8"],
+        ["dev_test", "eval"],
+    ),
+    "phase5_simulator.md": (
+        "simulate",
+        ["phase5_andon", "phase5_andon_log", "phase5_andon_1clip"],
+        ["dev_test", "eval"],
+    ),
+}
+
+
+@pytest.mark.parametrize("name", sorted(EVAL_TABLES))
+def test_results_tables_are_what_the_log_generates(name):
+    """A table edited by hand, or not regenerated after new rows, fails here."""
+    from andon import evaluate, quantize, simulate
+
+    tool, configs, splits = EVAL_TABLES[name]
+    log = ROOT / "results" / "results_log.csv"
+    if tool == "evaluate":
+        text = evaluate.comparison_tables(configs, splits, log=log) + "\n"
+    elif tool == "quantize":
+        text = quantize.summary(configs, splits, log=log) + "\n"
+    else:
+        text = "\n\n".join(simulate.summaries(configs, splits, log=log)) + "\n"
+    committed = (ROOT / "results" / name).read_text(encoding="utf-8")
+    assert committed.endswith(text), f"results/{name} is stale; regenerate it from the log"

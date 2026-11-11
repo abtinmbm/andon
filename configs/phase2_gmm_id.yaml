@@ -1,6 +1,7 @@
 # Phase 2: Gaussian mixture model, one detector per machine ID.
 # Input is one vector per clip: the mean of its log-mel frames (same front end as Phase 1).
 phase: 2
+final: true  # may be scored on eval, once; flag added 2026-11-10, after that run (DECISIONS.md)
 
 data:
   root: data

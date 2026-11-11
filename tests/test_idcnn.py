@@ -243,7 +243,9 @@ def write_cfg(cfg: Config, path: Path) -> Config:
 def test_run_trains_logs_dev_test_then_scores_eval_once(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)  # checkpoints/, results/ and data/cache/ land in tmp
     make_dataset(tmp_path / "data")
-    cfg = write_cfg(tiny_cfg(tmp_path / "data"), tmp_path / "tiny_idcnn.yaml")
+    tiny = tiny_cfg(tmp_path / "data")
+    tiny.raw["final"] = True  # eval needs a config marked final
+    cfg = write_cfg(tiny, tmp_path / "tiny_idcnn.yaml")
     cpu = torch.device("cpu")
     log = tmp_path / "results" / "results_log.csv"
 
@@ -311,6 +313,7 @@ def test_phase3_configs_share_the_phase1_front_end_and_baseline():
 def test_mixup_config_changes_one_thing():
     base = yaml.safe_load((CONFIGS / "phase3_idcnn.yaml").read_text())
     mix = yaml.safe_load((CONFIGS / "phase3_idcnn_mixup.yaml").read_text())
+    assert mix.pop("final") is True  # the eval flag is not a training setting
     assert mix["train"].pop("mixup_alpha") > 0
     base["train"].pop("mixup_alpha")
     assert mix == base
@@ -319,6 +322,7 @@ def test_mixup_config_changes_one_thing():
 def test_mask_config_adds_masking_to_mixup_and_changes_nothing_else():
     mix = yaml.safe_load((CONFIGS / "phase3_idcnn_mixup.yaml").read_text())
     mask = yaml.safe_load((CONFIGS / "phase3_idcnn_mixup_mask.yaml").read_text())
+    assert mix.pop("final") is True  # only the chosen model may be scored on eval
     assert mix["train"].pop("spec_mask") is None
     assert set(mask["train"].pop("spec_mask")) == {
         "freq_masks",

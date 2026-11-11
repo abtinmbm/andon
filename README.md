@@ -122,7 +122,7 @@ The target was under 100 ms. Every trial passed, and each `fan off` followed a s
 The numbers above are only worth something if the test was fair, so the project follows fixed rules:
 
 - **Train on normal audio only.** The code fails loudly if an anomalous clip reaches a training set.
-- **Choose on dev, report on eval.** Every model and tuning choice was made on the development test set. The evaluation set (other machines of the same types) was scored once per final model and reported as it came out.
+- **Choose on dev, report on eval.** Every model and tuning choice was made on the development test set. The evaluation set (other machines of the same types, whose normal training clips the models learn from, as in DCASE 2020) was scored once per final model and reported as it came out. Every scoring command refuses the evaluation set unless the config is marked `final: true`.
 - **Three seeds, always.** Every figure is a mean ± sample std over seeds 0, 1, 2, never a single lucky run.
 - **Baseline first.** The DCASE 2020 autoencoder baseline was reproduced (73.80 ± 0.14 dev AUC, published 73.51) before anything was changed.
 - **Every number is traceable.** Each run is a YAML config in [configs/](configs/) and one row per machine type and seed in [results/results_log.csv](results/results_log.csv). The tables are generated from that log, and a test fails if the README quotes a figure no generated table holds. [DECISIONS.md](DECISIONS.md) records what was tried and why.
@@ -202,7 +202,7 @@ uv run --group dashboard python -m andon.demo --gif docs/andon_demo.gif
 uv run --group dashboard python -m andon.chart --out docs/eval_auc.png   # the AUC chart above
 ```
 
-Each training and scoring command appends its rows to `results/results_log.csv` and skips rows already there, so the evaluation set can't be scored twice for the same config. The committed log already holds every run, so on a fresh clone these commands skip everything; to rerun from scratch, move `results/results_log.csv` aside in your copy first. Evaluation is scored with `--split eval` on `andon.score`, `andon.classic` and `andon.simulate`, and on `andon.quantize` only for a config marked `final: true`. Training is CPU-only; the autoencoder took about 6.5 h for 18 runs on a laptop.
+Each training and scoring command appends its rows to `results/results_log.csv` and skips rows already there, so the evaluation set can't be scored twice for the same config. The committed log already holds every run, so on a fresh clone these commands skip everything; to rerun from scratch, move `results/results_log.csv` aside in your copy first. Evaluation is scored with `--split eval` on `andon.score`, `andon.classic`, `andon.simulate` and `andon.quantize`, each only for a config marked `final: true`. Training is CPU-only; the autoencoder took about 6.5 h for 18 runs on a laptop.
 
 </details>
 

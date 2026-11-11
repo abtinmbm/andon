@@ -84,6 +84,16 @@ def load_config(path: str | Path) -> Config:
     return Config(name=path.stem, raw=raw)
 
 
+def require_final(cfg: Config, split: str) -> None:
+    """Refuse the eval split unless the config is marked ``final: true``.
+
+    Experiment rule: eval is scored once per final model. The flag goes in a config only
+    after the choice was made on dev test, so a dev-only variant can't reach eval by a typo.
+    """
+    if split == "eval" and cfg.raw.get("final") is not True:
+        raise ValueError(f"{cfg.name} is not marked final: true; eval is for the chosen model")
+
+
 def set_seed(seed: int) -> None:
     """Seed every random source a run touches. Call once at the start of each run."""
     random.seed(seed)

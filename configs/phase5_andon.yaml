@@ -18,6 +18,7 @@
 # real fault lasts longer than one 10 s clip. This is a measurement, not a model choice,
 # so there is no keep rule; eval runs once with exactly these settings.
 phase: 5
+final: true  # may be scored on eval, once; flag added 2026-11-10, after that run (DECISIONS.md)
 
 data:
   root: data

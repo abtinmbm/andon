@@ -28,7 +28,9 @@ def int8_cfg(tmp_path: Path, name: str, source: Path, model_type: str, **extra) 
 def test_cnn_int8_run_logs_once_checks_the_float_model_and_guards_eval(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     make_dataset(tmp_path / "data")
-    src = write_cfg(tiny_cfg(tmp_path / "data"), tmp_path / "tiny_idcnn.yaml")
+    tiny = tiny_cfg(tmp_path / "data")
+    tiny.raw["final"] = True  # its float eval row is scored below
+    src = write_cfg(tiny, tmp_path / "tiny_idcnn.yaml")
     log = tmp_path / "results" / "results_log.csv"
     train_idcnn.run(src, 0, ["fan"], CPU, log=log)  # the float model and its dev row
     cfg = int8_cfg(tmp_path, "phase4_idcnn_int8", tmp_path / "tiny_idcnn.yaml", "id_cnn_int8")

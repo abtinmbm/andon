@@ -3,8 +3,9 @@
     uv run python -m andon.score --config configs/phase3_idcnn.yaml --seed 0 1 2 --split eval
 
 Experiment rule: the evaluation set is scored once per final model, after every choice
-has been made on dev test. Rows already in the log are skipped, so running the command
-again never produces a second eval result for the same model.
+has been made on dev test. ``--split eval`` is refused unless the config says
+``final: true``, and rows already in the log are skipped, so running the command again
+never produces a second eval result for the same model.
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ from andon import evaluate, train, train_idcnn
 from andon.data.dataset import Clip, dev_test_clips, eval_test_clips
 from andon.data.features import load_or_extract
 from andon.evaluate import log_scores
-from andon.experiment import RESULTS_LOG, Config, is_logged, load_config
+from andon.experiment import RESULTS_LOG, Config, is_logged, load_config, require_final
 
 CACHE_DIR = Path("data/cache")
 SPLITS = {"dev_test": (dev_test_clips, "test"), "eval": (eval_test_clips, "eval_test")}
@@ -58,6 +59,7 @@ def run(
     cache_dir: Path = CACHE_DIR,
     log: Path = RESULTS_LOG,
 ) -> None:
+    require_final(cfg, split)
     todo = {
         t: [s for s in seeds if not is_logged(cfg, t, s, split, log=log)] for t in machine_types
     }

@@ -12,6 +12,16 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-10: Stage 1 audit: every scorer guards eval, tables are tested against the log (Phase 6 follow-up)
+- **Tried:** a read-only audit of Stage 1: data splits and normalisation, the results log and its git history, the four generated tables, the README and model card figures (recomputed from the log by a separate script), and `andon.reproduce`.
+- **Result:** no leakage, no row removed or edited in the log's history, one eval run per final config, and all four `results/phase*.md` tables regenerate unchanged. `andon.reproduce` gave 92.13 ± 0.16, largest difference 0.0000, "Reproduced". No logged number changed.
+- **Decision:** four fixes, none of which re-runs anything:
+  - `andon.score`, `andon.simulate` and `andon.classic` now refuse `--split eval` unless the config says `final: true`, as `andon.quantize` already did (one shared check, `experiment.require_final`). The flag was added to the four configs that already have eval rows (`phase2_gmm_id`, `phase3_baseline_eval`, `phase3_idcnn_mixup`, `phase5_andon`); a test checks that exactly the configs with eval rows are final.
+  - A test regenerates the four tables from the committed log and fails if a committed table differs.
+  - The model card and README now say that the evaluation machines' normal clips are in the training data (the DCASE 2020 protocol), so "evaluation set" is not read as unseen machines.
+  - The model card now says that a chance red inside a fault counts as a catch, and that the limits are fitted on normal clips interleaved by name with the ones judged, which likely makes the false-alarm rate optimistic for a real line. Neither effect was measured.
+- **Why:** before, only `andon.quantize` checked the flag, so a mistyped config name could have put a dev-only variant on eval. The flag on the four configs is added after their eval runs; it only blocks future runs, and the rows already logged are skipped anyway.
+
 ### 2026-11-07: Session 1 recorded; one interrupted take, one uneven take kept (Phase H2)
 - **Tried:** session s1 in the order id_00, id_01, id_02: 30 min normal plus 3 min of each fault per fan, all at gain 4 (`configs/h2_recording.yaml`).
 - **Result (`results/h2_dataset.md`):** 9 takes, 405033 frames, 0 breaks, 0 missing, 0 corrupt, 0 clipped samples. Biggest fault-vs-normal band per take: id_00 imbalance +6.6 dB (0-125 Hz), obstruction +14.0 dB (250-500 Hz); id_01 imbalance +5.3 dB (0-125 Hz), obstruction +11.4 dB (500-1000 Hz); id_02 imbalance +6.2 dB (0-125 Hz), obstruction +11.1 dB (500-1000 Hz).
