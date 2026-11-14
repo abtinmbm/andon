@@ -76,7 +76,7 @@ def test_phase4_estimate_reads_the_named_row(tmp_path):
 def test_committed_bench_log_parses_and_table_is_current(tmp_path):
     """The committed table must be what the generator makes from the committed log."""
     runs = parse_log((ROOT / "results" / "h5_bench_pico2.txt").read_text(encoding="utf-8"))
-    assert [r.run for r in runs] == [2, 3, 4] and all(r.passed for r in runs)
+    assert [r.run for r in runs] == [5, 6, 7] and all(r.passed for r in runs)
     out = tmp_path / "bench.md"
     main(
         [

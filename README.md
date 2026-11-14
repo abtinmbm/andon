@@ -94,7 +94,7 @@ The Stage 2 budget is at most 256 KB of model and under 20 ms of compute for eve
 
 Configs `phase3_idcnn_mixup` and `phase4_idcnn_int8`, seeds 0, 1, 2. All three models, before and after int8: [results/phase4_mcu.md](results/phase4_mcu.md).
 
-The compute figure is an estimate. Measured on the Pico 2, the C port gives the same int8 inputs and scores as Python, but one CNN score takes 886.44 ms against the estimated 98.32 ms, so the total is 29.16 ms per 32 ms frame on one core: over the 20 ms budget ([results/h5_bench_pico2.md](results/h5_bench_pico2.md)). Phase H5 has to bring it under (second core, faster int8 kernels).
+The compute figure is an estimate. Measured on the Pico 2, the C port gives the same int8 inputs and scores as Python, and one CNN score takes 299.68 ms against the estimated 98.32 ms, so the total is 10.82 ms per 32 ms frame on one core: under the 20 ms budget ([results/h5_bench_pico2.md](results/h5_bench_pico2.md)). The first C kernel was about three times slower and over budget; rewriting the convolution's inner loop brought it under (DECISIONS.md, 2026-11-10).
 
 <details>
 <summary>How the int8 model was made and checked</summary>
@@ -149,7 +149,7 @@ The numbers above are only worth something if the test was fair, so the project 
 | H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of three real fans with safe, staged faults | |
 | H3 Retrain | the Phase 4 model on the fans' normal audio, each fan a machine ID, AUC under the Stage 1 split rules | |
 | H4 Features in C | log-mel in C, matched against the Python test vectors in CI | done on the PC (CI) |
-| H5 Inference in C | int8 CNN on the Pico 2, measured time, RAM and flash | bit-exact on the PC (CI) and on the board; 29.16 ms per 32 ms frame on one core, over budget, speed-up next ([bench](results/h5_bench_pico2.md)) |
+| H5 Inference in C | int8 CNN on the Pico 2, measured time, RAM and flash | bit-exact on the PC (CI) and on the board; 10.82 ms per 32 ms frame on one core, under the 20 ms budget ([bench](results/h5_bench_pico2.md)) |
 | H6 Jidoka | the full loop on the device: hear a fault, go red, stop the fan, wait for reset | |
 | H7 Measure | an hour of normal running for false stops, 10 trials per fault type, a demo video | |
 

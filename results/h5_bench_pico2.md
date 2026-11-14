@@ -6,9 +6,9 @@ Model `phase4_idcnn_int8`, fan, seed 0, built into `andon_bench.uf2`. Errors are
 
 | Run | Clock (MHz) | Log-mel ms/frame | CNN ms/patch | CNN ms/frame | Total ms per 32 ms frame | Worst log-mel err (dB) | Int8 input diffs | Worst score err | Static RAM (B) | Self-test |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| 2 | 150 | 1.456 | 886.58 | 27.706 | 29.162 | 1.53e-05 | 0 of 24576 | 2.48e-07 | 178176 | PASS |
-| 3 | 150 | 1.457 | 886.38 | 27.700 | 29.157 | 1.53e-05 | 0 of 24576 | 2.48e-07 | 178176 | PASS |
-| 4 | 150 | 1.457 | 886.36 | 27.699 | 29.156 | 1.53e-05 | 0 of 24576 | 2.48e-07 | 178176 | PASS |
-| mean of 3 | | 1.457 | 886.44 | 27.702 | 29.158 | | | | | |
+| 5 | 150 | 1.456 | 299.68 | 9.365 | 10.821 | 1.53e-05 | 0 of 24576 | 2.48e-07 | 194560 | PASS |
+| 6 | 150 | 1.457 | 299.65 | 9.364 | 10.821 | 1.53e-05 | 0 of 24576 | 2.48e-07 | 194560 | PASS |
+| 7 | 150 | 1.456 | 299.71 | 9.366 | 10.822 | 1.53e-05 | 0 of 24576 | 2.48e-07 | 194560 | PASS |
+| mean of 3 | | 1.456 | 299.68 | 9.365 | 10.821 | | | | | |
 
-Measured: 29.16 ms of compute per 32 ms frame on one core, **over** the 20 ms budget. Phase 4 estimate (`results/phase4_mcu.md`): 3.27 ms per frame and 98.32 ms per CNN score; measured 886.44 ms per score, 9.0 times the estimate.
+Measured: 10.82 ms of compute per 32 ms frame on one core, under the 20 ms budget. Phase 4 estimate (`results/phase4_mcu.md`): 3.27 ms per frame and 98.32 ms per CNN score; measured 299.68 ms per score, 3.0 times the estimate.
