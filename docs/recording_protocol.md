@@ -4,7 +4,7 @@ This protocol fixes how the real-fan dataset is recorded and labelled. Every ses
 exactly, so recordings from different days and of different fans can be pooled, and the last
 session can serve as a held-out eval set. The settings that software controls are in
 [`configs/h2_recording.yaml`](../configs/h2_recording.yaml). Everything physical is written down
-here. Measurements marked *(pilot)* are filled in from the pilot session, before session s1, and
+here. Measurements marked *(pilot)* are filled in from the pilot session, before the first session, and
 are not changed afterwards.
 
 ## What is recorded
@@ -13,9 +13,9 @@ are not changed afterwards.
 | --- | --- |
 | Machines | Three 5 V, 40 mm, 2-wire fans, one per machine ID: `id_00` Sunon MF40100V2, `id_01` and `id_02` ANVISION YDM4010B05. The two ANVISION fans are marked **A** and **B** on the frame, so they can't be swapped by mistake. |
 | Speed | 100 % only (the 50 % speed is not recorded). |
-| Sessions | `s1` and `s2` are **dev** (H3 trains on their normal clips and makes every choice on their faults). `s3` is **eval**, scored once per final model. `pilot` is for the level check only and is never used for training or scoring. Each session is on a different day. |
-| Per fan, per session | 30 min of normal running, then 3 min of each of the two faults, `imbalance` and `obstruction`. From s2 on, then a 3 min **control take** of normal running after the fan is lifted off its tape and put back (see "Running a session"). |
-| Totals | 1.5 h of normal running per fan in the main takes plus 6 min of control takes (s2, s3), and 9 min of each fault per fan, across s1–s3. |
+| Sessions | `d1` and `d2` are **dev** (H3 trains on their normal clips and makes every choice on their faults). `d3` is **eval**, scored once per final model. All three are recorded in one room, the dorm room. `pilot` is for the level check only, and `s1` was recorded in another room (at home); neither is used for training or scoring. Each session is on a different day. Why the room is fixed: DECISIONS.md (2026-11-14). |
+| Per fan, per session | 30 min of normal running, then 3 min of each of the two faults, `imbalance` and `obstruction`. Then a 3 min **control take** of normal running after the fan is lifted off its tape and put back (see "Running a session"). |
+| Totals | 1.5 h of normal running per fan in the main takes plus 9 min of control takes, and 9 min of each fault per fan, across d1–d3. |
 | Clips | 10 s, 16 kHz, mono, 16-bit WAV, the same format as the DCASE 2020 Task 2 clips. |
 
 ## Signal chain
@@ -28,7 +28,7 @@ are not changed afterwards.
 
 | Item | Setting |
 | --- | --- |
-| Room | A bedroom, with the window and the door closed. |
+| Room | The dorm bedroom, with the window and the door closed, for d1–d3. (`pilot` and `s1` were recorded in a bedroom at home.) |
 | Fan mount | Everything stands on one wooden plank. The breadboard is stuck to it by its adhesive back. The fan stands upright at the plank's end, 1 cm past the breadboard's bottom end and lined up with the mic, on a strip of double-sided tape that stays on the plank, so every fan lands on the same spot. Both faces are open, and the exhaust blows off the end of the plank. |
 | Fan orientation | The intake (the open side, without the logo) faces the mic, and the air blows away from it. The wires leave at the top. |
 | Mic position | On the breadboard, rows 56–61, column c (bench guide, H2 step 2), sound hole facing up. The breadboard is stuck to the same plank by its adhesive back, with a 1 cm gap (measured) between its row 63 end and the fan, so vibration does not travel through the board. |
@@ -36,7 +36,7 @@ are not changed afterwards.
 | Surface | The plank lies flat on a desk. |
 | Background | Normal room noise is allowed, but no music, speech close by or other machines on purpose. Anything unusual goes in the session notes below. |
 
-Before each session, check the setup against this table and compare it with the reference photos, `C:\andon-photos\h2-setuptop.jpg`, `h2-setupside.jpg`, `h2-setupfront.jpg` and `h2-setupback.jpg` (kept out of git).
+Before each session, check the setup against this table and compare it with the reference photos (kept out of git). For d1–d3 these are the dorm photos, taken before d1 is recorded, from the same four angles as the home ones: `C:\andon-photos\h2-dorm-setuptop.jpg`, `h2-dorm-setupside.jpg`, `h2-dorm-setupfront.jpg` and `h2-dorm-setupback.jpg`. The home photos (`h2-setuptop.jpg`, `h2-setupside.jpg`, `h2-setupfront.jpg`, `h2-setupback.jpg`) show the pilot and s1 setup.
 
 ## Order within a session
 
@@ -44,10 +44,11 @@ To keep the time of day and the room's state from lining up with one fan, the fa
 
 | Session | Order |
 | --- | --- |
-| pilot | id_00 only |
-| s1 | id_00, id_01, id_02 |
-| s2 | id_01, id_02, id_00 |
-| s3 | id_02, id_00, id_01 |
+| pilot (home) | id_00 only |
+| s1 (home) | id_00, id_01, id_02 |
+| d1 | id_00, id_01, id_02 |
+| d2 | id_01, id_02, id_00 |
+| d3 | id_02, id_00, id_01 |
 
 ## Running a session
 
@@ -57,22 +58,23 @@ To keep the time of day and the room's state from lining up with one fan, the fa
    | Session | Fan order |
    | --- | --- |
    | `pilot` | `id_00` only, plus `id_01` for the gain check |
-   | `s1` | `id_00`, `id_01`, `id_02` |
-   | `s2` | `id_01`, `id_02`, `id_00` |
-   | `s3` | `id_02`, `id_00`, `id_01` |
+   | `s1` | `id_00`, `id_01`, `id_02` (home) |
+   | `d1` | `id_00`, `id_01`, `id_02` |
+   | `d2` | `id_01`, `id_02`, `id_00` |
+   | `d3` | `id_02`, `id_00`, `id_01` |
 
    The first fan rotates, so no fan is always recorded first or last, when the room, the board and the mounting tape are in a different state.
 
 
    ```powershell
-   uv run python -m andon.record --port COM6 --session s1 --fan id_00
+   uv run python -m andon.record --port COM6 --session d1 --fan id_00
    ```
 
    The recorder asks you to wire the fan. Then it records the normal take: fan on, 5 s to settle, 30 min, fan off. After that it asks for each fault in turn, records 3 min with the fault in place, and asks you to undo it. The fan is always off while you change anything. Wait for the blades to stop before touching them.
-3. **Control take (s2 and s3), straight after that fan's last fault is undone.** With the fan off and the blades stopped, lift the fan off its tape and press it back on the same spot, as when swapping fans. Then record 3 min of normal running:
+3. **Control take, straight after that fan's last fault is undone.** With the fan off and the blades stopped, lift the fan off its tape and press it back on the same spot, as when swapping fans. Then record 3 min of normal running:
 
    ```powershell
-   uv run python -m andon.record --port COM6 --session s2 --fan id_01 --condition normal --minutes 3
+   uv run python -m andon.record --port COM6 --session d1 --fan id_00 --condition normal --minutes 3
    ```
 
    Every fault take follows a stop and handling of the fan, and the main normal take doesn't, so without this take H3 couldn't tell a fault from the fan having been handled and remounted. Its clips are ordinary normal clips of their own take (the take name in the manifest tells them apart). Why it was added: `results/h3_pilot.md` and DECISIONS.md (2026-11-10).
@@ -109,7 +111,8 @@ This checks every clip against the manifest and the config, adds up stream break
 
 | Session | Date | Notes |
 | --- | --- | --- |
-| pilot | | |
-| s1 | | |
-| s2 | | |
-| s3 | | |
+| pilot | | Home. |
+| s1 | 2026-11-07 | Home; no control takes. Kept as a session from another room, not used for training or scoring. |
+| d1 | | |
+| d2 | | |
+| d3 | | |

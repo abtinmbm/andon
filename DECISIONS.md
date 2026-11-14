@@ -12,6 +12,12 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-14: All dev and eval sessions in one room; s1 is re-recorded in the dorm as d1 (Phase H2)
+- **Tried:** s1 was recorded in a bedroom at home. s2 and s3 were going to be recorded in the dorm room, where the board is used from now on.
+- **Result:** no new measurement. The H3 pilot already shows that both models rate normal audio from another take of the same fan, in the same room, as abnormal (`results/h3_pilot.md`, entry of 2026-11-10). A different room changes the background, the desk and the reflections much more than a remount does.
+- **Decision:** the dev and eval sessions are recorded in the dorm room only, as `d1`, `d2` (dev) and `d3` (eval), each with the control takes, in the fan orders s1, s2 and s3 had (`configs/h2_recording.yaml`, `docs/recording_protocol.md`). s1 stays as it is on disk, under its own name, and moves to `other` with the pilot: never used for training, tuning or the main eval. New reference photos of the setup are taken in the dorm before d1.
+- **Why:** with rooms mixed across sessions, the model could learn the room instead of the fault, and the held-out session would be in a different room from part of the training data, so its AUC would mix the two effects. The board is calibrated (H6) and demonstrated (H7) in the dorm, so that is the room the data has to come from. Keeping s1 unrenamed means no data file moves and the s1 pilot stays reproducible; it can serve later as an unseen-room check, reported separately.
+
 ### 2026-11-10: H3 pilot on session s1: the models hear the take; a control take is added from s2 (Phase H2/H3)
 - **Tried:** `andon.h3_pilot` with `configs/h3_pilot_s1.yaml`, seeds 0, 1, 2, before s2 and s3 exist. Per fan, the first 120 normal clips of s1 train the machine-ID CNN and the per-fan GMM with the Stage 1 settings unchanged; the last 60 normal clips and the 18 clips of each fault are scored. As a take check only, the 6 normal clips of `id_01` from the pilot session at the same gain (the fan was off its mount in between) are scored too; the pilot session stays out of every fault AUC and every training set. Table: `results/h3_pilot.md`. A check of the data, not an H3 result.
 - **Result (AUC %, mean ± sample std over seeds):**

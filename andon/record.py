@@ -13,7 +13,7 @@ early, that clip is discarded and counted, and the take's log says so.
 
 One fan, the normal take and then each fault, with prompts in between (the usual way)::
 
-    uv run python -m andon.record --port COM6 --session s1 --fan id_00
+    uv run python -m andon.record --port COM6 --session d1 --fan id_00
 
 A single take, e.g. a short pilot at another gain, or a tone check::
 

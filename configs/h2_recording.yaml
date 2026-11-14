@@ -23,10 +23,11 @@ recording:
   normal_minutes: 30        # per fan per session
   fault_minutes: 3          # per fault per fan per session
 
-sessions:
-  dev: [s1, s2]             # train on their normals, tune on their faults (H3)
-  eval: [s3]                # the last session; scored once per final model
-  other: [pilot]            # level check and setup trial; never used for training or scoring
+sessions:                   # d1-d3 are all recorded in the dorm room (DECISIONS 2026-11-14)
+  dev: [d1, d2]             # train on their normals, tune on their faults (H3)
+  eval: [d3]                # the last session; scored once per final model
+  other: [pilot, s1]        # recorded at home: the level check, and a session in another room;
+                            # never used for training or scoring
 
 fans:                       # machine IDs; the two ANVISION fans are marked A and B on the frame
   id_00: Sunon MF40100V2
@@ -37,5 +38,5 @@ faults:                     # name: what is done to the fan (all with the fan of
   imbalance: a 5 x 5 mm square of electrical tape flat on one blade face near the tip, not over the edge
   obstruction: a 4 x 1.3 cm index-card strip taped flat on the frame over the bottom third of the intake side
 
-retired_faults:             # tried in the pilot only and dropped; never recorded in s1-s3
+retired_faults:             # tried in the pilot only and dropped; never recorded in s1 or d1-d3
   rattle: a corner shimmed off the tape (paper, then a dime, then a nickel); sounded like normal running
