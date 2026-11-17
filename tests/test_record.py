@@ -3,6 +3,7 @@ firmware/src/mic_stream.h (independently of andon.record's parser), fed through 
 parser in awkward pieces, and assembled into clips and WAV files."""
 
 import binascii
+import contextlib
 import csv
 import struct
 from pathlib import Path
@@ -264,10 +265,36 @@ def test_an_underspeed_take_runs_the_fan_slower_and_logs_its_speed(cfg, tmp_path
         ["--session", "dpilot", "--condition", "anomaly", "--fault", "underspeed", "--speed", "0"],
     ],
 )
-def test_trial_speeds_are_refused_outside_the_pilot_sessions(extra):
+def test_trial_speeds_are_refused_outside_the_pilot_sessions(extra, capsys):
     # Refused while parsing, before any serial port is opened.
     with pytest.raises(SystemExit):
         record.main(["--port", "COM99", "--fan", "id_00", "--minutes", "1", *extra])
+    assert "--speed" in capsys.readouterr().err
+
+
+def test_a_trial_speed_in_an_other_session_runs_the_fan_at_that_duty(monkeypatch):
+    serial = pytest.importorskip("serial")
+    monkeypatch.setattr(serial, "Serial", lambda *a, **k: contextlib.nullcontext("port"))
+    runs = []
+    monkeypatch.setattr(record, "run_take", lambda port, take, cfg: runs.append((take, cfg)))
+    record.main(
+        ["--port", "COM99", "--session", "dpilot", "--fan", "id_00", "--condition", "anomaly"]
+        + ["--fault", "underspeed", "--minutes", "1", "--speed", "70"]
+    )
+    ((take, cfg),) = runs
+    assert take.session == "dpilot" and record.take_speed(take, cfg) == 70
+
+
+def test_the_guided_run_asks_to_undo_a_physical_fault_but_not_a_speed_fault(cfg, monkeypatch):
+    cfg["faults"] = {"underspeed": "nothing", "obstruction": "card"}
+    cfg["recording"].update(fault_speed_pct={"underspeed": 85}, normal_minutes=1, fault_minutes=1)
+    prompts, takes = [], []
+    monkeypatch.setattr("builtins.input", lambda msg: prompts.append(msg) or "")
+    monkeypatch.setattr(record, "run_take", lambda port, take, c: takes.append(take.fault))
+    record.guided_fan(None, "s1", "id_00", cfg)
+    assert takes == ["none", "underspeed", "obstruction"]
+    assert not any("Undo 'underspeed'" in m for m in prompts)
+    assert sum("Undo 'obstruction'" in m for m in prompts) == 1
 
 
 def test_the_tone_check_never_turns_the_fan_on(cfg, tmp_path):

@@ -30,12 +30,14 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import yaml
 
 from andon import metrics, train_idcnn
 from andon.data.dataset import Clip
 from andon.data.features import SplitFeatures, clip_means, concat, load_or_extract
 from andon.experiment import Config, git_commit, load_config, set_seed
 from andon.models.classic import fit_and_score
+from andon.realfan import usable_rows
 
 CACHE_DIR = Path("data/cache")
 
@@ -47,10 +49,27 @@ class PilotClip:
     order: int  # position in its take
 
 
-def read_session(root: Path, session: str) -> list[PilotClip]:
-    """The session's clips from the manifest, sorted by fan, fault and position in the take."""
+# Recorded before the recording config had exclusion rules; the s1 pilot reads them whole,
+# so its committed result stays reproducible. Any later session must name the config.
+_BEFORE_EXCLUSIONS = {"pilot", "s1"}
+
+
+def _manifest_rows(root: Path, session: str, recording: dict | None) -> list[dict]:
+    if recording is None and session not in _BEFORE_EXCLUSIONS:
+        raise ValueError(
+            f"session {session!r} needs data.recording_config, so excluded clips, retired "
+            "faults and settling clips are left out"
+        )
     with (root / "manifest.csv").open(newline="", encoding="utf-8") as f:
         rows = [r for r in csv.DictReader(f) if r["session"] == session]
+    return rows if recording is None else usable_rows(rows, recording)
+
+
+def read_session(root: Path, session: str, recording: dict | None = None) -> list[PilotClip]:
+    """The session's clips from the manifest, sorted by fan, fault and position in the take.
+
+    With ``recording`` (the H2 recording config), only the clips ``usable_rows`` allows."""
+    rows = _manifest_rows(root, session, recording)
     if not rows:
         raise ValueError(f"no clips of session {session!r} in {root / 'manifest.csv'}")
     clips = [
@@ -67,21 +86,18 @@ def read_session(root: Path, session: str) -> list[PilotClip]:
 CONTROL = "control"  # normal running from another take, scored like a fault
 
 
-def read_control(root: Path, spec: dict) -> list[PilotClip]:
+def read_control(root: Path, spec: dict, recording: dict | None = None) -> list[PilotClip]:
     """Normal clips of another session recorded at the same gain, labelled ``CONTROL``.
 
     They come from a different take than the training clips: the fan was taken off its
     mount and put back in between. If they score like faults, a detector trained on one
     take is hearing the take, and the fault AUCs can't be trusted.
     """
-    with (root / "manifest.csv").open(newline="", encoding="utf-8") as f:
-        rows = [
-            r
-            for r in csv.DictReader(f)
-            if r["session"] == spec["session"]
-            and r["fault"] == "none"
-            and int(r["gain_shift"]) == int(spec["gain_shift"])
-        ]
+    rows = [
+        r
+        for r in _manifest_rows(root, spec["session"], recording)
+        if r["fault"] == "none" and int(r["gain_shift"]) == int(spec["gain_shift"])
+    ]
     return [
         PilotClip(Clip(root / r["file"], "realfan", "test", r["fan_id"], False), CONTROL, i)
         for i, r in enumerate(rows)
@@ -284,11 +300,13 @@ def main(argv: list[str] | None = None) -> None:
         torch.set_num_threads(args.threads)
     cfg = load_config(args.config)
     session = cfg.raw["data"]["session"]
-    clips = read_session(cfg.data_root, session)
+    rec_path = cfg.raw["data"].get("recording_config")
+    recording = yaml.safe_load(Path(rec_path).read_text(encoding="utf-8")) if rec_path else None
+    clips = read_session(cfg.data_root, session, recording)
     feats = load_or_extract([c.clip for c in clips], cfg.logmel, CACHE_DIR, f"realfan_{session}")
     spec = cfg.raw["data"].get("control")
     if spec:
-        control = read_control(cfg.data_root, spec)
+        control = read_control(cfg.data_root, spec, recording)
         name = f"realfan_{spec['session']}_control"
         extra = load_or_extract([c.clip for c in control], cfg.logmel, CACHE_DIR, name)
         clips, feats = clips + control, concat([feats, extra])

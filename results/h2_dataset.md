@@ -68,6 +68,12 @@ Fault takes against normal running of the same fan in the same session: mean ban
 | dpilot | id_01 | underspeed | dpilot-id_01-underspeed-20261117T015835Z | -7.5 | -4.6 | -10.2 | -12.0 | -15.2 | -18.9 | -14.4 | 2000-4000 Hz: -19.3 to -18.6 |
 | dpilot | id_01 | underspeed | dpilot-id_01-underspeed-20261117T020035Z | -11.5 | -11.0 | -20.4 | -22.8 | -28.9 | -28.7 | -18.5 | 1000-2000 Hz: -29.3 to -28.7 |
 
+Repeatability against d1 (change from normal in the reference's biggest band, tolerance ±3 dB):
+
+| Fan | Fault | Band | Session | Change (dB) | Difference from reference (dB) |
+| --- | --- | --- | --- | ---: | ---: |
+| id_00 | underspeed | 4000-8000 Hz | d1 | -14.2 | |
+
 Excluded clips (kept on disk, left out of everything above):
 
 - `d1/normal_id_02_00000003.wav`: a knock 9.25-9.34 s into the clip, not the fan (40 clipped samples)

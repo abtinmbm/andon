@@ -147,6 +147,13 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
             problems.append(f"{name}: unknown fault {row['fault']}")
         if int(row["gain_shift"]) != cfg["audio"]["gain_shift"] and row["session"] != "pilot":
             problems.append(f"{name}: gain {row['gain_shift']} != config")
+        # Trial duties belong to the 'other' sessions only; a dev or eval clip must have been
+        # recorded at the duty its fault is defined by, or its label means something else.
+        if sessions.get(row["session"]) not in (None, "other"):
+            rec = cfg["recording"]
+            want = rec.get("fault_speed_pct", {}).get(row["fault"], rec["speed_pct"])
+            if int(row["speed_pct"]) != int(want):
+                problems.append(f"{name}: speed {row['speed_pct']} % != config {want} %")
         path = root / name
         if not path.exists():
             problems.append(f"{name}: missing")
@@ -220,6 +227,9 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
             f"| {t['corrupt']:.0f} | {t['discarded_seconds']:.2f} |"
         )
     lines += fault_vs_normal(bands, rate, order)
+    repeat_lines, repeat_problems = repeatability(bands, cfg, sessions)
+    lines += repeat_lines
+    problems += repeat_problems
     if excluded_stats:
         lines += ["", "Excluded clips (kept on disk, left out of everything above):", ""]
         for name, st in sorted(excluded_stats.items()):
@@ -233,6 +243,85 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
                 lines.append(f"- [ ] `{name}` ({key[2]})")
     lines += ["", f"Problems: {len(problems)}"] + [f"- {p}" for p in problems]
     return "\n".join(lines) + "\n", problems
+
+
+def _band_change(bands: dict[tuple, list[np.ndarray]], session: str, fan: str, fault: str):
+    """Mean band level of a session's fault clips minus its normal clips (dB), or None."""
+    normal = [
+        b for (s, f, x, _), v in bands.items() if (s, f, x) == (session, fan, "none") for b in v
+    ]
+    fault_b = [
+        b for (s, f, x, _), v in bands.items() if (s, f, x) == (session, fan, fault) for b in v
+    ]
+    if not normal or not fault_b:
+        return None
+    return 10 * np.log10(np.mean(fault_b, axis=0) / np.mean(normal, axis=0))
+
+
+def repeatability(
+    bands: dict[tuple, list[np.ndarray]], cfg: dict, sessions: dict[str, str]
+) -> tuple[list[str], list[str]]:
+    """Compare listed (fan, fault) pairs in each dev/eval session with a reference session.
+
+    A fault whose size drifts between sessions would make eval score something other than
+    what dev tuned on. The band compared is the reference's biggest change; a session outside
+    the tolerance is a problem (DECISIONS 2026-11-16: in dev, stop and decide; in eval, report).
+    """
+    spec = cfg.get("repeatability")
+    if not spec:
+        return [], []
+    ref, tol = spec["reference_session"], float(spec["tolerance_db"])
+    edges = (*BAND_EDGES_HZ, cfg["audio"]["sample_rate"] // 2)
+    names = [f"{lo}-{hi} Hz" for lo, hi in pairwise(edges)]
+    lines = [
+        "",
+        f"Repeatability against {ref} (change from normal in the reference's biggest band, "
+        f"tolerance ±{tol:g} dB):",
+        "",
+        "| Fan | Fault | Band | Session | Change (dB) | Difference from reference (dB) |",
+        "| --- | --- | --- | --- | ---: | ---: |",
+    ]
+    problems = []
+    for fan, fault in spec["pairs"]:
+        base = _band_change(bands, ref, fan, fault)
+        if base is None:
+            problems.append(f"repeatability: no {fault} take of {fan} in {ref}")
+            continue
+        k = int(np.argmax(np.abs(base)))
+        lines.append(f"| {fan} | {fault} | {names[k]} | {ref} | {base[k]:+.1f} | |")
+        for session, group in sessions.items():
+            if session == ref or group == "other":
+                continue
+            d = _band_change(bands, session, fan, fault)
+            if d is None:
+                continue
+            gap = d[k] - base[k]
+            lines.append(f"| {fan} | {fault} | {names[k]} | {session} | {d[k]:+.1f} | {gap:+.1f} |")
+            if abs(gap) > tol:
+                problems.append(
+                    f"{session}: {fan} {fault} is {gap:+.1f} dB from {ref} at {names[k]} "
+                    f"(tolerance ±{tol:g})"
+                )
+    return lines, problems
+
+
+def usable_rows(rows: list[dict], cfg: dict) -> list[dict]:
+    """The manifest rows a model may use: no excluded clips, no retired faults, and none of
+    the clips at the start of a take that the config says are still settling.
+
+    Every loader of real-fan clips for training or scoring goes through this, so the rules in
+    the recording config are applied in one place.
+    """
+    excluded = cfg.get("excluded_clips") or {}
+    retired = set(cfg.get("retired_faults") or {})
+    skip = cfg.get("skip_first_clips") or {}
+    return [
+        r
+        for r in rows
+        if r["file"] not in excluded
+        and r["fault"] not in retired
+        and int(r["clip_in_take"]) >= int(skip.get(r["fault"], 0))
+    ]
 
 
 def fault_vs_normal(bands: dict[tuple, list[np.ndarray]], rate: int, order: dict) -> list[str]:

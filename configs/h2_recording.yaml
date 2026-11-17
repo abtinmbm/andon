@@ -54,5 +54,16 @@ retired_faults:             # dropped; their clips stay on disk, readable only i
     why: not repeatable; the square gave no steady change, the trapezoid lifted and buzzed on id_01
     sessions: [pilot, s1, d1]
 
+# Clips no model uses (andon.realfan.usable_rows); the files stay on disk and the dataset
+# check still covers them. Fixed before d2, so it is never chosen from results (DECISIONS
+# 2026-11-16).
+skip_first_clips:           # fault: clips at the start of each of its takes, in every session
+  underspeed: 3             # id_00 is still slowing for 20-30 s after the switch to 85 %
+
+repeatability:              # a fault must keep its size from session to session (DECISIONS 2026-11-16)
+  reference_session: d1
+  tolerance_db: 3           # outside it: in d2 stop and decide; in d3 report as is, never re-tune
+  pairs: [[id_00, underspeed]]  # id_00 sits on the knee of its speed curve (90 % doesn't slow it)
+
 excluded_clips:             # single clips left out of every use (file stays on disk): file: why
   d1/normal_id_02_00000003.wav: a knock 9.25-9.34 s into the clip, not the fan

@@ -152,6 +152,73 @@ def test_an_excluded_clip_is_listed_with_its_reason_and_left_out_of_the_tables(c
     assert "- [ ] `s1/normal_id_00_00000001.wav`" not in text
 
 
+def test_an_excluded_clip_is_still_checked_as_a_file_and_left_out_of_the_band_reference(
+    cfg, tmp_path, monkeypatch
+):
+    take(cfg, "s1", "id_00", "none", 3)
+    root = tmp_path / "realfan"
+    # A loud normal clip, excluded: the fault below must be compared with the other two only.
+    write_wav(root / "s1" / "normal_id_00_00000000.wav", 8 * _noise(0) / 32768.0, RATE)
+    monkeypatch.setattr(sys.modules[__name__], "noise", lambda seed: 2 * _noise(seed))
+    take(cfg, "s1", "id_00", "imbalance", 2, seed=10)
+    cfg["excluded_clips"] = {"s1/normal_id_00_00000000.wav": "loud"}
+    text, problems = realfan.check(cfg)
+    assert problems == []
+    row = next(line for line in text.splitlines() if line.startswith("| s1 | id_00 | imbalance |"))
+    assert all(abs(float(c) - 6.02) < 1.0 for c in row.strip("| ").split(" | ")[4:-1])
+    # A wrong-length file is a problem even when excluded.
+    write_wav(root / "s1" / "normal_id_00_00000000.wav", np.zeros(RATE - 1), RATE)
+    assert any("15999 samples" in p for p in realfan.check(cfg)[1])
+
+
+def test_a_dev_clip_at_another_speed_than_its_fault_defines_is_a_problem(cfg, tmp_path):
+    cfg["faults"]["underspeed"] = "nothing"
+    cfg["recording"]["fault_speed_pct"] = {"underspeed": 85}
+    take(cfg, "s1", "id_00", "underspeed", 1)  # saved at 85 by the recorder
+    take(cfg, "pilot", "id_00", "none", 1, seed=3)
+    assert realfan.check(cfg)[1] == []
+    manifest = tmp_path / "realfan" / "manifest.csv"
+    text = manifest.read_text(encoding="utf-8")
+    manifest.write_text(text.replace(",underspeed,85,", ",underspeed,70,"), encoding="utf-8")
+    assert realfan.check(cfg)[1] == ["s1/anomaly_id_00_00000000.wav: speed 70 % != config 85 %"]
+
+
+def test_a_fault_that_changes_size_between_sessions_is_a_problem(cfg, monkeypatch):
+    take(cfg, "s1", "id_00", "none", 3)
+    take(cfg, "s2", "id_00", "none", 3, seed=30)
+    take(cfg, "s3", "id_00", "none", 3, seed=60)
+    monkeypatch.setattr(sys.modules[__name__], "noise", lambda seed: 2 * _noise(seed))  # +6 dB
+    take(cfg, "s1", "id_00", "imbalance", 2, seed=10)
+    take(cfg, "s2", "id_00", "imbalance", 2, seed=40)
+    monkeypatch.setattr(sys.modules[__name__], "noise", lambda seed: 4 * _noise(seed))  # +12 dB
+    take(cfg, "s3", "id_00", "imbalance", 2, seed=70)
+    cfg["repeatability"] = {
+        "reference_session": "s1",
+        "tolerance_db": 3,
+        "pairs": [["id_00", "imbalance"]],
+    }
+    text, problems = realfan.check(cfg)
+    assert len(problems) == 1 and problems[0].startswith("s3: id_00 imbalance is +6.")
+    assert "| id_00 | imbalance |" in text and "| s2 |" in text
+
+
+def test_usable_rows_drop_excluded_retired_and_settling_clips():
+    rows = [
+        {"file": "a.wav", "fault": "none", "clip_in_take": "0"},
+        {"file": "b.wav", "fault": "none", "clip_in_take": "1"},
+        {"file": "c.wav", "fault": "imbalance", "clip_in_take": "5"},
+        {"file": "d.wav", "fault": "underspeed", "clip_in_take": "2"},
+        {"file": "e.wav", "fault": "underspeed", "clip_in_take": "3"},
+    ]
+    cfg = {
+        "excluded_clips": {"b.wav": "knock"},
+        "retired_faults": {"imbalance": {"sessions": ["d1"]}},
+        "skip_first_clips": {"underspeed": 3},
+    }
+    assert [r["file"] for r in realfan.usable_rows(rows, cfg)] == ["a.wav", "e.wav"]
+    assert len(realfan.usable_rows(rows, {})) == 5
+
+
 def test_tone_check_measures_the_frequency():
     t = np.arange(10 * RATE) / RATE
     tone = (8000 * np.sin(2 * np.pi * 1000.0 * t)).astype(np.int16)

@@ -74,7 +74,24 @@ def test_split_trains_on_the_first_normal_clips_of_each_fan_only(tmp_path):
     with pytest.raises(ValueError, match="need more than"):
         h3_pilot.split_normals(clips, 8)
     with pytest.raises(ValueError, match="no clips"):
-        h3_pilot.read_session(tmp_path, "s2")
+        h3_pilot.read_session(tmp_path, "s2", recording={})
+
+
+def test_a_session_after_s1_is_read_only_through_the_recording_rules(tmp_path):
+    make_session(tmp_path)
+    with pytest.raises(ValueError, match="recording_config"):
+        h3_pilot.read_session(tmp_path, "d1")
+    recording = {
+        "excluded_clips": {"s1/normal_id_00_00000002.wav": "a knock"},
+        "retired_faults": {"imbalance": {"sessions": ["s1"]}},
+        "skip_first_clips": {"obstruction": 1},
+    }
+    clips = h3_pilot.read_session(tmp_path, "s1", recording)
+    names = {c.clip.path.name for c in clips if c.clip.machine_id == "id_00"}
+    assert "normal_id_00_00000002.wav" not in names
+    assert {c.fault for c in clips} == {"none", "obstruction"}
+    assert min(c.order for c in clips if c.fault == "obstruction") == 1
+    assert len(clips) == len(FANS) * (8 + 3 - 1) - 1
 
 
 def test_subset_keeps_the_chosen_clips_in_order():
