@@ -175,8 +175,20 @@ def test_the_real_config_is_consistent():
     groups = cfg["sessions"]
     assert not set(groups["dev"]) & set(groups["eval"])
     assert list(cfg["fans"]) == ["id_00", "id_01", "id_02"]
-    assert list(cfg["faults"]) == ["imbalance", "obstruction"]  # rattle dropped in the pilot
-    assert set(cfg["retired_faults"]) == {"rattle"}
+    # rattle dropped in the pilot, imbalance in d1 (DECISIONS 2026-11-16)
+    assert list(cfg["faults"]) == ["underspeed", "obstruction"]
+    assert set(cfg["retired_faults"]) == {"rattle", "imbalance"}
+    sessions = {s for group in groups.values() for s in group}
+    for spec in cfg["retired_faults"].values():
+        assert set(spec["sessions"]) <= sessions
+    # Each exclusion names one clip of a known session and says why.
+    for name, why in cfg["excluded_clips"].items():
+        assert name.split("/")[0] in sessions and name.endswith(".wav") and why
+    # The fan only kick-starts and runs below full speed for a speed fault.
+    rec = cfg["recording"]
+    assert rec["speed_pct"] == 100
+    assert set(rec["fault_speed_pct"]) <= set(cfg["faults"])
+    assert all(1 <= s < rec["speed_pct"] for s in rec["fault_speed_pct"].values())
 
 
 class FakeBoard:
@@ -225,6 +237,37 @@ def test_a_take_runs_the_fan_records_whole_clips_and_stops_the_fan(cfg):
     assert np.array_equal(clips[1], np.concatenate([ramp(s) for s in range(6, 10)]))
     assert stats["gaps"] == 1 and stats["frames_missing"] == 1 and stats["corrupt"] == 0
     assert any("build=abc1234" in line for line in log)
+
+
+def test_an_underspeed_take_runs_the_fan_slower_and_logs_its_speed(cfg, tmp_path):
+    cfg["audio"]["clip_seconds"] = 0.064
+    cfg["faults"]["underspeed"] = "nothing to change"
+    cfg["recording"]["fault_speed_pct"] = {"underspeed": 70}
+    take = record.Take("s1", "id_00", "underspeed", 0.064)
+    board = FakeBoard()
+    clips, _ = record.record_take(board, take, cfg, [])
+    assert board.sent[:3] == ["status", "fan speed 70", "fan on"]
+    record.save_take(take, clips, cfg, "b", "t1", "x")
+    normal = record.Take("s1", "id_00", "none", 0.064)
+    assert record.take_speed(normal, cfg) == 100  # other takes keep the normal speed
+    record.save_take(normal, clips, cfg, "b", "t2", "x")
+    with (tmp_path / "realfan" / "manifest.csv").open(newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert [(r["fault"], r["speed_pct"]) for r in rows] == [("underspeed", "70"), ("none", "100")]
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        ["--session", "d1", "--condition", "anomaly", "--fault", "underspeed", "--speed", "70"],
+        ["--session", "dpilot", "--condition", "normal", "--speed", "70"],
+        ["--session", "dpilot", "--condition", "anomaly", "--fault", "underspeed", "--speed", "0"],
+    ],
+)
+def test_trial_speeds_are_refused_outside_the_pilot_sessions(extra):
+    # Refused while parsing, before any serial port is opened.
+    with pytest.raises(SystemExit):
+        record.main(["--port", "COM99", "--fan", "id_00", "--minutes", "1", *extra])
 
 
 def test_the_tone_check_never_turns_the_fan_on(cfg, tmp_path):

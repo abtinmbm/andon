@@ -19,14 +19,20 @@ audio:
 
 recording:
   settle_seconds: 5         # after "fan on", before the first sample: spin-up is not normal running
-  speed_pct: 100            # the only speed recorded (PM decision, 2026-11-07)
+  speed_pct: 100            # normal running (PM decision, 2026-11-07)
+  # The underspeed fault: only the PWM duty changes (25 kHz, above hearing and the mic's band).
+  # Fixed from the dpilot session on id_01 (DECISIONS 2026-11-16): 85 % is the smallest of
+  # 85/70/55 and still changes every band steadily (2-4 kHz: -8.8 dB, -8.9 to -8.6 per clip).
+  fault_speed_pct:
+    underspeed: 85
   normal_minutes: 30        # per fan per session
   fault_minutes: 3          # per fault per fan per session
 
 sessions:                   # d1-d3 are all recorded in the dorm room (DECISIONS 2026-11-14)
   dev: [d1, d2]             # train on their normals, tune on their faults (H3)
   eval: [d3]                # the last session; scored once per final model
-  other: [pilot, s1]        # recorded at home: the level check, and a session in another room;
+  other: [pilot, s1, dpilot]  # pilot and s1 at home (the level check, a session in another
+                            # room), dpilot in the dorm (choosing the underspeed duty);
                             # never used for training or scoring
 
 fans:                       # machine IDs; the two ANVISION fans are marked A and B on the frame
@@ -35,8 +41,18 @@ fans:                       # machine IDs; the two ANVISION fans are marked A an
   id_02: ANVISION YDM4010B05 (B)
 
 faults:                     # name: what is done to the fan (all with the fan off first)
-  imbalance: a 5 x 5 mm square of electrical tape flat on one blade face near the tip, not over the edge
+  underspeed: nothing to change on the fan; the recorder runs it at the underspeed duty
   obstruction: a 4 x 1.3 cm index-card strip taped flat on the frame over the bottom third of the intake side
 
-retired_faults:             # tried in the pilot only and dropped; never recorded in s1 or d1-d3
-  rattle: a corner shimmed off the tape (paper, then a dime, then a nickel); sounded like normal running
+retired_faults:             # dropped; their clips stay on disk, readable only in these sessions
+  rattle:
+    how: a corner shimmed off the tape (paper, then a dime, then a nickel)
+    why: sounded like normal running
+    sessions: [pilot]
+  imbalance:
+    how: electrical tape on one blade (a 5 x 5 mm square; in d1 also a 12/6 x 6 mm trapezoid)
+    why: not repeatable; the square gave no steady change, the trapezoid lifted and buzzed on id_01
+    sessions: [pilot, s1, d1]
+
+excluded_clips:             # single clips left out of every use (file stays on disk): file: why
+  d1/normal_id_02_00000003.wav: a knock 9.25-9.34 s into the clip, not the fan

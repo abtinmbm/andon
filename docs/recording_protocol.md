@@ -12,9 +12,9 @@ are not changed afterwards.
 | | |
 | --- | --- |
 | Machines | Three 5 V, 40 mm, 2-wire fans, one per machine ID: `id_00` Sunon MF40100V2, `id_01` and `id_02` ANVISION YDM4010B05. The two ANVISION fans are marked **A** and **B** on the frame, so they can't be swapped by mistake. |
-| Speed | 100 % only (the 50 % speed is not recorded). |
-| Sessions | `d1` and `d2` are **dev** (H3 trains on their normal clips and makes every choice on their faults). `d3` is **eval**, scored once per final model. All three are recorded in one room, the dorm room. `pilot` is for the level check only, and `s1` was recorded in another room (at home); neither is used for training or scoring. Each session is on a different day. Why the room is fixed: DECISIONS.md (2026-11-14). |
-| Per fan, per session | 30 min of normal running, then 3 min of each of the two faults, `imbalance` and `obstruction`. Then a 3 min **control take** of normal running after the fan is lifted off its tape and put back (see "Running a session"). |
+| Speed | 100 % for normal running. The `underspeed` fault runs the fan at a lower fixed duty (`fault_speed_pct` in the config), chosen in the `dpilot` session. |
+| Sessions | `d1` and `d2` are **dev** (H3 trains on their normal clips and makes every choice on their faults). `d3` is **eval**, scored once per final model. All three are recorded in one room, the dorm room. `pilot` is for the level check only, `s1` was recorded in another room (at home), and `dpilot` (dorm) is for choosing the underspeed duty; none of them is used for training or scoring. Each session is on a different day. Why the room is fixed: DECISIONS.md (2026-11-14). |
+| Per fan, per session | 30 min of normal running, then 3 min of each of the two faults, `underspeed` and `obstruction` (until d1, `imbalance` instead of `underspeed`). Then a 3 min **control take** of normal running after the fan is lifted off its tape and put back (see "Running a session"). |
 | Totals | 1.5 h of normal running per fan in the main takes plus 9 min of control takes, and 9 min of each fault per fan, across d1–d3. |
 | Clips | 10 s, 16 kHz, mono, 16-bit WAV, the same format as the DCASE 2020 Task 2 clips. |
 
@@ -87,8 +87,10 @@ All faults are applied with the fan off and the blades stopped, and fully undone
 
 | Fault | How | Check | Undo |
 | --- | --- | --- | --- |
-| `imbalance` | A 5 × 5 mm square of electrical tape stuck flat on the intake-side face of one blade, near the tip, not folded over the blade's edge or tip. A washer is too heavy for a 40 mm fan. | Turn the blades once by hand: nothing catches or scrapes. | Peel it off and check that no residue is left. |
+| `underspeed` | Nothing on the fan changes: the recorder sets the PWM duty to `fault_speed_pct.underspeed` instead of 100 %, like a worn motor or a sagging supply. The PWM runs at 25 kHz, above hearing and above the 8 kHz the mic records, so only the slower fan is heard. The board kick-starts at full speed for 1 s; the 5 s settle time covers it. | None. | None. |
 | `obstruction` | A reusable strip of index card, about 4 × 1.3 cm, laid flat on the frame over the bottom third of the intake side, taped to the frame's corners at its two ends only. | Turn the blades by hand: they must not touch the card. | Peel the two pieces of tape and lift the strip off. |
+
+`imbalance` (electrical tape on one blade) was used in the pilot, s1 and d1, and dropped during d1 (DECISIONS.md, 2026-11-16). On `id_00` in d1 the 5 × 5 mm square changed 0–125 Hz by only +0.5 dB against normal, against +8.0 dB in the pilot and +6.6 dB in s1 on the same fan. A larger piece (a 12/6 × 6 mm trapezoid) gave +5.7 dB but varied from +2.8 to +10.9 dB per clip, and on `id_01` it lifted and buzzed part-way through two takes, which were stopped. Its clips stay on disk, listed under `retired_faults`.
 
 `rattle` (a loose mount: one bottom corner of the fan lifted off the tape by a shim) was tried in the pilot and dropped before s1. With paper, then a dime, then a nickel as the shim, it sounded the same as normal running. Measured below 125 Hz against normal, per 10 s clip: paper +0.8 dB on average, the dime +3.0 to +3.9 dB, and the nickel +2.4 to +17.1 dB, so not steady. Imbalance, for comparison, is +7.0 to +8.7 dB in every clip (`results/h2_pilot.md`). A contact fault (paper ticking the blades) was considered instead and not used, because its strength would depend on exactly where the paper sits each session. The rattle clips stay in `pilot/`, listed under `retired_faults` in the config.
 
@@ -107,12 +109,14 @@ uv run python -m andon.realfan check --listen 2 --out results/h2_dataset.md
 
 This checks every clip against the manifest and the config, adds up stream breaks, and measures each clip's level and clipping. It exits with an error if anything is wrong. With `--listen 2` it also lists two random clips per session, fan and condition. Listen to each one and tick it. A normal clip should be a steady fan sound with no clicks, dropouts or buzz, and each fault should sound different from normal.
 
+A single clip spoiled by something that isn't the fan (a knock on the desk, a door) is not deleted or re-recorded. It is listed under `excluded_clips` in the config with the reason. The check still verifies the file but leaves it out of the tables and the listening list, and lists it with its reason. H3 must skip these clips too. A take with more than a few such clips is recorded again instead.
+
 ## Session notes
 
 | Session | Date | Notes |
 | --- | --- | --- |
 | pilot | | Home. |
 | s1 | 2026-11-07 | Home; no control takes. Kept as a session from another room, not used for training or scoring. |
-| d1 | | |
+| d1 | 2026-11-16 | Dorm. No front reference photo (top, side and back taken). Imbalance dropped part-way (see Faults): `id_00` has two imbalance takes (square, then trapezoid, the second after the control take) and `id_01` two stopped ones that saved nothing; all retired. `underspeed` takes recorded after the change. At 85 % `id_00` sounds different by ear, not just quieter: its speed drops much further than `id_01`'s and settles 20–30 s into the take (dpilot check, DECISIONS.md 2026-11-16). `id_02`'s guided run was stopped by mistake in its obstruction take (saved nothing) and that take was recorded on its own. One `id_02` normal clip excluded (a knock, see below). Listening check passed. |
 | d2 | | |
 | d3 | | |

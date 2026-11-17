@@ -20,7 +20,12 @@ A single take, e.g. a short pilot at another gain, or a tone check::
     uv run python -m andon.record --port COM6 --session pilot --fan id_00 --condition normal
         --minutes 2 --gain 2
 
-(one line in PowerShell). ``--config`` defaults to ``configs/h2_recording.yaml``.
+(one line in PowerShell). Trying an underspeed duty, in an ``other`` session only::
+
+    uv run python -m andon.record --port COM6 --session dpilot --fan id_00 --condition anomaly
+        --fault underspeed --minutes 1 --speed 70
+
+``--config`` defaults to ``configs/h2_recording.yaml``.
 """
 
 from __future__ import annotations
@@ -211,6 +216,13 @@ def check_take(take: Take, cfg: dict) -> None:
         raise ValueError(f"unknown fault {take.fault!r}; the config lists {list(cfg['faults'])}")
 
 
+def take_speed(take: Take, cfg: dict) -> int:
+    """The fan's PWM duty for a take: the normal speed, unless the fault is a speed of its own
+    (underspeed), in which case nothing is touched on the fan and only the duty changes."""
+    rec = cfg["recording"]
+    return int(rec.get("fault_speed_pct", {}).get(take.fault, rec["speed_pct"]))
+
+
 def save_take(
     take: Take,
     clips: list[np.ndarray],
@@ -241,7 +253,7 @@ def save_take(
                 "fan_model": cfg["fans"][take.fan_id],
                 "condition": take.condition,
                 "fault": take.fault,
-                "speed_pct": cfg["recording"]["speed_pct"],
+                "speed_pct": take_speed(take, cfg),
                 "gain_shift": cfg["audio"]["gain_shift"],
                 "firmware_build": build,
                 "take": take_id,
@@ -280,7 +292,7 @@ def record_take(
     parser = StreamParser()
     port.reset_input_buffer()
     _command(port, "status", log, parser)
-    _command(port, f"fan speed {cfg['recording']['speed_pct']}", log, parser)
+    _command(port, f"fan speed {take_speed(take, cfg)}", log, parser)
     if fan:
         _command(port, "fan on", log, parser)
     try:
@@ -358,7 +370,8 @@ def guided_fan(port, session: str, fan_id: str, cfg: dict) -> None:
     for fault, how in cfg["faults"].items():
         input(f"The fan is off. Fault '{fault}': {how}. Press Enter when ready.")
         run_take(port, Take(session, fan_id, fault, rec["fault_minutes"] * 60), cfg)
-        input(f"The fan is off. Undo '{fault}' (back to normal). Press Enter.")
+        if fault not in rec.get("fault_speed_pct", {}):  # a speed fault leaves nothing to undo
+            input(f"The fan is off. Undo '{fault}' (back to normal). Press Enter.")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -374,6 +387,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--fault", default="none", help="with --condition anomaly")
     parser.add_argument("--minutes", type=float, help="single take length")
     parser.add_argument("--gain", type=int, help="pilot only: try another gain shift (0-8)")
+    parser.add_argument(
+        "--speed", type=int, help="'other' sessions only: try another underspeed duty (1-99)"
+    )
     args = parser.parse_args(argv)
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     if args.gain is not None:
@@ -381,6 +397,13 @@ def main(argv: list[str] | None = None) -> None:
         if args.session != "pilot" or not 0 <= args.gain <= 8:
             parser.error("--gain is for the pilot session only, 0 to 8")
         cfg["audio"]["gain_shift"] = args.gain
+    if args.speed is not None:
+        # Choosing the underspeed duty must not leave trial speeds in the dev or eval sessions.
+        if args.session not in cfg["sessions"]["other"] or not 1 <= args.speed <= 99:
+            parser.error("--speed is for the 'other' sessions only, 1 to 99")
+        if args.fault != "underspeed":
+            parser.error("--speed goes with --condition anomaly --fault underspeed")
+        cfg["recording"].setdefault("fault_speed_pct", {})["underspeed"] = args.speed
 
     import serial  # only needed with a board attached
 

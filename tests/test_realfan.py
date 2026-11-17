@@ -117,13 +117,39 @@ def test_band_powers_are_referred_to_gain_zero():
     np.testing.assert_allclose(b2, b0, rtol=1e-9)
 
 
-def test_a_retired_fault_is_accepted_in_the_pilot_only(cfg):
+def test_a_retired_fault_is_accepted_only_in_its_listed_sessions(cfg):
     take(cfg, "pilot", "id_00", "rattle", 1)
     take(cfg, "s1", "id_00", "rattle", 1, seed=5)
-    cfg["retired_faults"] = {"rattle": cfg["faults"].pop("rattle")}
+    take(cfg, "s2", "id_00", "imbalance", 1, seed=7)
+    cfg["faults"].pop("rattle")
+    cfg["faults"].pop("imbalance")
+    cfg["retired_faults"] = {
+        "rattle": {"how": "shim", "why": "quiet", "sessions": ["pilot"]},
+        "imbalance": {"how": "tape", "why": "lifts", "sessions": ["pilot", "s2"]},
+    }
     problems = realfan.check(cfg)[1]
     assert len(problems) == 1
     assert "s1/anomaly_id_00_00000000.wav: unknown fault rattle" in problems[0]
+
+
+def test_an_excluded_clip_is_listed_with_its_reason_and_left_out_of_the_tables(cfg, tmp_path):
+    take(cfg, "s1", "id_00", "none", 3)
+    root = tmp_path / "realfan"
+    knock = noise(1)
+    knock[100:140] = 32767
+    write_wav(root / "s1" / "normal_id_00_00000001.wav", knock / 32768.0, RATE)
+    cfg["excluded_clips"] = {
+        "s1/normal_id_00_00000001.wav": "a knock",
+        "s1/normal_id_00_00000042.wav": "a typo",
+    }
+    text, problems = realfan.check(cfg, listen=5)
+    # Its clipping is no longer a problem; an exclusion that names no clip is.
+    assert problems == [
+        "s1/normal_id_00_00000042.wav: excluded in the config but not in the manifest"
+    ]
+    assert "| s1 | dev | id_00 | none | 2 |" in text
+    assert "- `s1/normal_id_00_00000001.wav`: a knock (40 clipped samples)" in text
+    assert "- [ ] `s1/normal_id_00_00000001.wav`" not in text
 
 
 def test_tone_check_measures_the_frequency():

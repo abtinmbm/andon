@@ -120,6 +120,8 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
     cells: dict[tuple, list[tuple[str, ClipStats]]] = defaultdict(list)
     bands: dict[tuple, list[np.ndarray]] = defaultdict(list)  # (session, fan, fault, take)
     listed = set()
+    excluded: dict[str, str] = cfg.get("excluded_clips") or {}
+    excluded_stats: dict[str, ClipStats] = {}
     for row in rows:
         name = row["file"]
         if name in listed:
@@ -134,10 +136,13 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
             problems.append(f"{name}: unknown fan {row['fan_id']}")
         if (row["condition"] == "normal") != (row["fault"] == "none"):
             problems.append(f"{name}: condition {row['condition']} with fault {row['fault']}")
-        # A fault tried in the pilot and then replaced stays readable there, never elsewhere.
+        # A dropped fault stays readable in the sessions it was recorded in, never elsewhere.
         known = set(cfg["faults"])
-        if row["session"] == "pilot":
-            known |= set(cfg.get("retired_faults", {}))
+        known |= {
+            name
+            for name, spec in cfg.get("retired_faults", {}).items()
+            if row["session"] in spec["sessions"]
+        }
         if row["fault"] != "none" and row["fault"] not in known:
             problems.append(f"{name}: unknown fault {row['fault']}")
         if int(row["gain_shift"]) != cfg["audio"]["gain_shift"] and row["session"] != "pilot":
@@ -155,6 +160,11 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
             problems.append(f"{name}: {sr} Hz, {ch} ch, {len(samples)} samples")
             continue
         st = clip_stats(samples)
+        # An excluded clip is still checked as a file, but its known defect (e.g. a knock that
+        # clipped) is not a problem, and it stays out of the tables, the bands and listening.
+        if name in excluded:
+            excluded_stats[name] = st
+            continue
         if st.clipped:
             problems.append(f"{name}: {st.clipped} clipped samples")
         cells[(row["session"], row["fan_id"], row["fault"])].append((name, st))
@@ -164,6 +174,8 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
     on_disk = {p.relative_to(root).as_posix() for p in root.glob("*/*.wav")}
     for stray in sorted(on_disk - listed):
         problems.append(f"{stray}: on disk but not in the manifest")
+    for name in sorted(set(excluded) - listed):
+        problems.append(f"{name}: excluded in the config but not in the manifest")
 
     logs = read_take_logs(root)
     lost = defaultdict(lambda: defaultdict(float))
@@ -208,6 +220,10 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
             f"| {t['corrupt']:.0f} | {t['discarded_seconds']:.2f} |"
         )
     lines += fault_vs_normal(bands, rate, order)
+    if excluded_stats:
+        lines += ["", "Excluded clips (kept on disk, left out of everything above):", ""]
+        for name, st in sorted(excluded_stats.items()):
+            lines.append(f"- `{name}`: {excluded[name]} ({st.clipped} clipped samples)")
     if listen:
         rng = random.Random(seed)
         lines += ["", f"Listening check ({listen} random clips per row, seed {seed}):", ""]
