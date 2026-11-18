@@ -12,6 +12,11 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-17: Session d2 recorded; `id_00` underspeed passes the repeatability check (Phase H2)
+- **Tried:** d2 in the dorm, a different day from d1, fan order `id_01, id_02, id_00`. 12 takes, 438813 frames, 0 breaks, 0 missing, 0 corrupt; check: 0 problems, no excluded clips (`results/h2_dataset.md`).
+- **Decision:** kept; d3 goes ahead with the protocol unchanged.
+- **Why:** `id_00` underspeed changed 4000-8000 Hz by −11.9 dB against d1's −14.2 dB, a difference of +2.3 dB, inside the ±3 dB fixed before d2. It is closer to the limit than the other faults moved, as expected from `id_00` sitting on the knee of its speed curve. Not a rule, but noted for H3: `id_00` obstruction's 500-1000 Hz change fell from +14.0 to +11.2 dB while 250-500 Hz stayed at +13.7 (d1 +13.8), so its biggest band moved. Every other fault on `id_01` and `id_02` is within 1.3 dB of d1 in its biggest band.
+
 ### 2026-11-16: Rules for using the real-fan clips, fixed before d2 (Phase H2)
 - **Tried:** a review of the d1 commit. Three gaps: (1) on `id_00` the first 2–3 underspeed clips are still slowing down but labelled underspeed; (2) `id_00` sits on the knee of its speed curve (90 % doesn't slow it, 85 % does a lot), so its underspeed could change size between sessions; (3) nothing in code applied the excluded clips or the retired faults, and the checker didn't check a clip's recorded speed.
 - **Decision:**

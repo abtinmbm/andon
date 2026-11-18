@@ -10,6 +10,15 @@
 | d1 | dev | id_02 | none | 197 | 32.8 | -27.6 | -6.9 | -0.6 | 0 |
 | d1 | dev | id_02 | obstruction | 18 | 3.0 | -21.1 | -8.2 | -0.6 | 0 |
 | d1 | dev | id_02 | underspeed | 18 | 3.0 | -33.4 | -14.1 | -0.6 | 0 |
+| d2 | dev | id_00 | none | 198 | 33.0 | -38.3 | -16.8 | -0.6 | 0 |
+| d2 | dev | id_00 | obstruction | 18 | 3.0 | -28.8 | -14.2 | -0.6 | 0 |
+| d2 | dev | id_00 | underspeed | 18 | 3.0 | -42.0 | -19.8 | -0.6 | 0 |
+| d2 | dev | id_01 | none | 198 | 33.0 | -29.9 | -8.6 | -0.6 | 0 |
+| d2 | dev | id_01 | obstruction | 18 | 3.0 | -22.0 | -9.3 | -0.6 | 0 |
+| d2 | dev | id_01 | underspeed | 18 | 3.0 | -35.2 | -12.1 | -0.6 | 0 |
+| d2 | dev | id_02 | none | 198 | 33.0 | -27.7 | -9.7 | -0.6 | 0 |
+| d2 | dev | id_02 | obstruction | 18 | 3.0 | -21.3 | -7.8 | -0.6 | 0 |
+| d2 | dev | id_02 | underspeed | 18 | 3.0 | -33.1 | -17.8 | -0.6 | 0 |
 | pilot | other | id_00 | none | 12 | 2.0 | -63.0 | -47.8 | -0.5 | 0 |
 | pilot | other | id_00 | imbalance | 6 | 1.0 | -60.3 | -47.4 | -0.5 | 0 |
 | pilot | other | id_00 | obstruction | 6 | 1.0 | -51.8 | -39.3 | -0.5 | 0 |
@@ -35,6 +44,7 @@ Stream, from the take logs (frames received; breaks; frames missing; corrupt; se
 | Session | Takes | Frames | Breaks | Missing | Corrupt | Discarded (s) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | d1 | 14 | 461322 | 0 | 0 | 0 | 0.00 |
+| d2 | 12 | 438813 | 0 | 0 | 0 | 0.00 |
 | pilot | 9 | 37511 | 0 | 0 | 0 | 0.00 |
 | s1 | 9 | 405033 | 0 | 0 | 0 | 0.00 |
 | dpilot | 6 | 22506 | 0 | 0 | 0 | 0.00 |
@@ -51,6 +61,12 @@ Fault takes against normal running of the same fan in the same session: mean ban
 | d1 | id_01 | underspeed | d1-id_01-underspeed-20261117T020518Z | -2.9 | -3.0 | -4.4 | -5.2 | -6.3 | -8.8 | -8.1 | 2000-4000 Hz: -9.1 to -8.3 |
 | d1 | id_02 | obstruction | d1-id_02-obstruction-20261117T030740Z | -2.3 | +7.2 | +4.5 | +8.8 | +5.2 | +4.7 | +5.6 | 500-1000 Hz: +8.6 to +9.1 |
 | d1 | id_02 | underspeed | d1-id_02-underspeed-20261117T030051Z | -5.1 | -3.6 | -4.7 | -6.2 | -6.4 | -9.7 | -8.7 | 2000-4000 Hz: -9.9 to -9.6 |
+| d2 | id_00 | obstruction | d2-id_00-obstruction-20261118T015647Z | +4.0 | +10.4 | +13.7 | +11.2 | +6.6 | +6.7 | +9.7 | 250-500 Hz: +13.4 to +14.0 |
+| d2 | id_00 | underspeed | d2-id_00-underspeed-20261118T015244Z | -1.5 | -1.3 | -0.5 | -2.5 | -9.7 | -9.2 | -11.9 | 4000-8000 Hz: -12.4 to -10.4 |
+| d2 | id_01 | obstruction | d2-id_01-obstruction-20261118T001536Z | +0.7 | +6.6 | +4.7 | +11.9 | +4.6 | +5.1 | +6.3 | 500-1000 Hz: +11.7 to +12.2 |
+| d2 | id_01 | underspeed | d2-id_01-underspeed-20261118T001152Z | -2.2 | -2.9 | -4.4 | -6.0 | -6.4 | -8.3 | -7.9 | 2000-4000 Hz: -8.7 to -7.8 |
+| d2 | id_02 | obstruction | d2-id_02-obstruction-20261118T010243Z | -0.6 | +6.2 | +3.8 | +9.3 | +5.4 | +4.9 | +5.4 | 500-1000 Hz: +8.9 to +9.6 |
+| d2 | id_02 | underspeed | d2-id_02-underspeed-20261118T005855Z | -4.3 | -3.1 | -4.3 | -6.7 | -5.6 | -8.4 | -7.7 | 2000-4000 Hz: -8.8 to -8.1 |
 | pilot | id_00 | imbalance | pilot-id_00-imbalance-20261107T231520Z | +8.0 | +0.3 | +2.1 | +0.8 | +0.9 | +0.1 | +0.2 | 0-125 Hz: +7.0 to +8.7 |
 | pilot | id_00 | obstruction | pilot-id_00-obstruction-20261107T224433Z | +5.0 | +10.3 | +14.1 | +14.1 | +6.2 | +7.0 | +9.8 | 500-1000 Hz: +13.7 to +14.3 |
 | pilot | id_00 | rattle | pilot-id_00-rattle-20261107T233213Z | +0.8 | -0.1 | -0.4 | -2.7 | +0.4 | -0.5 | -0.5 | 500-1000 Hz: -3.6 to -2.0 |
@@ -73,6 +89,7 @@ Repeatability against d1 (change from normal in the reference's biggest band, to
 | Fan | Fault | Band | Session | Change (dB) | Difference from reference (dB) |
 | --- | --- | --- | --- | ---: | ---: |
 | id_00 | underspeed | 4000-8000 Hz | d1 | -14.2 | |
+| id_00 | underspeed | 4000-8000 Hz | d2 | -11.9 | +2.3 |
 
 Excluded clips (kept on disk, left out of everything above):
 
@@ -100,43 +117,61 @@ Listening check (2 random clips per row, seed 0):
 - [ ] `d1/anomaly_id_02_00000026.wav` (obstruction)
 - [ ] `d1/anomaly_id_02_00000017.wav` (underspeed)
 - [ ] `d1/anomaly_id_02_00000004.wav` (underspeed)
-- [ ] `pilot/anomaly_id_00_00000008.wav` (imbalance)
+- [ ] `d2/normal_id_00_00000079.wav` (none)
+- [ ] `d2/normal_id_00_00000025.wav` (none)
+- [ ] `d2/anomaly_id_00_00000020.wav` (obstruction)
+- [ ] `d2/anomaly_id_00_00000028.wav` (obstruction)
+- [ ] `d2/anomaly_id_00_00000015.wav` (underspeed)
+- [ ] `d2/anomaly_id_00_00000003.wav` (underspeed)
+- [ ] `d2/normal_id_01_00000090.wav` (none)
+- [ ] `d2/normal_id_01_00000111.wav` (none)
+- [ ] `d2/anomaly_id_01_00000028.wav` (obstruction)
+- [ ] `d2/anomaly_id_01_00000024.wav` (obstruction)
+- [ ] `d2/anomaly_id_01_00000017.wav` (underspeed)
+- [ ] `d2/anomaly_id_01_00000015.wav` (underspeed)
+- [ ] `d2/normal_id_02_00000113.wav` (none)
+- [ ] `d2/normal_id_02_00000133.wav` (none)
+- [ ] `d2/anomaly_id_02_00000026.wav` (obstruction)
+- [ ] `d2/anomaly_id_02_00000019.wav` (obstruction)
+- [ ] `d2/anomaly_id_02_00000017.wav` (underspeed)
+- [ ] `d2/anomaly_id_02_00000000.wav` (underspeed)
 - [ ] `pilot/anomaly_id_00_00000006.wav` (imbalance)
+- [ ] `pilot/anomaly_id_00_00000009.wav` (imbalance)
 - [ ] `pilot/normal_id_00_00000011.wav` (none)
-- [ ] `pilot/normal_id_00_00000001.wav` (none)
+- [ ] `pilot/normal_id_00_00000010.wav` (none)
 - [ ] `pilot/anomaly_id_00_00000005.wav` (obstruction)
-- [ ] `pilot/anomaly_id_00_00000002.wav` (obstruction)
+- [ ] `pilot/anomaly_id_00_00000000.wav` (obstruction)
 - [ ] `pilot/anomaly_id_00_00000027.wav` (rattle)
-- [ ] `pilot/anomaly_id_00_00000015.wav` (rattle)
+- [ ] `pilot/anomaly_id_00_00000022.wav` (rattle)
+- [ ] `pilot/anomaly_id_01_00000007.wav` (imbalance)
 - [ ] `pilot/anomaly_id_01_00000008.wav` (imbalance)
-- [ ] `pilot/anomaly_id_01_00000009.wav` (imbalance)
-- [ ] `pilot/normal_id_01_00000002.wav` (none)
-- [ ] `pilot/normal_id_01_00000004.wav` (none)
-- [ ] `pilot/anomaly_id_01_00000005.wav` (obstruction)
+- [ ] `pilot/normal_id_01_00000005.wav` (none)
+- [ ] `pilot/normal_id_01_00000000.wav` (none)
 - [ ] `pilot/anomaly_id_01_00000001.wav` (obstruction)
+- [ ] `pilot/anomaly_id_01_00000004.wav` (obstruction)
+- [ ] `s1/anomaly_id_00_00000007.wav` (imbalance)
 - [ ] `s1/anomaly_id_00_00000017.wav` (imbalance)
-- [ ] `s1/anomaly_id_00_00000015.wav` (imbalance)
-- [ ] `s1/normal_id_00_00000113.wav` (none)
-- [ ] `s1/normal_id_00_00000133.wav` (none)
-- [ ] `s1/anomaly_id_00_00000026.wav` (obstruction)
-- [ ] `s1/anomaly_id_00_00000019.wav` (obstruction)
-- [ ] `s1/anomaly_id_01_00000017.wav` (imbalance)
-- [ ] `s1/anomaly_id_01_00000000.wav` (imbalance)
-- [ ] `s1/normal_id_01_00000023.wav` (none)
-- [ ] `s1/normal_id_01_00000102.wav` (none)
-- [ ] `s1/anomaly_id_01_00000018.wav` (obstruction)
-- [ ] `s1/anomaly_id_01_00000033.wav` (obstruction)
-- [ ] `s1/anomaly_id_02_00000010.wav` (imbalance)
-- [ ] `s1/anomaly_id_02_00000007.wav` (imbalance)
-- [ ] `s1/normal_id_02_00000083.wav` (none)
-- [ ] `s1/normal_id_02_00000016.wav` (none)
+- [ ] `s1/normal_id_00_00000036.wav` (none)
+- [ ] `s1/normal_id_00_00000139.wav` (none)
+- [ ] `s1/anomaly_id_00_00000032.wav` (obstruction)
+- [ ] `s1/anomaly_id_00_00000020.wav` (obstruction)
+- [ ] `s1/anomaly_id_01_00000002.wav` (imbalance)
+- [ ] `s1/anomaly_id_01_00000010.wav` (imbalance)
+- [ ] `s1/normal_id_01_00000130.wav` (none)
+- [ ] `s1/normal_id_01_00000125.wav` (none)
+- [ ] `s1/anomaly_id_01_00000021.wav` (obstruction)
+- [ ] `s1/anomaly_id_01_00000027.wav` (obstruction)
+- [ ] `s1/anomaly_id_02_00000017.wav` (imbalance)
+- [ ] `s1/anomaly_id_02_00000009.wav` (imbalance)
+- [ ] `s1/normal_id_02_00000031.wav` (none)
+- [ ] `s1/normal_id_02_00000140.wav` (none)
+- [ ] `s1/anomaly_id_02_00000028.wav` (obstruction)
 - [ ] `s1/anomaly_id_02_00000024.wav` (obstruction)
-- [ ] `s1/anomaly_id_02_00000025.wav` (obstruction)
-- [ ] `dpilot/anomaly_id_00_00000003.wav` (underspeed)
-- [ ] `dpilot/anomaly_id_00_00000002.wav` (underspeed)
+- [ ] `dpilot/anomaly_id_00_00000009.wav` (underspeed)
+- [ ] `dpilot/anomaly_id_00_00000008.wav` (underspeed)
 - [ ] `dpilot/normal_id_01_00000004.wav` (none)
-- [ ] `dpilot/normal_id_01_00000003.wav` (none)
+- [ ] `dpilot/normal_id_01_00000002.wav` (none)
+- [ ] `dpilot/anomaly_id_01_00000014.wav` (underspeed)
 - [ ] `dpilot/anomaly_id_01_00000002.wav` (underspeed)
-- [ ] `dpilot/anomaly_id_01_00000017.wav` (underspeed)
 
 Problems: 0
