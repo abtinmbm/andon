@@ -12,6 +12,11 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-17: H6 and H7 trigger the fault with underspeed by command, not a blade weight (Phase H2)
+- **Tried:** PLAN.md had H6 done when the fan stops after a blade weight is added, and the H7 video showing a weight added.
+- **Decision:** the fan is switched to underspeed mid-run by a serial command; H6 logs the time from the switch to the stop. Set before H3, so no model choice is made with it in view.
+- **Why:** the blade weight is the imbalance fault, retired in d1 as not repeatable (2026-11-16). Underspeed is one of the two recorded faults, is set in software, and the command gives an exact fault time, so the time to stop is measured, not estimated. Obstruction stays a recorded fault but needs the fan off to fit (protocol), so it can't start mid-run.
+
 ### 2026-11-17: Session d2 recorded; `id_00` underspeed passes the repeatability check (Phase H2)
 - **Tried:** d2 in the dorm, a different day from d1, fan order `id_01, id_02, id_00`. 12 takes, 438813 frames, 0 breaks, 0 missing, 0 corrupt; check: 0 problems, no excluded clips (`results/h2_dataset.md`).
 - **Decision:** kept; d3 goes ahead with the protocol unchanged.

@@ -175,14 +175,14 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
 - The full loop runs on the device: listen, score, update the andon state, and cut the fan on red.
 - Only pressing the reset button restarts the fan.
 - Send scores to the Stage 1 dashboard over USB serial.
-- **Done when:** the fan stops by itself after a blade weight is added, and a log records the time from fault to stop.
+- **Done when:** the fan stops by itself after it is switched to underspeed mid-run by a serial command, and a log records the time from the switch to the stop.
 
 ### Phase H7: Measure and show
 
 - Live trials:
   - run normal for an hour and count the false stops
   - inject each fault type 10 times, and record the detection rate and delay
-- A 60-second demo video: the fan running, a weight added, the light going red, the fan stopping.
+- A 60-second demo video: the fan running, switched to underspeed, the light going red, the fan stopping.
 - **Done when:** the README has a hardware results table and the video.
 
 ### Parts
