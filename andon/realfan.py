@@ -122,6 +122,8 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
     listed = set()
     excluded: dict[str, str] = cfg.get("excluded_clips") or {}
     excluded_stats: dict[str, ClipStats] = {}
+    excluded_takes: dict[str, str] = cfg.get("excluded_takes") or {}
+    excluded_take_clips: dict[str, int] = defaultdict(int)
     for row in rows:
         name = row["file"]
         if name in listed:
@@ -172,6 +174,11 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
         if name in excluded:
             excluded_stats[name] = st
             continue
+        # A whole take whose labels are wrong (e.g. recorded under another fan's ID) is kept
+        # as recorded, never relabelled; it is verified as files and left out of every use.
+        if row["take"] in excluded_takes:
+            excluded_take_clips[row["take"]] += 1
+            continue
         if st.clipped:
             problems.append(f"{name}: {st.clipped} clipped samples")
         cells[(row["session"], row["fan_id"], row["fault"])].append((name, st))
@@ -183,6 +190,9 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
         problems.append(f"{stray}: on disk but not in the manifest")
     for name in sorted(set(excluded) - listed):
         problems.append(f"{name}: excluded in the config but not in the manifest")
+    takes = {row["take"] for row in rows}
+    for name in sorted(set(excluded_takes) - takes):
+        problems.append(f"{name}: take excluded in the config but not in the manifest")
 
     logs = read_take_logs(root)
     lost = defaultdict(lambda: defaultdict(float))
@@ -198,18 +208,21 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
     order = {s: i for i, s in enumerate(sessions)}
     lines = [
         "| Session | Split | Fan | Fault | Clips | Minutes | Median RMS (dBFS) | Max peak (dBFS) "
-        "| DC (LSB, mean) | Clipped samples |",
-        "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| DC (LSB, mean) | Clipped samples | Loudest clip |",
+        "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for key in sorted(cells, key=lambda k: (order.get(k[0], 99), k[1], k[2] != "none", k[2])):
         session, fan, fault = key
         stats = [s for _, s in cells[key]]
+        # Named so an outlier peak (a knock, a bump) can be found and listened to.
+        loudest = max(cells[key], key=lambda c: c[1].peak_dbfs)[0]
         lines.append(
             f"| {session} | {sessions.get(session, '?')} | {fan} | {fault} | {len(stats)} "
             f"| {len(stats) * clip_len / rate / 60:.1f} "
             f"| {np.median([s.rms_dbfs for s in stats]):.1f} "
             f"| {max(s.peak_dbfs for s in stats):.1f} "
-            f"| {np.mean([s.dc for s in stats]):.1f} | {sum(s.clipped for s in stats)} |"
+            f"| {np.mean([s.dc for s in stats]):.1f} | {sum(s.clipped for s in stats)} "
+            f"| `{loudest}` |"
         )
     lines += [
         "",
@@ -234,6 +247,10 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
         lines += ["", "Excluded clips (kept on disk, left out of everything above):", ""]
         for name, st in sorted(excluded_stats.items()):
             lines.append(f"- `{name}`: {excluded[name]} ({st.clipped} clipped samples)")
+    if excluded_take_clips:
+        lines += ["", "Excluded takes (kept on disk, left out of everything above):", ""]
+        for name, n in sorted(excluded_take_clips.items()):
+            lines.append(f"- `{name}`: {excluded_takes[name]} ({n} clips)")
     if listen:
         rng = random.Random(seed)
         lines += ["", f"Listening check ({listen} random clips per row, seed {seed}):", ""]
@@ -306,19 +323,21 @@ def repeatability(
 
 
 def usable_rows(rows: list[dict], cfg: dict) -> list[dict]:
-    """The manifest rows a model may use: no excluded clips, no retired faults, and none of
-    the clips at the start of a take that the config says are still settling.
+    """The manifest rows a model may use: no excluded clips or takes, no retired faults, and
+    none of the clips at the start of a take that the config says are still settling.
 
     Every loader of real-fan clips for training or scoring goes through this, so the rules in
     the recording config are applied in one place.
     """
     excluded = cfg.get("excluded_clips") or {}
+    excluded_takes = cfg.get("excluded_takes") or {}
     retired = set(cfg.get("retired_faults") or {})
     skip = cfg.get("skip_first_clips") or {}
     return [
         r
         for r in rows
         if r["file"] not in excluded
+        and r["take"] not in excluded_takes
         and r["fault"] not in retired
         and int(r["clip_in_take"]) >= int(skip.get(r["fault"], 0))
     ]

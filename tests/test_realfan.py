@@ -75,6 +75,8 @@ def test_clipping_wrong_length_strays_and_missing_files_are_reported(cfg, tmp_pa
     write_wav(root / "s1" / "normal_id_00_00000000.wav", loud / 32768.0, RATE)
     write_wav(root / "s1" / "normal_id_00_00000001.wav", np.zeros(RATE - 1), RATE)
     (root / "s1" / "normal_id_00_00000002.wav").unlink()
+    text = realfan.check(cfg)[0]
+    assert "| 1 | `s1/normal_id_00_00000000.wav` |" in text  # the clipped clip is the loudest
     shutil.copy(
         root / "s1" / "normal_id_00_00000001.wav", root / "s1" / "normal_id_00_00000099.wav"
     )
@@ -148,6 +150,7 @@ def test_an_excluded_clip_is_listed_with_its_reason_and_left_out_of_the_tables(c
         "s1/normal_id_00_00000042.wav: excluded in the config but not in the manifest"
     ]
     assert "| s1 | dev | id_00 | none | 2 |" in text
+    assert "| `s1/normal_id_00_00000001.wav` |" not in text  # not the row's loudest clip
     assert "- `s1/normal_id_00_00000001.wav`: a knock (40 clipped samples)" in text
     assert "- [ ] `s1/normal_id_00_00000001.wav`" not in text
 
@@ -204,19 +207,36 @@ def test_a_fault_that_changes_size_between_sessions_is_a_problem(cfg, monkeypatc
 
 def test_usable_rows_drop_excluded_retired_and_settling_clips():
     rows = [
-        {"file": "a.wav", "fault": "none", "clip_in_take": "0"},
-        {"file": "b.wav", "fault": "none", "clip_in_take": "1"},
-        {"file": "c.wav", "fault": "imbalance", "clip_in_take": "5"},
-        {"file": "d.wav", "fault": "underspeed", "clip_in_take": "2"},
-        {"file": "e.wav", "fault": "underspeed", "clip_in_take": "3"},
+        {"file": "a.wav", "take": "t1", "fault": "none", "clip_in_take": "0"},
+        {"file": "b.wav", "take": "t1", "fault": "none", "clip_in_take": "1"},
+        {"file": "c.wav", "take": "t2", "fault": "imbalance", "clip_in_take": "5"},
+        {"file": "d.wav", "take": "t3", "fault": "underspeed", "clip_in_take": "2"},
+        {"file": "e.wav", "take": "t3", "fault": "underspeed", "clip_in_take": "3"},
+        {"file": "f.wav", "take": "t4", "fault": "none", "clip_in_take": "0"},
     ]
     cfg = {
         "excluded_clips": {"b.wav": "knock"},
+        "excluded_takes": {"t4": "wrong fan"},
         "retired_faults": {"imbalance": {"sessions": ["d1"]}},
         "skip_first_clips": {"underspeed": 3},
     }
     assert [r["file"] for r in realfan.usable_rows(rows, cfg)] == ["a.wav", "e.wav"]
-    assert len(realfan.usable_rows(rows, {})) == 5
+    assert len(realfan.usable_rows(rows, {})) == 6
+
+
+def test_an_excluded_take_is_checked_as_files_and_left_out_of_the_tables(cfg, tmp_path):
+    take(cfg, "s1", "id_00", "none", 3)
+    take(cfg, "s1", "id_00", "none", 2, seed=10)  # say, another fan's take under id_00
+    cfg["excluded_takes"] = {"s1-id_00-none-10": "another fan", "s1-id_00-none-99": "a typo"}
+    text, problems = realfan.check(cfg, listen=5)
+    assert problems == ["s1-id_00-none-99: take excluded in the config but not in the manifest"]
+    assert "| s1 | dev | id_00 | none | 3 |" in text
+    assert "- `s1-id_00-none-10`: another fan (2 clips)" in text
+    assert text.count("- [ ] `") == 3  # only the kept take's clips are offered for listening
+    assert "| s1 | 2 | 315 | 0 | 0 | 0 | 0.00 |" in text  # its stream still counts
+    # A broken file is a problem even in an excluded take.
+    (tmp_path / "realfan" / "s1" / "normal_id_00_00000004.wav").unlink()
+    assert any("00000004.wav: missing" in p for p in realfan.check(cfg)[1])
 
 
 def test_tone_check_measures_the_frequency():

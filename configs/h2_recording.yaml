@@ -67,3 +67,8 @@ repeatability:              # a fault must keep its size from session to session
 
 excluded_clips:             # single clips left out of every use (file stays on disk): file: why
   d1/normal_id_02_00000003.wav: a knock 9.25-9.34 s into the clip, not the fan
+  d3/normal_id_02_00000077.wav: a door thud (heard on listening), not the fan
+  d3/normal_id_02_00000115.wav: a door thud (heard on listening), not the fan
+
+excluded_takes:             # whole takes left out of every use (files stay on disk, never relabelled)
+  d3-id_02-none-20261119T031251Z: id_00's control take, recorded under --fan id_02 by mistake

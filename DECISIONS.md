@@ -12,6 +12,12 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-18: Session d3 recorded; a take with the wrong fan label is excluded whole (Phase H2)
+- **Tried:** d3 (eval) in the dorm, a different day from d1 and d2, fan order `id_02, id_00, id_01`. 13 takes, 450068 frames, 0 breaks, 0 missing, 0 corrupt; check: 0 problems (`results/h2_dataset.md`).
+- **Result:** the check's clip counts showed 216 normal clips for `id_02` and 180 for `id_00`, against 198 each: `id_00`'s control take had been recorded with `--fan id_02` (`d3-id_02-none-20261119T031251Z`, 18 clips). Two `id_02` normal clips, `d3/normal_id_02_00000077.wav` and then `00000115.wav`, were named in turn as the row's loudest, at −2.5 and −3.4 dBFS (neither clipped), against −6.9 to −17.4 dBFS for the other dev and eval normal rows; on listening, each holds a door thud. `id_00` underspeed changed 4000-8000 Hz by −13.7 dB against d1's −14.2 dB (+0.4 dB, inside ±3 dB).
+- **Decision:** the mislabelled take is listed under a new `excluded_takes` in `configs/h2_recording.yaml`, applied by the checker and by `usable_rows`, and `id_00`'s control take was recorded again after `id_01`'s run. The two door-thud clips go under `excluded_clips`; `id_02` keeps 196 of its 198 normal clips. The checker's table now names each row's loudest clip.
+- **Why:** relabelling the files would change the dataset after recording and need loader code for one mistake; an eval set must not hold clips whose fan label is wrong. Excluding by take keeps the files and the manifest as recorded, with the reason next to the exclusion, the same way as the d1 knock (2026-11-16). The loudest-clip column is how the thud was found; the check flags clipping only, and this clip did not clip. None of this is chosen from model results: no model has seen d3.
+
 ### 2026-11-17: H6 and H7 trigger the fault with underspeed by command, not a blade weight (Phase H2)
 - **Tried:** PLAN.md had H6 done when the fan stops after a blade weight is added, and the H7 video showing a weight added.
 - **Decision:** the fan is switched to underspeed mid-run by a serial command; H6 logs the time from the switch to the stop. Set before H3, so no model choice is made with it in view.
