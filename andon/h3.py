@@ -595,8 +595,11 @@ def tables(configs: list[str], split: str, log: Path = RESULTS_LOG) -> str:
 # fitted on the limit clips' windows; false alarms are counted on the same-mount normals and,
 # apart, on the control take (after a remount, without recalibrating); each fault take is
 # played after the last ``warmup_clips`` same-mount normal clips, and the time to red is the
-# end of the window that turned it red, counted from the first fault sample. The light
-# settings are Phase 5's. Windows are those of each 10 s clip; a device would also score the
+# end of the window that turned it red, counted from the start of the first scored fault
+# clip, played straight after the normal clips. That is a join, not the fault's real onset:
+# underspeed's first clips are not used (about 30 s after the switch), and obstruction is
+# fitted with the fan off. H6 measures a real switch to stop. The light settings are Phase 5's.
+# Windows are those of each 10 s clip; a device would also score the
 # few windows that straddle the joins between clips.
 
 
@@ -782,8 +785,10 @@ def _light_lines(by_cfg: dict[str, list[dict]]) -> list[str]:
         "same-mount normals, and apart on the control take: after a remount, without "
         "recalibrating, which is not a pass condition (the rule is to recalibrate). Takes "
         "caught: fault takes that turned the light red, of those not flagged; seconds to red: "
-        "the mean over the caught takes, from the first fault sample. Mean ± sample std over "
-        "seeds.",
+        "the mean over the caught takes, from the start of the first scored fault clip, played "
+        "straight after normal clips (a join, not the real onset: underspeed's first 30 s after "
+        "the switch are not used, and the card is fitted with the fan off). Mean ± sample std "
+        "over seeds.",
         "",
         "| Config | Reds per hour, same mount | Reds per hour, control take | Takes caught | "
         "Seconds to red |",

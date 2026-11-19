@@ -117,6 +117,22 @@ The Pico 2 switches a 5 V fan through a logic-level MOSFET (IRLZ44N, with a 1N40
 
 The target was under 100 ms. Every trial passed, and each `fan off` followed a start that had powered the fan. The round trip runs from the PC writing the command to the Pico's reply arriving, so it includes USB both ways. Pressing the button to red cut the fan within the same millisecond, `fan on` was refused while red, and the reset restarted it ([raw log](results/h1_andon_red.txt)). "Off" means the fan has no power. The blades then coast to a stop over a few seconds. The fan is also off at boot, so a reset or a power blip never restarts the machine by itself.
 
+### Listening to real fans (Stage 2, H3)
+
+Three real 5 V fans (`id_00`, a Sunon; `id_01` and `id_02`, two identical ANVISION fans) were recorded through the board's microphone in three sessions on different days, in one room: two for development (`d1`, `d2`) and one held out (`d3`). Each session has, per fan, 30 min of normal running, a 3 min "control" take of normal running after the fan was taken off its mount and put back, and 3 min of each fault: **underspeed** (the drive switched on 85 % of the time) and **obstruction** (a card strip over part of the intake). The models train on normal audio from the other sessions only. The light's limits are set on the first 10 min of the tested session's normal running, the way the device will calibrate itself, and it is judged on the rest.
+
+| Held-out session `d3`, scored once | Gaussian mixture per fan (chosen on dev) | Sound level only (reference) |
+| --- | ---: | ---: |
+| AUC, every one of the 3 fans x 2 faults | 100.00 ± 0.00 | 100.00 |
+| False reds per hour, normal running | 0.00 ± 0.00 | 0.00 |
+| False reds per hour, after a remount without recalibrating | 15.53 ± 3.84 | 0.00 |
+| Fault takes that turned the light red | 6 of 6 | 6 of 6 |
+| Seconds to red, from the first fault clip played after normal running | 4.10 ± 0.00 | 4.10 |
+
+**A plain sound-level meter catches these two faults as well as the model does.** Underspeed makes a fan quieter and the card makes it louder, both by much more than anything in normal running, so on this data the model adds nothing over a level meter. That is reported as it came out. Faults that don't change the loudness are the harder test. 4.10 s is the light's own fastest red (three windows in a row over the limit), so the time to red measures the light's settings, not the model. It is timed from a splice of normal and fault recordings, not from a real fault starting: the first 30 s of underspeed (the fan still slowing) are not used, and the card is fitted with the fan off. The real switch-to-stop time is measured on the device in H6. Normal running in `d3` is about an hour over the three fans, so a single false red would read as about one per hour.
+
+The model was picked on the development sessions by a rule written into the configs before any run: the lowest AUC over the six fan-and-fault cells decides, and a tie within one point goes to the model that is cheapest on the device. A Gaussian mixture on each window's average spectrum and a version corrected for the mount both scored 100.00 there; the plain mixture is cheaper. The Stage 1 CNN scored 0.00 on two cells and was dropped ([dev tables](results/h3_dev.md), [held-out tables](results/h3_eval.md), [DECISIONS](DECISIONS.md)).
+
 ## How it's evaluated
 
 The numbers above are only worth something if the test was fair, so the project follows fixed rules:
@@ -139,7 +155,9 @@ The numbers above are only worth something if the test was fair, so the project 
 - **The autoencoder baseline doesn't fit the microcontroller:** 272.1 KB even at int8, over the 256 KB budget.
 - **A 2-wire fan can't start at half power.** With PWM on the MOSFET, the Sunon fan ran smoothly at 70 % and 50 % once spinning, but from standstill at 50 % it only jittered. The firmware now runs any start from stopped at a part speed at full power for 1 s first. At 30 % it ran but rattled, which sounds too much like a loose-mount fault to use as a normal speed. These speed results were judged by ear.
 - **Two of the real-fan faults were dropped.** A loosened mount sounded the same as normal running. Tape on one blade (imbalance) wasn't repeatable: on the Sunon fan it raised 0-125 Hz by +8.0 dB in the pilot and +6.6 dB in the first full session, but by only +0.5 dB in the first session in the second room. A larger piece varied from +2.8 to +10.9 dB clip to clip within one take, and on another fan it came loose and buzzed. It was replaced by underspeed: the fan's drive switched on 85 % of the time (PWM duty), which software sets the same way every time ([dataset check](results/h2_dataset.md), [DECISIONS](DECISIONS.md)).
-- **Very loud faults can clip the int8 input**, whose range is set from normal audio. On the DCASE evaluation set at most 0.003 % of input values clipped, but a real fan fault could be much louder, so Stage 2 checks it.
+- **Faults outside the normal range can clip the int8 input**, whose range is set from normal audio. On the DCASE evaluation set at most 0.003 % of input values clipped. On the real fans, at most 0.31 ± 0.00 % of the CNN's inputs fell outside it on dev, all for underspeed, the quieter fault.
+- **The Stage 1 CNN fails on the real fans.** With the three fans as its classes, it scored 0.00 dev AUC on `id_02` obstruction and on `id_00` underspeed. Its score measures how unlike the other fans a fan sounds, and those faults probably make the fan sound even less like the others, so the fault reads as more normal (an explanation from how the score is defined, not measured).
+- **A remount looks like a fault.** Taking a fan off its mount and putting it back changes its sound enough for the models to tell it apart from the earlier running (dev AUC up to 100.00 ± 0.00 for the Gaussian mixture). Without recalibrating, the chosen model raised 57.68 ± 5.08 false reds per hour on dev after a remount, and the version corrected for the mount 286.21 ± 8.80. So the limits are recalibrated after every remount.
 
 ## Stage 2 roadmap
 
@@ -148,7 +166,7 @@ The numbers above are only worth something if the test was fair, so the project 
 | H0 First light | Pico SDK in C, LED heartbeat, button cycles a 3-LED andon light | done |
 | H1 Kill switch | 5 V fan through a logic-level MOSFET, off within 100 ms of a command | done: worst 3.35 ms over 40 trials on the board; red cuts it, reset restarts it ([timing](results/h1_fan_latency.md)) |
 | H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of three real fans with safe, staged faults | done: three fans over three sessions on different days in one room (two dev, one eval), with no stream breaks; faults are underspeed and a card over the intake ([dataset check](results/h2_dataset.md), [protocol](docs/recording_protocol.md)) |
-| H3 Retrain | the Phase 4 model on the fans' normal audio, each fan a machine ID, AUC under the Stage 1 split rules | |
+| H3 Retrain | a model trained on the fans' normal audio, AUC under the Stage 1 split rules | done: on the held-out session, AUC 100.00 for every fan and fault, and a sound-level meter matches it; the per-fan Gaussian mixture was chosen over the CNN on dev ([held-out](results/h3_eval.md), [dev](results/h3_dev.md)) |
 | H4 Features in C | log-mel in C, matched against the Python test vectors in CI | done on the PC (CI) |
 | H5 Inference in C | int8 CNN on the Pico 2, measured time, RAM and flash | bit-exact on the PC (CI) and on the board; 10.82 ms per 32 ms frame on one core, under the 20 ms budget ([bench](results/h5_bench_pico2.md)) |
 | H6 Jidoka | the full loop on the device: hear a fault, go red, stop the fan, wait for reset | |

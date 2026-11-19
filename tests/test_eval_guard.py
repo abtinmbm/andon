@@ -20,10 +20,12 @@ FINAL = {
     "phase3_idcnn_mixup",
     "phase4_idcnn_int8",
     "phase5_andon",
+    "h3_gmm",
+    "h3_level",
 }
 # Chosen on dev and marked final, but not yet scored on eval. Each moves to FINAL in the
 # commit that logs its one eval run, so a final config can never stay unscored unnoticed.
-PENDING = {"h3_gmm", "h3_level"}
+PENDING: set[str] = set()
 
 
 def test_only_the_configs_scored_on_eval_are_final():
@@ -89,3 +91,16 @@ def test_the_h3_pilot_never_reads_the_real_fan_eval_session(tmp_path):
         h3_pilot.read_session(tmp_path, "d3", recording)
     with pytest.raises(ValueError, match="no clips"):  # a dev session gets past the guard
         h3_pilot.read_session(tmp_path, "d1", recording)
+
+
+def test_each_final_h3_config_was_scored_on_eval_exactly_once():
+    rows = read_results(ROOT / "results" / "results_log.csv")
+    seeds = {"h3_gmm": {"0", "1", "2"}, "h3_level": {"0"}}
+    for name, want in seeds.items():
+        ev = [r for r in rows if r["config"] == name and r["split"] == "eval"]
+        notes = [h3.parse_notes(r["notes"]) for r in ev]
+        assert {n["fold"] for n in notes} == {"d1+d2>d3"}
+        assert {r["seed"] for r in ev} == want
+        # Per seed: 3 fans x (2 faults + the control check) scoring rows, plus 3 light rows.
+        keys = [(r["seed"], r["machine_type"], n["fault"]) for r, n in zip(ev, notes, strict=True)]
+        assert len(keys) == len(set(keys)) == 12 * len(want)

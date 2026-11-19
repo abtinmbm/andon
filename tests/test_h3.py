@@ -444,3 +444,87 @@ def test_the_light_needs_the_saved_scores_and_eval_needs_final(synthetic, tmp_pa
         h3.light(cfg, [0], "dev_test", log=tmp_path / "l.csv", **dirs)
     with pytest.raises(ValueError, match="final"):
         h3.light(cfg, [0], "eval", log=tmp_path / "l.csv", **dirs)
+
+
+# --- Known values ----------------------------------------------------------------------------
+
+
+def test_fold_rows_gives_known_aucs_and_keeps_limit_clips_out_of_the_negatives():
+    clips = [_fan_clip("id_00", "limits", "m", order=0)]  # scored very high: must not count
+    clips += [_fan_clip("id_00", "normal", "m", order=k) for k in range(1, 5)]
+    clips += [_fan_clip("id_00", "control", "c", order=k) for k in range(2)]
+    clips += [_fan_clip("id_00", "fault", "f", "obstruction", order=k) for k in range(2)]
+    score = np.array([100.0, 1, 2, 3, 4, 5, 5, 5, 5])
+    fault, check = h3.fold_rows(clips, score)
+    assert fault["fault"] == "obstruction" and check["fault"] == "control"
+    assert fault["vs_same"] == 1.0 and fault["vs_control"] == 0.5
+    # Against all 6 negatives: 8 wins over the normals and 4 ties with the control take.
+    assert fault["auc"] == pytest.approx((8 + 0.5 * 4) / 12)
+    assert (fault["n_fault"], fault["n_normal"], fault["n_control"]) == (2, 4, 2)
+    assert check["auc"] == 1.0 and check["drift"] == 1.0  # later normals [3, 4] > [1, 2]
+
+
+def _light_case(raise_normal: bool = False):
+    cfg = load_config(ROOT / "configs" / "h3_level.yaml")
+    cfg.raw["window"] = {"frames": 8, "hop": 4}  # 7 windows per 32-frame clip
+    plan = [("limits", "none")] * 3 + [("normal", "none")] * 6 + [("control", "none")] * 2
+    plan += [("fault", "obstruction")] * 2 + [("fault", "underspeed")] * 2
+    n = len(plan)
+    rng = np.random.default_rng(0)
+    scores = []
+    for i, (role, _fault) in enumerate(plan):
+        if role == "limits":
+            s = rng.normal(0, 1, 7)
+        elif role == "fault":
+            s = np.full(7, 50.0)
+        else:
+            s = np.zeros(7)
+        if raise_normal and role == "normal" and i == 3:  # the first normal clip, not a warm-up
+            s = np.full(7, 50.0)
+        scores.append(s)
+    order = [0, 1, 2, 0, 1, 2, 3, 4, 5, 0, 1, 0, 1, 0, 1]
+    rows = h3.light_rows(
+        cfg,
+        np.array(["id_00"] * n),
+        np.array([r for r, _ in plan]),
+        np.array([f for _, f in plan]),
+        np.array(order),
+        np.zeros(n, dtype=bool),
+        np.full(n, 32),
+        np.repeat(np.arange(n), 7),
+        np.concatenate(scores),
+    )
+    return rows[0]
+
+
+def test_light_limits_come_from_the_limit_clips_only():
+    base = _light_case()
+    raised = _light_case(raise_normal=True)
+    # 7 high windows: red at the 3rd, reset, red again at the 6th.
+    assert base["fa_normal"] == 0 and raised["fa_normal"] == 2
+    # The limits didn't move: the faults turn red at the same time and the control take is
+    # unchanged. Red needs 3 windows over the limit: the 3rd ends at 16 frames x 32 ms.
+    for key in ("delay_obstruction", "delay_underspeed", "fa_control"):
+        assert raised[key] == base[key]
+    assert base["delay_obstruction"] == f"{16 * 0.032:.2f}"
+    assert base["normal_s"] == round(6 * 32 * 0.032, 2)
+
+
+def _light_note(fan, fa_n, fa_c, d_obs, d_und, flag_und="0"):
+    notes = (
+        f"fold=d1>d2 fault=light fa_normal={fa_n} normal_s=1800 fa_control={fa_c} "
+        f"control_s=180 delay_obstruction={d_obs} flagged_obstruction=0 "
+        f"delay_underspeed={d_und} flagged_underspeed={flag_und}"
+    )
+    return {"machine_type": fan, "seed": "0", "notes": notes}
+
+
+def test_the_light_summary_is_total_reds_over_total_time_and_skips_flagged_takes():
+    rows = [
+        _light_note("id_00", 1, 1, "4.10", "missed"),
+        _light_note("id_01", 0, 0, "2.00", "1.00", flag_und="1"),  # flagged: not counted
+    ]
+    text = "\n".join(h3._light_lines({"cfg": rows}))
+    # 1 red in 3600 s; 1 red in 360 s; caught 2 of the 3 unflagged takes, mean (4.10 + 2.00) / 2.
+    assert "| `cfg` | 1.00 | 10.00 | 2 of 3 | 3.05 |" in text
+    assert "missed in 1 of 1" in text and "(flagged)" in text

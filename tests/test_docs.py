@@ -112,6 +112,7 @@ EVAL_TABLES = {
         ["dev_test", "eval"],
     ),
     "h3_dev.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"], ["dev_test"]),
+    "h3_eval.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"], ["eval"]),
 }
 
 

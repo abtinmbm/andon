@@ -617,3 +617,51 @@ timestamp,git_commit,phase,config,model,machine_type,split,seed,auc,pauc,notes
 2026-11-19T05:42:38Z,b8a4213,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,2,0.5455,0.7608,fold=d1>d2 fault=light fa_normal=12 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=missed flagged_underspeed=0
 2026-11-19T05:42:38Z,b8a4213,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=light fa_normal=3 normal_s=1201.92 fa_control=9 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
 2026-11-19T05:42:38Z,b8a4213,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,2,0.4545,0.7129,fold=d1>d2 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=missed flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:07Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:50:07Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:50:07Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,0,0.6620,0.6759,fold=d1+d2>d3 fault=control drift=0.4006 n_normal=120 n_control=18
+2026-11-19T05:50:07Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:50:07Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:50:08Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,0,0.8259,0.5785,fold=d1+d2>d3 fault=control drift=0.6775 n_normal=120 n_control=18
+2026-11-19T05:50:08Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=118 n_control=18
+2026-11-19T05:50:08Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=118 n_control=18
+2026-11-19T05:50:08Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,0,0.9939,0.9678,fold=d1+d2>d3 fault=control drift=0.5228 n_normal=118 n_control=18
+2026-11-19T05:50:13Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:50:13Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:50:13Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,1,0.5329,0.6174,fold=d1+d2>d3 fault=control drift=0.3461 n_normal=120 n_control=18
+2026-11-19T05:50:13Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:50:13Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:50:13Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,1,0.7676,0.5590,fold=d1+d2>d3 fault=control drift=0.6714 n_normal=120 n_control=18
+2026-11-19T05:50:14Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=118 n_control=18
+2026-11-19T05:50:14Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=118 n_control=18
+2026-11-19T05:50:14Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,1,0.9595,0.8275,fold=d1+d2>d3 fault=control drift=0.5047 n_normal=118 n_control=18
+2026-11-19T05:50:19Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:50:20Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:50:20Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,2,0.5324,0.6174,fold=d1+d2>d3 fault=control drift=0.3464 n_normal=120 n_control=18
+2026-11-19T05:50:20Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:50:20Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:50:20Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,2,0.8273,0.5785,fold=d1+d2>d3 fault=control drift=0.6714 n_normal=120 n_control=18
+2026-11-19T05:50:20Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=118 n_control=18
+2026-11-19T05:50:20Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=118 n_control=18
+2026-11-19T05:50:20Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,2,0.9925,0.9604,fold=d1+d2>d3 fault=control drift=0.5145 n_normal=118 n_control=18
+2026-11-19T05:50:27Z,4540c7b,H3,h3_level,level,id_00,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:50:27Z,4540c7b,H3,h3_level,level,id_00,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:50:27Z,4540c7b,H3,h3_level,level,id_00,eval,0,0.6690,0.5273,fold=d1+d2>d3 fault=control drift=0.4867 n_normal=120 n_control=18
+2026-11-19T05:50:27Z,4540c7b,H3,h3_level,level,id_01,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:50:28Z,4540c7b,H3,h3_level,level,id_01,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:50:28Z,4540c7b,H3,h3_level,level,id_01,eval,0,0.8463,0.6467,fold=d1+d2>d3 fault=control drift=0.4392 n_normal=120 n_control=18
+2026-11-19T05:50:28Z,4540c7b,H3,h3_level,level,id_02,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=118 n_control=18
+2026-11-19T05:50:28Z,4540c7b,H3,h3_level,level,id_02,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=118 n_control=18
+2026-11-19T05:50:28Z,4540c7b,H3,h3_level,level,id_02,eval,0,0.6488,0.4895,fold=d1+d2>d3 fault=control drift=0.3628 n_normal=118 n_control=18
+2026-11-19T05:50:33Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:33Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:33Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1181.89 fa_control=2 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:33Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:33Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:33Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,1,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1181.89 fa_control=3 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:34Z,4540c7b,H3,h3_gmm,gmm,id_00,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:34Z,4540c7b,H3,h3_gmm,gmm,id_01,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:34Z,4540c7b,H3,h3_gmm,gmm,id_02,eval,2,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1181.89 fa_control=2 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:39Z,4540c7b,H3,h3_level,level,id_00,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:39Z,4540c7b,H3,h3_level,level,id_01,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1201.92 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
+2026-11-19T05:50:39Z,4540c7b,H3,h3_level,level,id_02,eval,0,1.0000,1.0000,fold=d1+d2>d3 fault=light fa_normal=0 normal_s=1181.89 fa_control=0 control_s=180.29 delay_obstruction=4.10 flagged_obstruction=0 delay_underspeed=4.10 flagged_underspeed=0
