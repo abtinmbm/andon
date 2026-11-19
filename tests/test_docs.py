@@ -111,18 +111,21 @@ EVAL_TABLES = {
         ["phase5_andon", "phase5_andon_log", "phase5_andon_1clip"],
         ["dev_test", "eval"],
     ),
+    "h3_dev.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"], ["dev_test"]),
 }
 
 
 @pytest.mark.parametrize("name", sorted(EVAL_TABLES))
 def test_results_tables_are_what_the_log_generates(name):
     """A table edited by hand, or not regenerated after new rows, fails here."""
-    from andon import evaluate, quantize, simulate
+    from andon import evaluate, h3, quantize, simulate
 
     tool, configs, splits = EVAL_TABLES[name]
     log = ROOT / "results" / "results_log.csv"
     if tool == "evaluate":
         text = evaluate.comparison_tables(configs, splits, log=log) + "\n"
+    elif tool == "h3":
+        text = h3.tables(configs, splits[0], log=log) + "\n"
     elif tool == "quantize":
         text = quantize.summary(configs, splits, log=log) + "\n"
     else:

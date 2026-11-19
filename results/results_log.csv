@@ -377,3 +377,183 @@ timestamp,git_commit,phase,config,model,machine_type,split,seed,auc,pauc,notes
 2026-10-21T21:23:53Z,8c4ec4d,4,phase4_idcnn_int8,id_cnn_int8,valve,eval,1,0.9440,0.9071,id_01=1.0000/1.0000 id_03=0.9997/0.9987 id_05=0.8322/0.7225 params=98055 int8_bytes=101088 macs_per_decision=7373696 frames_per_decision=32 est_ms_per_frame=3.27 est_ms_per_decision=98.32 calib_patches=2048 input_sat_normal_pct=0.000 input_sat_anomaly_pct=0.000
 2026-10-21T21:23:54Z,8c4ec4d,4,phase4_idcnn_int8,id_cnn_int8,valve,eval,2,0.9475,0.9139,id_01=0.9996/0.9978 id_03=0.9998/0.9987 id_05=0.8431/0.7453 params=98055 int8_bytes=101088 macs_per_decision=7373696 frames_per_decision=32 est_ms_per_frame=3.27 est_ms_per_decision=98.32 calib_patches=2048 input_sat_normal_pct=0.000 input_sat_anomaly_pct=0.000
 2026-10-21T21:23:54Z,8c4ec4d,4,phase4_idcnn_int8,id_cnn_int8,valve,eval,0,0.9469,0.9081,id_01=1.0000/1.0000 id_03=0.9999/0.9996 id_05=0.8408/0.7249 params=98055 int8_bytes=101088 macs_per_decision=7373696 frames_per_decision=32 est_ms_per_frame=3.27 est_ms_per_decision=98.32 calib_patches=2048 input_sat_normal_pct=0.000 input_sat_anomaly_pct=0.000
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_00,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_00,dev_test,0,0.9981,0.9898,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=0.9852 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_00,dev_test,0,0.9440,0.7052,fold=d2>d1 fault=control drift=0.4044 n_normal=120 n_control=18
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_01,dev_test,0,0.6426,0.5346,fold=d2>d1 fault=control drift=0.4603 n_normal=120 n_control=18
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_02,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_02,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:01Z,2f8c5e1,H3,h3_level,level,id_02,dev_test,0,0.7606,0.5346,fold=d2>d1 fault=control drift=0.5800 n_normal=120 n_control=18
+2026-11-19T05:15:03Z,2f8c5e1,H3,h3_level,level,id_00,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:03Z,2f8c5e1,H3,h3_level,level,id_00,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:03Z,2f8c5e1,H3,h3_level,level,id_00,dev_test,0,0.8694,0.7636,fold=d1>d2 fault=control drift=0.3881 n_normal=120 n_control=18
+2026-11-19T05:15:03Z,2f8c5e1,H3,h3_level,level,id_01,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:04Z,2f8c5e1,H3,h3_level,level,id_01,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:04Z,2f8c5e1,H3,h3_level,level,id_01,dev_test,0,0.6806,0.5273,fold=d1>d2 fault=control drift=0.4042 n_normal=120 n_control=18
+2026-11-19T05:15:04Z,2f8c5e1,H3,h3_level,level,id_02,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:04Z,2f8c5e1,H3,h3_level,level,id_02,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:04Z,2f8c5e1,H3,h3_level,level,id_02,dev_test,0,0.9329,0.8587,fold=d1>d2 fault=control drift=0.5669 n_normal=120 n_control=18
+2026-11-19T05:15:19Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:20Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:20Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,0,0.9968,0.9829,fold=d2>d1 fault=control drift=0.4092 n_normal=120 n_control=18
+2026-11-19T05:15:20Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:20Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:20Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=control drift=0.4075 n_normal=120 n_control=18
+2026-11-19T05:15:20Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:20Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:20Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,0,0.2472,0.4810,fold=d2>d1 fault=control drift=0.4431 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,1,0.9968,0.9829,fold=d2>d1 fault=control drift=0.4092 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=control drift=0.4119 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:23Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,1,0.1333,0.4737,fold=d2>d1 fault=control drift=0.4436 n_normal=120 n_control=18
+2026-11-19T05:15:26Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:26Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:26Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,2,0.9968,0.9829,fold=d2>d1 fault=control drift=0.4092 n_normal=120 n_control=18
+2026-11-19T05:15:26Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:26Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:27Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=control drift=0.3944 n_normal=120 n_control=18
+2026-11-19T05:15:27Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:27Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:27Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,2,0.2472,0.4810,fold=d2>d1 fault=control drift=0.4431 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,0,0.8398,0.7222,fold=d1>d2 fault=control drift=0.5131 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,0,0.9458,0.7685,fold=d1>d2 fault=control drift=0.5606 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:30Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,0,0.2255,0.4956,fold=d1>d2 fault=control drift=0.4969 n_normal=120 n_control=18
+2026-11-19T05:15:33Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:33Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:33Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,1,0.8347,0.7198,fold=d1>d2 fault=control drift=0.5133 n_normal=120 n_control=18
+2026-11-19T05:15:33Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:33Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:34Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,1,0.9468,0.7685,fold=d1>d2 fault=control drift=0.5597 n_normal=120 n_control=18
+2026-11-19T05:15:34Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:34Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:34Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,1,0.1940,0.4786,fold=d1>d2 fault=control drift=0.4769 n_normal=120 n_control=18
+2026-11-19T05:15:36Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:36Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:36Z,2f8c5e1,H3,h3_gmm,gmm,id_00,dev_test,2,0.8394,0.7271,fold=d1>d2 fault=control drift=0.5153 n_normal=120 n_control=18
+2026-11-19T05:15:37Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:37Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:37Z,2f8c5e1,H3,h3_gmm,gmm,id_01,dev_test,2,0.9458,0.7685,fold=d1>d2 fault=control drift=0.5606 n_normal=120 n_control=18
+2026-11-19T05:15:37Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:37Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:37Z,2f8c5e1,H3,h3_gmm,gmm,id_02,dev_test,2,0.2454,0.4956,fold=d1>d2 fault=control drift=0.4850 n_normal=120 n_control=18
+2026-11-19T05:15:44Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:44Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:44Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=control drift=0.5886 n_normal=120 n_control=18
+2026-11-19T05:15:45Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:45Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:45Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=control drift=0.5183 n_normal=120 n_control=18
+2026-11-19T05:15:45Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:45Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:45Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,0,0.7972,0.5492,fold=d2>d1 fault=control drift=0.5894 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=control drift=0.5628 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=control drift=0.4992 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:48Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,1,0.8384,0.5565,fold=d2>d1 fault=control drift=0.6081 n_normal=120 n_control=18
+2026-11-19T05:15:51Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:51Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:51Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=control drift=0.5583 n_normal=120 n_control=18
+2026-11-19T05:15:51Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:51Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:51Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=control drift=0.4981 n_normal=120 n_control=18
+2026-11-19T05:15:51Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:51Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:52Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,2,0.8116,0.5541,fold=d2>d1 fault=control drift=0.5867 n_normal=120 n_control=18
+2026-11-19T05:15:54Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:55Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:55Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,0,0.9898,0.9488,fold=d1>d2 fault=control drift=0.5219 n_normal=120 n_control=18
+2026-11-19T05:15:55Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:55Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:55Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,0,0.9958,0.9781,fold=d1>d2 fault=control drift=0.6806 n_normal=120 n_control=18
+2026-11-19T05:15:55Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:55Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:55Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=control drift=0.5358 n_normal=120 n_control=18
+2026-11-19T05:15:58Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:58Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:58Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,1,0.9894,0.9440,fold=d1>d2 fault=control drift=0.5094 n_normal=120 n_control=18
+2026-11-19T05:15:58Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:58Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:58Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,1,0.9968,0.9829,fold=d1>d2 fault=control drift=0.6775 n_normal=120 n_control=18
+2026-11-19T05:15:59Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:15:59Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:15:59Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=control drift=0.5364 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_00,dev_test,2,0.9898,0.9464,fold=d1>d2 fault=control drift=0.5100 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_01,dev_test,2,0.9972,0.9854,fold=d1>d2 fault=control drift=0.6908 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:16:02Z,2f8c5e1,H3,h3_gmm_centred,gmm_centred,id_02,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=control drift=0.5283 n_normal=120 n_control=18
+2026-11-19T05:17:05Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:17:05Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,0,0.0000,0.4737,fold=d2>d1 fault=underspeed vs_same=0.0000 vs_control=0.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:17:05Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,0,0.9810,0.9293,fold=d2>d1 fault=control drift=0.6956 n_normal=120 n_control=18 train_acc=0.7845 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0031
+2026-11-19T05:17:05Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:17:06Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:17:06Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,0,0.9634,0.8904,fold=d2>d1 fault=control drift=0.5522 n_normal=120 n_control=18 train_acc=0.7845 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:17:06Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,0,0.0000,0.4737,fold=d2>d1 fault=obstruction vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:17:06Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,0,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:17:06Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,0,0.8569,0.5882,fold=d2>d1 fault=control drift=0.3786 n_normal=120 n_control=18 train_acc=0.7845 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,1,0.0000,0.4737,fold=d2>d1 fault=underspeed vs_same=0.0000 vs_control=0.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,1,0.9977,0.9878,fold=d2>d1 fault=control drift=0.5422 n_normal=120 n_control=18 train_acc=0.7054 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0031
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,1,0.9792,0.8928,fold=d2>d1 fault=control drift=0.6314 n_normal=120 n_control=18 train_acc=0.7054 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,1,0.0000,0.4737,fold=d2>d1 fault=obstruction vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,1,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:17:57Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,1,0.7477,0.5078,fold=d2>d1 fault=control drift=0.4072 n_normal=120 n_control=18 train_acc=0.7054 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:18:47Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:18:47Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,2,0.0000,0.4737,fold=d2>d1 fault=underspeed vs_same=0.0000 vs_control=0.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:18:47Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,2,0.9907,0.9561,fold=d2>d1 fault=control drift=0.6136 n_normal=120 n_control=18 train_acc=0.4428 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0031
+2026-11-19T05:18:47Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:18:47Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=1 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:18:47Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,2,0.9519,0.8392,fold=d2>d1 fault=control drift=0.5428 n_normal=120 n_control=18 train_acc=0.4428 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:18:47Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,2,0.0000,0.4737,fold=d2>d1 fault=obstruction vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:18:48Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,2,1.0000,1.0000,fold=d2>d1 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:18:48Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,2,0.6361,0.4956,fold=d2>d1 fault=control drift=0.3628 n_normal=120 n_control=18 train_acc=0.4428 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,0,0.0000,0.4737,fold=d1>d2 fault=underspeed vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,0,0.0014,0.4737,fold=d1>d2 fault=control drift=0.7122 n_normal=120 n_control=18 train_acc=0.4452 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0015
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,0,0.9606,0.8124,fold=d1>d2 fault=control drift=0.6119 n_normal=120 n_control=18 train_acc=0.4452 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,0,0.0000,0.4737,fold=d1>d2 fault=obstruction vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,0,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:19:38Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,0,0.8255,0.7295,fold=d1>d2 fault=control drift=0.4744 n_normal=120 n_control=18 train_acc=0.4452 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,1,0.0000,0.4737,fold=d1>d2 fault=underspeed vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,1,0.0046,0.4737,fold=d1>d2 fault=control drift=0.7269 n_normal=120 n_control=18 train_acc=0.8668 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0015
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,1,0.9352,0.8733,fold=d1>d2 fault=control drift=0.5625 n_normal=120 n_control=18 train_acc=0.8668 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,1,0.0000,0.4737,fold=d1>d2 fault=obstruction vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,1,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:20:28Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,1,0.3745,0.5029,fold=d1>d2 fault=control drift=0.4939 n_normal=120 n_control=18 train_acc=0.8668 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:21:17Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:21:17Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,2,0.0000,0.4737,fold=d1>d2 fault=underspeed vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:21:17Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_00,dev_test,2,0.0000,0.4737,fold=d1>d2 fault=control drift=0.6886 n_normal=120 n_control=18 train_acc=0.6644 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0015
+2026-11-19T05:21:17Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=obstruction vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:21:17Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:21:18Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_01,dev_test,2,0.9449,0.8562,fold=d1>d2 fault=control drift=0.5439 n_normal=120 n_control=18 train_acc=0.6644 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000
+2026-11-19T05:21:18Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,2,0.0000,0.4737,fold=d1>d2 fault=obstruction vs_same=0.0000 vs_control=0.0000 flagged=0 n_fault=18 n_normal=120 n_control=18
+2026-11-19T05:21:18Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,2,1.0000,1.0000,fold=d1>d2 fault=underspeed vs_same=1.0000 vs_control=1.0000 flagged=0 n_fault=15 n_normal=120 n_control=18
+2026-11-19T05:21:18Z,2f8c5e1-dirty,H3,h3_idcnn_mixup,id_cnn,id_02,dev_test,2,0.8042,0.6394,fold=d1>d2 fault=control drift=0.5222 n_normal=120 n_control=18 train_acc=0.6644 outside_normal=0.0000 outside_obstruction=0.0000 outside_underspeed=0.0000

@@ -12,6 +12,13 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-19: H3 dev runs: every fault is caught by a level meter as well as by the GMMs (Phase H3)
+- **Tried:** the four candidates on dev, folds `d2>d1` and `d1>d2` (`h3_level` seed 0; `h3_gmm`, `h3_gmm_centred`, `h3_idcnn_mixup` seeds 0-2), at `2f8c5e1`. Tables: `results/h3_dev.md`.
+- **Result:** worst-cell AUC: `h3_level` 100.00, `h3_gmm` 100.00, `h3_gmm_centred` 100.00, `h3_idcnn_mixup` 0.00 (`id_02` obstruction; `id_00` underspeed is 0.00 ± 0.00 as well, in both folds). Every L, G and Gc cell is 100.00 against the same-mount normals and against the control take; the only figures below 100.00 are L's on the flagged d1 `id_00` underspeed take (99.81 against all normals, 98.52 against the control take). Remount check (control take against same-mount normals): G 83.80 ± 0.28 to 100.00 ± 0.00 on `id_00` and `id_01` but 22.16 ± 2.59 and 20.92 ± 6.58 on `id_02`; Gc 81.57 ± 2.09 to 100.00 ± 0.00; L 64.26 to 94.40. Underspeed inputs outside the CNN's training range: at most 0.31 ± 0.00 %.
+- **Decision:** by the keep rule, G and Gc tie at 100.00 and the tie goes to the cheaper G; C is out. Rule 4 applies: no model beats the level meter's 100.00, and the write-up must say so plainly. G and L are to be marked final after the step 3 light simulation; nothing was tuned.
+- **Why:** both dev faults change the fan's sound far more than a remount does: each fault scores above every control-take clip in every L, G and Gc cell, although each model also tells the control take from the same-mount normals (up to 100.00). So dev can't rank G against Gc, and the rule's tie-break decides. The CNN repeats the pilot's failure: with three fans as classes it scores "unlike the other fans", and a fault that makes a fan sound less like the others reads as more normal. Gc did not remove the remount effect on the control take, by design: test windows are centred on the limit clips of the main take, and the control take is not recalibrated (rule 5).
+- **Note:** the 54 `h3_idcnn_mixup` rows carry `2f8c5e1-dirty`. The only uncommitted change while they were logged was `tests/test_docs.py` (adding `h3_dev.md` to the checked tables), which the run does not import; the code that ran is `2f8c5e1`. The rows were kept, not rerun, since the log is never edited by hand.
+
 ### 2026-11-18: H3 split, candidates and keep rule, fixed before any H3 run (Phase H3)
 - **Tried:** no run yet. The protocol for training on the real fans, written into `andon/h3.py` and the comments of `configs/h3_level.yaml`, `h3_gmm.yaml`, `h3_gmm_centred.yaml` and `h3_idcnn_mixup.yaml`.
 - **Decision:**
