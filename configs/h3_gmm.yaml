@@ -47,6 +47,9 @@ light:              # phase5_andon
   warn_off: 3
   red_hold: 3
 
+stream:             # phase5_andon
+  warmup_clips: 2   # normal clips played before each fault take (the last of the main take)
+
 model:
   # Fitted on the mean log-mel spectrum of each training window; scores a window by its
   # negative log-likelihood under its fan's mixture.

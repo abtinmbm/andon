@@ -27,7 +27,7 @@ import numpy as np
 import torch
 import yaml
 
-from andon import metrics, train_idcnn
+from andon import metrics, simulate, train_idcnn
 from andon.data.dataset import Clip
 from andon.data.features import SplitFeatures, load_or_extract
 from andon.experiment import (
@@ -40,6 +40,7 @@ from andon.experiment import (
     require_final,
     set_seed,
 )
+from andon.light import AndonLight, Light, LightSettings, Limits, fit_limits
 from andon.models.classic import fit_and_score
 from andon.realfan import usable_rows
 
@@ -398,12 +399,16 @@ def parse_notes(notes: str) -> dict[str, str]:
     return dict(p.split("=", 1) for p in notes.split() if "=" in p)
 
 
-def _logged_runs(cfg: Config, split: str, log: Path) -> set[tuple[str, str]]:
-    return {
-        (parse_notes(r["notes"]).get("fold", ""), r["seed"])
-        for r in read_results(log)
-        if r["config"] == cfg.name and r["split"] == split
-    }
+def _logged_runs(cfg: Config, split: str, log: Path, kind: str = "scores") -> set[tuple[str, str]]:
+    """(fold, seed) pairs already in the log, for the scoring rows or the light rows."""
+    out = set()
+    for r in read_results(log):
+        if r["config"] != cfg.name or r["split"] != split:
+            continue
+        n = parse_notes(r["notes"])
+        if (n.get("fault") == "light") == (kind == "light"):
+            out.add((n.get("fold", ""), r["seed"]))
+    return out
 
 
 def _save_scores(path: Path, clips: list[FanClip], scored: Scored) -> None:
@@ -581,7 +586,268 @@ def tables(configs: list[str], split: str, log: Path = RESULTS_LOG) -> str:
                 f"| `{c}` | {fold} | {fan} | {_pct([float(r['auc']) for r in g])} | "
                 f"{_pct([float(n['drift']) for n in ns])} | {acc} | {outside} |"
             )
+    lines += _light_lines(by_cfg)
     return "\n".join(lines)
+
+
+# --- The andon light ------------------------------------------------------------------------
+# Played from the window scores ``run`` saved, so nothing is retrained. Per fan: limits are
+# fitted on the limit clips' windows; false alarms are counted on the same-mount normals and,
+# apart, on the control take (after a remount, without recalibrating); each fault take is
+# played after the last ``warmup_clips`` same-mount normal clips, and the time to red is the
+# end of the window that turned it red, counted from the first fault sample. The light
+# settings are Phase 5's. Windows are those of each 10 s clip; a device would also score the
+# few windows that straddle the joins between clips.
+
+
+def _clip_windows(
+    owner: np.ndarray, scores: np.ndarray, n_frames: np.ndarray, width: int, hop: int
+) -> tuple[dict[int, np.ndarray], dict[int, np.ndarray]]:
+    """Window scores and window ends (in frames, within the clip) per scored clip."""
+    by_clip: dict[int, list[float]] = defaultdict(list)
+    for o, s in zip(owner, scores, strict=True):
+        by_clip[int(o)].append(float(s))
+    out_s, out_e = {}, {}
+    for i, s in by_clip.items():
+        ends = train_idcnn.patch_starts(int(n_frames[i]), width, hop) + width
+        if len(ends) != len(s):
+            raise ValueError(f"clip {i}: {len(s)} saved windows, expected {len(ends)}")
+        out_s[i], out_e[i] = np.array(s), ends
+    return out_s, out_e
+
+
+def _stream(
+    idx: list[int], win_s: dict, win_e: dict, n_frames: np.ndarray, frame_s: float
+) -> tuple[np.ndarray, np.ndarray, float]:
+    """Scores and end times (s) of the windows of clips played back to back, and its length."""
+    scores, ends, t0 = [], [], 0.0
+    for i in idx:
+        scores.append(win_s[i])
+        ends.append(t0 + win_e[i] * frame_s)
+        t0 += float(n_frames[i]) * frame_s
+    return np.concatenate(scores), np.concatenate(ends), t0
+
+
+def seconds_to_red(
+    scores: np.ndarray, ends: np.ndarray, onset: float, limits: Limits, settings: LightSettings
+) -> float | None:
+    """Seconds from ``onset`` to the end of the window that turned the light red, or None.
+
+    A red before the fault starts is a false alarm on the warm-up; it is reset, as an
+    operator who finds nothing would, and the light carries on.
+    """
+    light = AndonLight(limits, settings)
+    for s, e in zip(scores, ends, strict=True):
+        if light.update(float(s)) is Light.RED:
+            if e > onset:
+                return float(e - onset)
+            light.reset()
+    return None
+
+
+def light_rows(
+    cfg: Config,
+    fans: np.ndarray,
+    roles: np.ndarray,
+    faults: np.ndarray,
+    orders: np.ndarray,
+    flagged: np.ndarray,
+    n_frames: np.ndarray,
+    owner: np.ndarray,
+    scores: np.ndarray,
+) -> list[dict]:
+    """One row per fan: false alarms, each fault take's seconds to red, and the clip AUC."""
+    width, hop = int(cfg.raw["window"]["frames"]), int(cfg.raw["window"]["hop"])
+    frame_s = cfg.logmel.hop_length / cfg.logmel.sample_rate
+    lim = cfg.raw["limits"]
+    settings = LightSettings(**{k: int(v) for k, v in cfg.raw["light"].items()})
+    warmup = int(cfg.raw["stream"]["warmup_clips"])
+    win_s, win_e = _clip_windows(owner, scores, n_frames, width, hop)
+    clip_score = {i: float(s.mean()) for i, s in win_s.items()}
+
+    def clips_of(fan: str, role: str, fault: str | None = None) -> list[int]:
+        idx = [
+            i
+            for i in range(len(fans))
+            if fans[i] == fan and roles[i] == role and (fault is None or faults[i] == fault)
+        ]
+        return sorted(idx, key=lambda i: int(orders[i]))
+
+    out = []
+    for fan in sorted(set(fans)):
+        limit_scores = _stream(clips_of(fan, "limits"), win_s, win_e, n_frames, frame_s)[0]
+        limits = fit_limits(
+            limit_scores,
+            float(lim["warn_sigma"]),
+            float(lim["control_sigma"]),
+            bool(lim["log_scale"]),
+        )
+        normal = clips_of(fan, "normal")
+        row: dict = {"fan": fan, "fault": "light"}
+        for name, idx in (("normal", normal), ("control", clips_of(fan, "control"))):
+            s, _, length = _stream(idx, win_s, win_e, n_frames, frame_s)
+            row[f"fa_{name}"] = simulate.count_false_alarms(s, limits, settings)
+            row[f"{name}_s"] = round(length, 2)
+        pre = normal[-warmup:]  # the normal running closest in time to the fault takes
+        onset = float(sum(n_frames[i] for i in pre)) * frame_s
+        positives = []
+        for fault in FAULTS:
+            idx = clips_of(fan, "fault", fault)
+            if not idx:
+                continue
+            positives += idx
+            s, e, _ = _stream(pre + idx, win_s, win_e, n_frames, frame_s)
+            delay = seconds_to_red(s, e, onset, limits, settings)
+            row[f"delay_{fault}"] = "missed" if delay is None else f"{delay:.2f}"
+            row[f"flagged_{fault}"] = int(bool(flagged[idx].any()))
+        negatives = normal + clips_of(fan, "control")
+        row["auc"], row["pauc"] = _auc(
+            np.array([clip_score[i] for i in positives]),
+            np.array([clip_score[i] for i in negatives]),
+        )
+        out.append(row)
+    return out
+
+
+def light(
+    cfg: Config,
+    seeds: list[int],
+    split: str,
+    log: Path = RESULTS_LOG,
+    cache_dir: Path = CACHE_DIR,
+    scores_dir: Path = SCORES_DIR,
+) -> list[dict]:
+    """Play the light over every fold and seed ``run`` scored; append one row per fan.
+
+    The row's AUC and pAUC are both faults' clips against all test normals, so the row can
+    be tied back to the per-fault rows.
+    """
+    if split == "eval":
+        require_final(cfg, split)
+    recording = read_recording(cfg)
+    manifest = read_manifest(cfg.data_root)
+    done = _logged_runs(cfg, split, log, kind="light")
+    logged = []
+    for fold in folds(recording, split):
+        clips = fold_clips(cfg, recording, manifest, fold, split)
+        feats = load_or_extract(
+            [c.clip for c in clips], cfg.logmel, cache_dir, f"realfan_h3_{fold.slug}"
+        )
+        for seed in seeds:
+            if (fold.name, str(seed)) in done:
+                print(f"{cfg.name} {fold.name} seed {seed}: light already logged, skipped")
+                continue
+            path = scores_dir / f"{cfg.name}_{split}_{fold.slug}_seed{seed}.npz"
+            if not path.exists():
+                raise FileNotFoundError(f"{path}: run `andon.h3 run` for this seed first")
+            with np.load(path) as saved:
+                if saved["path"].tolist() != [c.clip.path.as_posix() for c in clips]:
+                    raise ValueError(f"{path} was saved for other clips; run it again")
+                rows = light_rows(
+                    cfg,
+                    saved["fan"],
+                    saved["role"],
+                    saved["fault"],
+                    saved["order"],
+                    saved["flagged"],
+                    np.diff(feats.offsets),
+                    saved["owner"],
+                    saved["scores"],
+                )
+            for r in rows:
+                notes = " ".join(
+                    [f"fold={fold.name}"]
+                    + [f"{k}={v}" for k, v in r.items() if k not in ("fan", "auc", "pauc")]
+                )
+                logged.append(
+                    append_result(cfg, r["fan"], split, seed, r["auc"], r["pauc"], notes, log=log)
+                )
+    return logged
+
+
+def _mean_sd(values: list[float]) -> str:
+    a = np.array(values, dtype=float)
+    if len(a) == 1:
+        return f"{a[0]:.2f}"
+    return f"{a.mean():.2f} ± {a.std(ddof=1):.2f}"
+
+
+def _light_lines(by_cfg: dict[str, list[dict]]) -> list[str]:
+    """The light tables: a summary per config, then per fold and fan."""
+    lines = [
+        "",
+        "## The andon light",
+        "",
+        "Phase 5 settings, limits fitted per fan on the limit clips. Reds per hour on the "
+        "same-mount normals, and apart on the control take: after a remount, without "
+        "recalibrating, which is not a pass condition (the rule is to recalibrate). Takes "
+        "caught: fault takes that turned the light red, of those not flagged; seconds to red: "
+        "the mean over the caught takes, from the first fault sample. Mean ± sample std over "
+        "seeds.",
+        "",
+        "| Config | Reds per hour, same mount | Reds per hour, control take | Takes caught | "
+        "Seconds to red |",
+        "| --- | ---: | ---: | --- | ---: |",
+    ]
+    detail = []
+    for c, rs in by_cfg.items():
+        light_rs = [r | {"n": parse_notes(r["notes"])} for r in rs]
+        light_rs = [r for r in light_rs if r["n"]["fault"] == "light"]
+        if not light_rs:
+            continue
+        seeds = sorted({r["seed"] for r in light_rs})
+        fa_n, fa_c, caught, delays, total = [], [], [], [], 0
+        for seed in seeds:
+            g = [r["n"] for r in light_rs if r["seed"] == seed]
+            fa_n.append(sum(int(n["fa_normal"]) for n in g) / sum(float(n["normal_s"]) for n in g))
+            fa_c.append(
+                sum(int(n["fa_control"]) for n in g) / sum(float(n["control_s"]) for n in g)
+            )
+            takes = [n[f"delay_{f}"] for n in g for f in FAULTS if n.get(f"flagged_{f}") == "0"]
+            total = len(takes)
+            hit = [float(d) for d in takes if d != "missed"]
+            caught.append(len(hit))
+            delays.append(float(np.mean(hit)) if hit else float("nan"))
+        caught_text = (
+            f"{caught[0]} of {total}" if len(set(caught)) == 1 else f"{_mean_sd(caught)} of {total}"
+        )
+        lines.append(
+            f"| `{c}` | {_mean_sd([3600 * x for x in fa_n])} | "
+            f"{_mean_sd([3600 * x for x in fa_c])} | {caught_text} | {_mean_sd(delays)} |"
+        )
+        groups: dict[tuple, list[dict]] = defaultdict(list)
+        for r in light_rs:
+            groups[(r["n"]["fold"], r["machine_type"])].append(r["n"])
+        for (fold, fan), ns in sorted(groups.items()):
+            cells = []
+            for f in FAULTS:
+                d = [n[f"delay_{f}"] for n in ns]
+                hit = [float(x) for x in d if x != "missed"]
+                text = (
+                    _mean_sd(hit)
+                    if len(hit) == len(d)
+                    else f"missed in {len(d) - len(hit)} of {len(d)}"
+                )
+                if hit and len(hit) < len(d):
+                    text += f"; {_mean_sd(hit)} when caught"
+                cells.append(text + (" (flagged)" if ns[0][f"flagged_{f}"] == "1" else ""))
+            detail.append(
+                f"| `{c}` | {fold} | {fan} | {_mean_sd([int(n['fa_normal']) for n in ns])} | "
+                f"{_mean_sd([int(n['fa_control']) for n in ns])} | " + " | ".join(cells) + " |"
+            )
+    if not detail:
+        return []
+    lines += [
+        "",
+        "Per fold and fan: reds on the same-mount normals and on the control take, and "
+        "seconds to red per fault take.",
+        "",
+        "| Config | Fold | Fan | Reds, same mount | Reds, control take | Obstruction: seconds "
+        "to red | Underspeed: seconds to red |",
+        "| --- | --- | --- | ---: | ---: | --- | --- |",
+        *detail,
+    ]
+    return lines
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -592,6 +858,10 @@ def main(argv: list[str] | None = None) -> None:
     p_run.add_argument("--seed", type=int, nargs="+", required=True)
     p_run.add_argument("--split", choices=["dev_test", "eval"], default="dev_test")
     p_run.add_argument("--threads", type=int, help="CPU threads (default: PyTorch's choice)")
+    p_light = sub.add_parser("light", help="play the andon light over saved window scores")
+    p_light.add_argument("--config", type=Path, required=True)
+    p_light.add_argument("--seed", type=int, nargs="+", required=True)
+    p_light.add_argument("--split", choices=["dev_test", "eval"], default="dev_test")
     p_tab = sub.add_parser("table", help="write one split's tables from the results log")
     p_tab.add_argument("--split", choices=["dev_test", "eval"], default="dev_test")
     p_tab.add_argument("--out", type=Path)
@@ -604,6 +874,12 @@ def main(argv: list[str] | None = None) -> None:
         print(f"{len(rows)} rows logged")
         for r in rows:
             print(f"{r['machine_type']} seed {r['seed']} auc {r['auc']} {r['notes']}")
+        return
+    if args.command == "light":
+        rows = light(load_config(args.config), args.seed, args.split)
+        print(f"{len(rows)} rows logged")
+        for r in rows:
+            print(f"{r['machine_type']} seed {r['seed']} {r['notes']}")
         return
     text = tables(list(CONFIGS), args.split)
     print(text)

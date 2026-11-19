@@ -47,6 +47,9 @@ light:              # phase5_andon
   warn_off: 3
   red_hold: 3
 
+stream:             # phase5_andon
+  warmup_clips: 2   # normal clips played before each fault take (the last of the main take)
+
 model:
   # Score: the window's level in dB (mean power over its frames and mel bands) minus the mean
   # level of the limit clips, in either direction: underspeed is quieter and obstruction

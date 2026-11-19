@@ -13,6 +13,7 @@ from andon.data.audio import write_wav
 from andon.data.dataset import Clip
 from andon.data.features import SplitFeatures
 from andon.experiment import Config, load_config
+from andon.light import LightSettings, fit_limits
 from andon.record import MANIFEST_FIELDS
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -158,7 +159,7 @@ def test_a_session_without_a_control_take_is_refused():
 
 
 def test_the_four_configs_share_split_features_window_and_light():
-    shared = ("phase", "data", "features", "window", "limits", "light")
+    shared = ("phase", "data", "features", "window", "limits", "light", "stream")
     raws = [load_config(ROOT / "configs" / f"{n}.yaml").raw for n in CONFIGS]
     for raw in raws[1:]:
         assert {k: raw[k] for k in shared} == {k: raws[0][k] for k in shared}
@@ -183,6 +184,7 @@ def test_the_configs_copy_the_stage_1_settings():
     assert h["features"] == s1["features"]
     p5 = raw("phase5_andon")
     assert h["limits"] == p5["limits"] and h["light"] == p5["light"]
+    assert h["stream"]["warmup_clips"] == p5["stream"]["warmup_clips"]
 
 
 def test_the_keep_rule_is_in_every_config_comment():
@@ -391,3 +393,51 @@ def test_tables_come_from_the_log_and_name_the_worst_cell(synthetic, tmp_path):
     assert "| yes |" in text  # the flagged take is shown
     with pytest.raises(ValueError, match="no eval rows"):
         h3.tables(["h3_gmm"], "eval", log=log)
+
+
+# --- The andon light -------------------------------------------------------------------------
+
+
+def test_seconds_to_red_counts_from_the_fault_and_resets_an_early_red():
+    limits = fit_limits(np.array([0.0, 1.0, 0.0, 1.0]))  # control limit about 2.2
+    settings = LightSettings(warn_on=1, warn_off=1, red_hold=2)
+    ends = np.arange(1.0, 11.0)  # a window ends every second
+    scores = np.array([9, 9, 0, 0, 0, 0, 9, 9, 9, 9], dtype=float)
+    # Red at the 2nd window (t=2) is before the fault at t=5: reset. Red again at t=8.
+    assert h3.seconds_to_red(scores, ends, 5.0, limits, settings) == 3.0
+    assert h3.seconds_to_red(np.zeros(10), ends, 5.0, limits, settings) is None
+
+
+def test_the_light_runs_on_saved_scores_and_logs_one_row_per_fold_and_fan(synthetic, tmp_path):
+    cfg, log, _, dirs = _run("h3_level", synthetic, tmp_path)
+    rows = h3.light(cfg, [0], "dev_test", log=log, **dirs)
+    assert len(rows) == 2 * 2
+    notes = [h3.parse_notes(r["notes"]) for r in rows]
+    assert {n["fault"] for n in notes} == {"light"}
+    for n in notes:
+        assert n["delay_obstruction"] != "missed" and n["delay_underspeed"] != "missed"
+        # 5 same-mount clips of 1 s, 3 control clips; each clip is 32 frames of 32 ms.
+        assert (float(n["normal_s"]), float(n["control_s"])) == (5.12, 3.07)
+    flagged = {
+        (r["machine_type"], n["fold"])
+        for r, n in zip(rows, notes, strict=True)
+        if n["flagged_underspeed"] == "1"
+    }
+    assert flagged == {("id_01", "d2>d1")}
+    # The light rows don't count as scoring rows, and vice versa.
+    assert h3.light(cfg, [0], "dev_test", log=log, **dirs) == []
+    assert h3.run(cfg, [0], "dev_test", CPU, log=log, checkpoint_dir=tmp_path, **dirs) == []
+    text = h3.tables(["h3_level"], "dev_test", log=log)
+    # 2 folds x 2 fans x 2 faults, less the flagged take.
+    assert "## The andon light" in text and "7 of 7" in text
+    assert "| `h3_level` | d1>d2 | id_00 |" in text
+
+
+def test_the_light_needs_the_saved_scores_and_eval_needs_final(synthetic, tmp_path):
+    root, rec = synthetic
+    cfg = tiny("h3_level", root, rec)
+    dirs = dict(cache_dir=tmp_path / "cache", scores_dir=tmp_path / "none")
+    with pytest.raises(FileNotFoundError, match="run"):
+        h3.light(cfg, [0], "dev_test", log=tmp_path / "l.csv", **dirs)
+    with pytest.raises(ValueError, match="final"):
+        h3.light(cfg, [0], "eval", log=tmp_path / "l.csv", **dirs)
