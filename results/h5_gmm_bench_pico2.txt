@@ -1,0 +1,27 @@
+# andon_bench.uf2 on a Pico 2, USB serial on COM6, 2026-11-19 20:12 UTC; working tree c4e4b9a-dirty.
+# Verbatim capture of 25 s.
+== andon bench, run 3, clk_sys 150000000 Hz
+log-mel: 128 frames, worst |C - Python| 1.53e-05 dB (tol 1e-03), 1.456 ms/frame avg, 1.737 ms max
+cnn: 4 patches, head sum mismatches 0, worst score err 2.48e-07 (tol 1e-05)
+end to end: 3 patches, int8 input diffs 0 of 24576, worst score err 2.48e-07 (tol 1e-03), 299.79 ms/patch avg, 299.84 ms max
+real time: 10.824 ms of compute per 32 ms of audio (fits)
+gmm model: h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+gmm front end: 384 frames of fan audio, worst |C - Python| 1.53e-05 dB (tol 1e-03), worst window mean err 1.14e-05 dB (tol 1e-03)
+gmm: 27 window scores, worst rel err 1.94e-06 from Python's means (tol 1e-05), 2.51e-06 end to end (tol 1e-04), 7.301 ms/score avg, 7.322 ms max
+gmm real time: 1.684 ms of compute per 32 ms of audio (fits)
+static RAM: 196624 bytes
+self-test: PASS
+== andon bench, run 4, clk_sys 150000000 Hz
+log-mel: 128 frames, worst |C - Python| 1.53e-05 dB (tol 1e-03), 1.456 ms/frame avg, 1.736 ms max
+cnn: 4 patches, head sum mismatches 0, worst score err 2.48e-07 (tol 1e-05)
+end to end: 3 patches, int8 input diffs 0 of 24576, worst score err 2.48e-07 (tol 1e-03), 299.79 ms/patch avg, 299.83 ms max
+real time: 10.825 ms of compute per 32 ms of audio (fits)
+gmm model: h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+gmm front end: 384 frames of fan audio, worst |C - Python| 1.53e-05 dB (tol 1e-03), worst window mean err 1.14e-05 dB (tol 1e-03)
+gmm: 27 window scores, worst rel err 1.94e-06 from Python's means (tol 1e-05), 2.51e-06 end to end (tol 1e-04), 7.300 ms/score avg, 7.313 ms max
+gmm real time: 1.684 ms of compute per 32 ms of audio (fits)
+static RAM: 196624 bytes
+self-test: PASS
+== andon bench, run 5, clk_sys 150000000 Hz
+log-mel: 128 frames, worst |C - Python| 1.53e-05 dB (tol 1e-03), 1.455 ms/frame avg, 1.736 ms max
+cnn: 4 patches, head sum mismatches 0, worst score err 2.48e-07 (tol 1e-05)

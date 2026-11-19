@@ -131,6 +131,8 @@ Three real 5 V fans (`id_00`, a Sunon; `id_01` and `id_02`, two identical ANVISI
 
 **A plain sound-level meter catches these two faults as well as the model does.** Underspeed makes a fan quieter and the card makes it louder, both by much more than anything in normal running, so on this data the model adds nothing over a level meter. That is reported as it came out. Faults that don't change the loudness are the harder test. 4.10 s is the light's own fastest red (three windows in a row over the limit), so the time to red measures the light's settings, not the model. It is timed from a splice of normal and fault recordings, not from a real fault starting: the first 30 s of underspeed (the fan still slowing) are not used, and the card is fitted with the fan off. The real switch-to-stop time is measured on the device in H6. Normal running in `d3` is about an hour over the three fans, so a single false red would read as about one per hour.
 
+**On the device (H5).** The same mixture, the one scored on `d3`, runs in C on the Pico 2 in float32. Fed recorded audio of each fan, the board's scores match Python's to 2.51e-06 (relative), and the front end plus one score per window costs 1.684 ms per 32 ms frame, under the 20 ms budget. The three fans' mixtures take 402,480 B of flash ([bench](results/h5_gmm_bench_pico2.md)).
+
 The model was picked on the development sessions by a rule written into the configs before any run: the lowest AUC over the six fan-and-fault cells decides, and a tie within one point goes to the model that is cheapest on the device. A Gaussian mixture on each window's average spectrum and a version corrected for the mount both scored 100.00 there; the plain mixture is cheaper. The Stage 1 CNN scored 0.00 on two cells and was dropped ([dev tables](results/h3_dev.md), [held-out tables](results/h3_eval.md), [DECISIONS](DECISIONS.md)).
 
 ## How it's evaluated
@@ -168,7 +170,7 @@ The numbers above are only worth something if the test was fair, so the project 
 | H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of three real fans with safe, staged faults | done: three fans over three sessions on different days in one room (two dev, one eval), with no stream breaks; faults are underspeed and a card over the intake ([dataset check](results/h2_dataset.md), [protocol](docs/recording_protocol.md)) |
 | H3 Retrain | a model trained on the fans' normal audio, AUC under the Stage 1 split rules | done: on the held-out session, AUC 100.00 for every fan and fault, and a sound-level meter matches it; the per-fan Gaussian mixture was chosen over the CNN on dev ([held-out](results/h3_eval.md), [dev](results/h3_dev.md)) |
 | H4 Features in C | log-mel in C, matched against the Python test vectors in CI | done on the PC (CI) |
-| H5 Inference in C | int8 CNN on the Pico 2, measured time, RAM and flash | bit-exact on the PC (CI) and on the board; 10.82 ms per 32 ms frame on one core, under the 20 ms budget ([bench](results/h5_bench_pico2.md)) |
+| H5 Inference in C | the chosen model on the Pico 2, matched against Python, with measured time, RAM and flash | done: the real fans' Gaussian mixture in C (float32) matches Python on the board to 2.51e-06 relative, from real microphone audio, at 1.684 ms of compute per 32 ms frame ([bench](results/h5_gmm_bench_pico2.md)); the Stage 1 int8 CNN is bit-exact there too, at 10.82 ms ([bench](results/h5_bench_pico2.md)) |
 | H6 Jidoka | the full loop on the device: hear a fault, go red, stop the fan, wait for reset | |
 | H7 Measure | an hour of normal running for false stops, 10 trials per fault type, a demo video | |
 
@@ -211,6 +213,8 @@ uv run python -m andon.quantize --config configs/phase4_baseline_int8.yaml --see
 uv run python -m andon.quantize --config configs/phase4_gmm_id_int8.yaml --seed 0 1 2      # int8 Gaussian mixture
 uv run python -m andon.quantize --summary --config phase4_idcnn_int8 phase4_baseline_int8 phase4_gmm_id_int8 --split dev_test eval --out results/phase4_mcu.md
 uv run python -m andon.export_c --config configs/phase4_idcnn_int8.yaml --machine fan --out firmware/model   # C headers
+uv run python -m andon.export_gmm --config configs/h3_gmm.yaml --seed 0 --out firmware/model   # real-fan mixture as C headers
+uv run python -m andon.bench results/h5_gmm_bench_pico2.txt --port COM6 --out results/h5_gmm_bench_pico2.md   # andon_bench.uf2 on the board
 uv run python -m andon.fan_latency --port COM6 --trials 20 --out results/h1_fan_latency.txt   # kill-switch timing, andon.uf2 on the board
 uv run python -m andon.fan_latency results/h1_fan_latency.txt --out results/h1_fan_latency.md   # its table
 
@@ -232,8 +236,8 @@ configs/        one YAML file per experiment
 results/        results_log.csv (one row per run) and the generated tables
 dashboard/      Streamlit dashboard
 firmware/       Pico 2 firmware in C (Pico SDK): the andon light, the fan's kill switch and
-                serial commands, the log-mel front end and int8 CNN, and andon_bench
-                (checks both against Python on the board);
+                serial commands, the log-mel front end, the int8 CNN and the per-fan
+                Gaussian mixture, and andon_bench (checks them against Python on the board);
                 every hardware-free file is also compiled and tested on the PC
 docs/           model card, demo GIF and charts
 tests/          pytest, on tiny synthetic data

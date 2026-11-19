@@ -168,6 +168,7 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
   - Preferred: hand-written C kernels for the layers.
   - Fallback: Raspberry Pi's pico-tflmicro port. It only documents the original Pico (RP2040), so it may need work on the Pico 2.
 - Measure on the device: milliseconds per frame, RAM used, flash used.
+- Changed 2026-11-18: H3 chose the per-fan GMM for the real fans, so H5 ports that model (float32, all three fans in one image) with test vectors from real-fan audio; the int8 CNN above was already run and timed on the board (DECISIONS.md, 2026-11-19).
 - **Done when:** the on-device scores match Python's on the test vectors, and the timing fits the Phase 4 budget.
 
 ### Phase H6: Jidoka
