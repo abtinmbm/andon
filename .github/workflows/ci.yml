@@ -40,16 +40,42 @@ jobs:
   # even though the host tests (in the job above) still pass.
   firmware:
     runs-on: ubuntu-latest
+    # A normal run takes about 2 minutes. Before the cache, a slow mirror made the toolchain
+    # step take 16, 28 and 53 minutes, and once 2 h 24 min; 60 lets the first three finish
+    # (a run with no cache still downloads everything) and fails the last instead of
+    # hanging. A run that times out is rerun with `gh run rerun <id> --failed`.
+    timeout-minutes: 60
     env:
       PICO_SDK_PATH: ${{ github.workspace }}/../pico-sdk
+      APT_DEBS: /home/runner/apt-debs
     steps:
       - uses: actions/checkout@v7
 
+      # The toolchain is about 625 MB of .deb files, 487 MB of them
+      # libstdc++-arm-none-eabi-newlib, and the slow mirror is where the time goes, so the
+      # downloaded files are kept between runs. The key holds the Ubuntu release, so one
+      # release's files are never restored on the next.
+      - name: Read the Ubuntu release
+        id: os
+        run: echo "release=$(lsb_release -rs)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v6.1.0
+        with:
+          path: ${{ env.APT_DEBS }}
+          key: apt-debs-${{ steps.os.outputs.release }}-${{ hashFiles('.github/workflows/ci.yml') }}
+          restore-keys: apt-debs-${{ steps.os.outputs.release }}-
+
       - name: Install the Arm toolchain
         run: |
+          mkdir -p "$APT_DEBS/partial"
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi \
+          sudo apt-get install -y -o Dir::Cache::Archives="$APT_DEBS" \
+            cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi \
             libstdc++-arm-none-eabi-newlib libusb-1.0-0-dev pkg-config
+          # apt writes as root; the cache step saves as the runner user. The size shows the
+          # files were kept (about 625 MB when they were all downloaded).
+          sudo chown -R "$USER" "$APT_DEBS"
+          du -sh "$APT_DEBS"
 
       # andon_bench needs the model and test-vector headers; a synthetic model has the real
       # one's shapes and needs no training data.

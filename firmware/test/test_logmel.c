@@ -9,7 +9,8 @@
 
 // Largest allowed |C - Python| in dB. Both sides are float32 but sum in different orders
 // (NumPy's FFT and BLAS against a textbook radix-2 FFT), so the last bits differ; the
-// measured worst case (1.5e-5 dB on the real fan vectors) is printed on every run.
+// measured worst case (1.5e-5 dB on the vectors of the DCASE fan model) is printed on every
+// run.
 #define TOL_DB 0.001f
 
 static int failures = 0;
