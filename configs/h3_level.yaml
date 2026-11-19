@@ -20,6 +20,7 @@
 #   5. The light settings are Phase 5's and are not tuned here. The light need not survive a
 #      remount: false alarms on the control take are reported; the rule is to recalibrate.
 phase: H3
+final: true  # may be scored on eval, once; set 2026-11-19 by the keep rule, before d3 was scored (DECISIONS.md)
 
 data:
   root: data/realfan

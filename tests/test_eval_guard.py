@@ -21,11 +21,14 @@ FINAL = {
     "phase4_idcnn_int8",
     "phase5_andon",
 }
+# Chosen on dev and marked final, but not yet scored on eval. Each moves to FINAL in the
+# commit that logs its one eval run, so a final config can never stay unscored unnoticed.
+PENDING = {"h3_gmm", "h3_level"}
 
 
 def test_only_the_configs_scored_on_eval_are_final():
     final = {p.stem for p in CONFIGS.glob("*.yaml") if load_config(p).raw.get("final") is True}
-    assert final == FINAL
+    assert final == FINAL | PENDING
     rows = read_results(ROOT / "results" / "results_log.csv")
     logged = {r["config"] for r in rows if r["split"] == "eval"}
     assert logged == FINAL
@@ -72,7 +75,7 @@ def test_quantize_refuses_eval_for_a_config_not_marked_final(tmp_path):
 
 def test_h3_refuses_the_real_fan_eval_session_for_a_config_not_marked_final():
     recording = {"sessions": {"dev": ["d1", "d2"], "eval": ["d3"]}}
-    for name in ("h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"):
+    for name in ("h3_gmm_centred", "h3_idcnn_mixup"):  # the H3 configs not chosen
         cfg = load_config(CONFIGS / f"{name}.yaml")
         fold = h3.folds(recording, "eval")[0]
         with pytest.raises(ValueError, match="final"):

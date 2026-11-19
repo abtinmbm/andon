@@ -163,7 +163,9 @@ def test_the_four_configs_share_split_features_window_and_light():
     raws = [load_config(ROOT / "configs" / f"{n}.yaml").raw for n in CONFIGS]
     for raw in raws[1:]:
         assert {k: raw[k] for k in shared} == {k: raws[0][k] for k in shared}
-    assert raws[0]["phase"] == "H3" and not any(r.get("final") for r in raws)
+    assert raws[0]["phase"] == "H3"
+    final = {n for n, r in zip(CONFIGS, raws, strict=True) if r.get("final") is True}
+    assert final == {"h3_level", "h3_gmm"}  # the keep rule's choice and its reference
     cnn = raws[3]["model"]
     assert (cnn["patch_frames"], cnn["score_hop"]) == (64, 32) == tuple(raws[0]["window"].values())
 
@@ -319,6 +321,7 @@ def synthetic(tmp_path_factory):
 
 def tiny(name: str, root: Path, rec_path: Path) -> Config:
     raw = load_config(ROOT / "configs" / f"{name}.yaml").raw
+    raw.pop("final", None)  # a tiny test variant is never the chosen model
     raw["data"].update(root=str(root), recording_config=str(rec_path), limit_clips=3)
     raw["features"]["n_mels"] = 16
     raw["window"] = {"frames": 8, "hop": 4}
