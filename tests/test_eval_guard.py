@@ -6,7 +6,7 @@ import pytest
 import torch
 from test_idcnn import tiny_cfg
 
-from andon import classic, h3_pilot, quantize, score, simulate
+from andon import classic, h3, h3_pilot, quantize, score, simulate
 from andon.experiment import Config, load_config, read_results, require_final
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,6 +68,15 @@ def test_quantize_refuses_eval_for_a_config_not_marked_final(tmp_path):
     cfg = load_config(CONFIGS / "phase4_gmm_id_int8.yaml")
     with pytest.raises(ValueError, match="final"):
         quantize.run(cfg, [0], ["fan"], "eval", log=tmp_path / "log.csv")
+
+
+def test_h3_refuses_the_real_fan_eval_session_for_a_config_not_marked_final():
+    recording = {"sessions": {"dev": ["d1", "d2"], "eval": ["d3"]}}
+    for name in ("h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"):
+        cfg = load_config(CONFIGS / f"{name}.yaml")
+        fold = h3.folds(recording, "eval")[0]
+        with pytest.raises(ValueError, match="final"):
+            h3.fold_clips(cfg, recording, [], fold, "eval")
 
 
 def test_the_h3_pilot_never_reads_the_real_fan_eval_session(tmp_path):

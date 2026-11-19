@@ -147,7 +147,6 @@ def train_idcnn(
     return model, history
 
 
-@torch.no_grad()
 def clip_scores(
     model: IdCNN,
     feats: SplitFeatures,
@@ -157,6 +156,21 @@ def clip_scores(
     device: torch.device,
 ) -> np.ndarray:
     """One anomaly score per clip: mean over its patches of ``-log p(true ID)``."""
+    patch_scores, owner_all = window_scores(model, feats, true_ids, width, hop, device)
+    counts = np.bincount(owner_all, minlength=feats.n_clips)
+    return np.bincount(owner_all, weights=patch_scores, minlength=feats.n_clips) / counts
+
+
+@torch.no_grad()
+def window_scores(
+    model: IdCNN,
+    feats: SplitFeatures,
+    true_ids: np.ndarray,
+    width: int,
+    hop: int,
+    device: torch.device,
+) -> tuple[np.ndarray, np.ndarray]:
+    """``-log p(true ID)`` for every patch, in clip order, and the clip each one belongs to."""
     model.eval()
     frames = torch.from_numpy(feats.frames).to(device)
     starts, owner = [], []
@@ -171,8 +185,7 @@ def clip_scores(
         x = frames[(s[:, None] + torch.arange(width)).to(device)]
         ids = torch.from_numpy(true_ids[owner_all[i : i + _SCORE_BATCH]]).long().to(device)
         patch_scores[i : i + len(s)] = id_scores(model(x), ids).cpu().numpy()
-    counts = np.bincount(owner_all, minlength=feats.n_clips)
-    return np.bincount(owner_all, weights=patch_scores, minlength=feats.n_clips) / counts
+    return patch_scores, owner_all
 
 
 def score_clips(

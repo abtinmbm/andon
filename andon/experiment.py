@@ -43,8 +43,10 @@ class Config:
     raw: dict[str, Any]
 
     @property
-    def phase(self) -> int:
-        return int(self.raw["phase"])
+    def phase(self) -> int | str:
+        # Stage 1 phases are numbers; Stage 2 phases are named (H3).
+        p = self.raw["phase"]
+        return int(p) if str(p).isdigit() else str(p)
 
     @property
     def model(self) -> str:

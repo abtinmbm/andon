@@ -1,0 +1,57 @@
+# H3 candidate G: one GMM per fan, Phase 2 settings (phase2_gmm_id).
+# H3 keep rule, fixed 2026-11-18 before any H3 run; the same text is in all four h3_* configs.
+#   Candidates: h3_level (L, a reference), h3_gmm (G), h3_gmm_centred (Gc), h3_idcnn_mixup (C).
+#   Settings are copied from Stage 1 unchanged; nothing is swept.
+#   Split (andon/h3.py): dev = one fold per dev session, trained on the other one (d1>d2,
+#   d2>d1); eval = trained on d1+d2, tested on d3, once, only with final: true. In the tested
+#   session, each fan's first limit_clips main-take clips set the limits and references; the
+#   test normals are the rest of the main take plus the control take.
+#   Dev metric: worst-cell AUC. A cell is one fan x one fault; its AUC is the fault's clips
+#   against all of that fan's test normals in the same session, averaged over the dev folds
+#   and seeds. Flagged takes (out_of_order_takes in h2_recording.yaml) are shown, not counted.
+#   The metric is the lowest of the cells.
+#   1. Seeds 0, 1, 2 for every model; mean +- sample std. L has no seed and is one value.
+#   2. The final model is the one of G, Gc, C with the highest worst-cell AUC.
+#   3. Within 1.00 AUC point of the best counts as tied; the tie goes to the cheapest on the
+#      device: G, then Gc, then C.
+#   4. L is a reference, not a contender. If no model beats L's worst-cell AUC by more than
+#      1.00 point, the write-up says so plainly. L is marked final together with the chosen
+#      model, so it is scored once on d3 beside it.
+#   5. The light settings are Phase 5's and are not tuned here. The light need not survive a
+#      remount: false alarms on the control take are reported; the rule is to recalibrate.
+phase: H3
+
+data:
+  root: data/realfan
+  recording_config: configs/h2_recording.yaml
+  limit_clips: 60   # the first 10 min of each main normal take
+
+features:           # identical to the Stage 1 front end
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+window:             # every model scores the same windows; a clip's score is their mean
+  frames: 64        # 2.05 s
+  hop: 32           # 1.02 s
+
+limits:             # phase5_andon
+  log_scale: false
+  warn_sigma: 2.0
+  control_sigma: 3.0
+
+light:              # phase5_andon
+  warn_on: 2
+  warn_off: 3
+  red_hold: 3
+
+model:
+  # Fitted on the mean log-mel spectrum of each training window; scores a window by its
+  # negative log-likelihood under its fan's mixture.
+  type: gmm
+  fit_per: machine_id
+  n_components: 4
+  covariance_type: full
+  reg_covar: 0.01
