@@ -118,23 +118,39 @@ def _clip(root: Path, r: dict) -> Clip:
     return Clip(root / r["file"], "realfan", "test", r["fan_id"], r["condition"] == "anomaly")
 
 
+def training_clips(
+    cfg: Config, recording: dict, rows: list[dict], sessions: tuple[str, ...]
+) -> list[FanClip]:
+    """The training clips of ``sessions``, in manifest order: every usable normal clip.
+
+    Only dev sessions train. ``andon.export_gmm`` calls this alone to refit the eval fold's
+    model for the device without reading the eval session.
+    """
+    if not set(sessions) <= set(recording["sessions"]["dev"]):
+        raise ValueError(f"training sessions must be dev sessions, got {sessions}")
+    clips = []
+    for r in usable_rows([r for r in rows if r["session"] in sessions], recording):
+        if r["fault"] == "none":
+            # Experiment rule 1: only normal audio trains. The file name says so as well.
+            if r["condition"] != "normal" or Path(r["file"]).name.startswith("anomaly_"):
+                raise ValueError(f"{r['file']}: a fault clip in a training set")
+            clips.append(
+                FanClip(_clip(cfg.data_root, r), r["session"], r["take"], "none", 0, "train")
+            )
+    return clips
+
+
 def fold_clips(
     cfg: Config, recording: dict, rows: list[dict], fold: Fold, split: str
 ) -> list[FanClip]:
-    """Every clip a fold uses, with its role. Rows go through ``usable_rows`` first."""
+    """Every clip a fold uses, with its role: the training clips first, then the tested
+    session's. Rows go through ``usable_rows`` first."""
     _check_sessions(cfg, recording, fold, split)
     root = cfg.data_root
     limit_clips = int(cfg.raw["data"]["limit_clips"])
     out_of_order = set(recording.get("out_of_order_takes") or {})
-    rows = usable_rows([r for r in rows if r["session"] in (*fold.train, fold.test)], recording)
-    clips = []
-    for r in rows:
-        if r["session"] in fold.train and r["fault"] == "none":
-            # Experiment rule 1: only normal audio trains. The file name says so as well.
-            if r["condition"] != "normal" or Path(r["file"]).name.startswith("anomaly_"):
-                raise ValueError(f"{r['file']}: a fault clip in a training set")
-            clips.append(FanClip(_clip(root, r), r["session"], r["take"], "none", 0, "train"))
-    test = [r for r in rows if r["session"] == fold.test]
+    clips = training_clips(cfg, recording, rows, fold.train)
+    test = usable_rows([r for r in rows if r["session"] == fold.test], recording)
     normal_takes: dict[str, dict[str, str]] = defaultdict(dict)  # fan -> take -> first clip time
     for r in test:
         if r["fault"] == "none":

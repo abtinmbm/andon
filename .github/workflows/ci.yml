@@ -31,10 +31,13 @@ jobs:
       - name: Test
         run: uv run pytest -q
 
-      # A seeded model with the final CNN's shapes: writes the C headers, reads them back and
-      # checks every test vector. Real-model headers need the training audio and stay local.
+      # Seeded models with the final models' shapes (the int8 CNN and the per-fan GMM): each
+      # writes its C headers, reads them back and checks every test vector. Real-model
+      # headers need the training audio and stay local.
       - name: Export C headers
-        run: uv run python -m andon.export_c --synthetic --out firmware/build/model
+        run: |
+          uv run python -m andon.export_c --synthetic --out firmware/build/model
+          uv run python -m andon.export_gmm --synthetic --out firmware/build/model
 
   # Cross-compiles the Pico 2 firmware, so a change that breaks the device build fails CI
   # even though the host tests (in the job above) still pass.
@@ -77,8 +80,8 @@ jobs:
           sudo chown -R "$USER" "$APT_DEBS"
           du -sh "$APT_DEBS"
 
-      # andon_bench needs the model and test-vector headers; a synthetic model has the real
-      # one's shapes and needs no training data.
+      # andon_bench needs the model and test-vector headers; synthetic models have the real
+      # ones' shapes and need no training data.
       - uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: true
@@ -88,6 +91,7 @@ jobs:
           uv python install 3.12
           uv sync --locked
           uv run python -m andon.export_c --synthetic --out firmware/model
+          uv run python -m andon.export_gmm --synthetic --out firmware/model
 
       - name: Fetch the Pico SDK
         run: |

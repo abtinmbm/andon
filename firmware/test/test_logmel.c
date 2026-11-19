@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 #include "andon_test_vectors.h"
+#include "frontend_params.h"
 #include "logmel.h"
-#include "model_params.h"
 
 // Largest allowed |C - Python| in dB. Both sides are float32 but sum in different orders
 // (NumPy's FFT and BLAS against a textbook radix-2 FFT), so the last bits differ; the

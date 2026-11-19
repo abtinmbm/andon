@@ -73,7 +73,7 @@ def test_stress_vector_hits_the_int8_clamps(exported):
 
 def test_verify_catches_a_changed_weight(exported, tmp_path):
     _, out = exported
-    for name in (export_c.MODEL_HEADER, export_c.VECTORS_HEADER):
+    for name in (export_c.FRONTEND_HEADER, export_c.MODEL_HEADER, export_c.VECTORS_HEADER):
         shutil.copy(out / name, tmp_path / name)
     path = tmp_path / export_c.MODEL_HEADER
     text = path.read_text(encoding="utf-8")

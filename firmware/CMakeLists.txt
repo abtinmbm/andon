@@ -62,17 +62,29 @@ pico_enable_stdio_uart(andon 0)
 # Writes andon.uf2 (drag onto the board in BOOTSEL mode) next to the .elf.
 pico_add_extra_outputs(andon)
 
-# andon_bench.uf2: the C log-mel and int8 CNN checked against the Python test vectors and
-# timed on the board. Needs the headers from andon.export_c (real or --synthetic), which are
-# generated, not in git; without them only the andon target is built.
-set(ANDON_MODEL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/model CACHE PATH "andon.export_c output")
-if(EXISTS ${ANDON_MODEL_DIR}/andon_model.h AND EXISTS ${ANDON_MODEL_DIR}/andon_test_vectors.h)
+# andon_bench.uf2: the C log-mel, the int8 CNN and the per-fan GMMs checked against the
+# Python test vectors and timed on the board. Needs the headers from andon.export_c and
+# andon.export_gmm (real or --synthetic), which are generated, not in git; without them only
+# the andon target is built.
+set(ANDON_MODEL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/model CACHE PATH "andon.export_c/export_gmm output")
+set(ANDON_MODEL_HEADERS andon_frontend.h andon_model.h andon_test_vectors.h andon_gmm.h
+    andon_gmm_vectors.h)
+set(ANDON_HAVE_HEADERS TRUE)
+foreach(header ${ANDON_MODEL_HEADERS})
+    if(NOT EXISTS ${ANDON_MODEL_DIR}/${header})
+        set(ANDON_HAVE_HEADERS FALSE)
+    endif()
+endforeach()
+if(ANDON_HAVE_HEADERS)
     set(BENCH_SOURCES
         src/bench.c
         src/selftest.c
         src/logmel.c
+        src/frontend_params.c
         src/model.c
         src/model_params.c
+        src/gmm.c
+        src/gmm_params.c
     )
     add_executable(andon_bench ${BENCH_SOURCES})
     # The generated headers define every array static; each file uses only some of them.
@@ -84,6 +96,7 @@ if(EXISTS ${ANDON_MODEL_DIR}/andon_model.h AND EXISTS ${ANDON_MODEL_DIR}/andon_t
     pico_enable_stdio_uart(andon_bench 0)
     pico_add_extra_outputs(andon_bench)
 else()
-    message(STATUS "No model headers in ${ANDON_MODEL_DIR}: skipping andon_bench "
-                   "(uv run python -m andon.export_c ... --out firmware/model)")
+    message(STATUS "Missing model headers in ${ANDON_MODEL_DIR}: skipping andon_bench "
+                   "(uv run python -m andon.export_c ... and andon.export_gmm ... "
+                   "--out firmware/model)")
 endif()

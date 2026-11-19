@@ -1,10 +1,10 @@
 """Build and run the firmware's host tests: the hardware-free C files in firmware/src, compiled
 for the PC together with each firmware/test/test_*.c, which exits non-zero on a failed check.
 
-The C code is built against two sets of generated headers: a synthetic model exported here
-(runs everywhere, including CI), and the int8 CNN trained on the DCASE fans in firmware/model
-when it has been exported locally (its weights come from the training data, so it is not in
-git)."""
+The C code is built against two sets of generated headers: synthetic models exported here
+(runs everywhere, including CI), and the real ones in firmware/model when both have been
+exported locally: the int8 CNN trained on the DCASE fans and the per-fan GMM trained on the
+desk fans (both come from training data, so they are not in git)."""
 
 import os
 import re
@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from andon import export_c
+from andon import export_c, export_gmm
 from andon.experiment import load_config
 
 FIRMWARE = Path(__file__).resolve().parents[1] / "firmware"
@@ -39,7 +39,15 @@ FLAGS = [
     "-pedantic",
     "-Wno-unused-const-variable",
 ]
-HEADER_SETS = ["synthetic"] + (["real"] if (REAL_MODEL / export_c.VECTORS_HEADER).exists() else [])
+REAL_HEADERS = [
+    export_c.FRONTEND_HEADER,
+    export_c.MODEL_HEADER,
+    export_c.VECTORS_HEADER,
+    export_gmm.GMM_HEADER,
+    export_gmm.VECTORS_HEADER,
+]
+HAVE_REAL = all((REAL_MODEL / h).exists() for h in REAL_HEADERS)
+HEADER_SETS = ["synthetic"] + (["real"] if HAVE_REAL else [])
 
 
 # Windows Smart App Control sometimes blocks a freshly built .exe (WinError 4551), and keeps
@@ -67,6 +75,8 @@ def _build_and_run(cmd: list[str], exe: Path) -> subprocess.CompletedProcess:
 def synthetic_headers(tmp_path_factory) -> Path:
     out = tmp_path_factory.mktemp("synthetic_model")
     export_c.write(export_c.synthetic_export(seed=0), out)
+    # Writes the same andon_frontend.h again: both exports use the Stage 1 features.
+    export_gmm.write(*export_gmm.synthetic_export(seed=0), out)
     return out
 
 
@@ -99,10 +109,10 @@ def _c_defines(path: Path) -> dict[str, int]:
     return {name: int(value) for name, value in found}
 
 
-# The device has one front end: C constants for the frame and the mic, and the mel bank that
-# andon.export_c builds from the Stage 1 CNN's config. A model for the real fans is only
-# usable on the device if its features are those, so a config change that breaks this fails
-# here instead of on the board.
+# The device has one front end: C constants for the frame and the mic, and the mel bank in
+# andon_frontend.h, which both exporters build from the features of their config. A model
+# for the real fans is only usable on the device if its features are those, so a config
+# change that breaks this fails here instead of on the board.
 FRONT_END_SOURCE = CONFIGS / "phase3_idcnn_mixup.yaml"
 STAGE2_FINAL = sorted(
     p
@@ -127,8 +137,8 @@ def test_stage2_final_features_are_the_device_front_end(path: Path):
     assert load_config(path).logmel == load_config(FRONT_END_SOURCE).logmel
 
 
-# The flashed header (firmware/model, exported locally from the trained CNN) is checked too
-# when it exists; CI has only the synthetic one.
+# The flashed headers (firmware/model, exported locally from the trained models) are checked
+# too when they exist; CI has only the synthetic ones.
 @pytest.mark.parametrize("headers", HEADER_SETS)
 def test_front_end_source_matches_c_constants(headers: str, synthetic_headers: Path):
     cfg = load_config(FRONT_END_SOURCE).logmel
@@ -137,6 +147,14 @@ def test_front_end_source_matches_c_constants(headers: str, synthetic_headers: P
     assert cfg.n_fft == _c_defines(src / "logmel.h")["LOGMEL_N_FFT"]
     assert cfg.sample_rate == _c_defines(src / "mic_stream.h")["MIC_SAMPLE_RATE_HZ"]
     model_dir = synthetic_headers if headers == "synthetic" else REAL_MODEL
-    model = _c_defines(model_dir / export_c.MODEL_HEADER)
-    assert (model["ANDON_SAMPLE_RATE"], model["ANDON_N_FFT"]) == (cfg.sample_rate, cfg.n_fft)
-    assert (model["ANDON_HOP_LENGTH"], model["ANDON_N_MELS"]) == (cfg.hop_length, cfg.n_mels)
+    fe = _c_defines(model_dir / export_c.FRONTEND_HEADER)
+    assert (fe["ANDON_SAMPLE_RATE"], fe["ANDON_N_FFT"]) == (cfg.sample_rate, cfg.n_fft)
+    assert (fe["ANDON_HOP_LENGTH"], fe["ANDON_N_MELS"]) == (cfg.hop_length, cfg.n_mels)
+    assert _c_defines(model_dir / export_c.MODEL_HEADER)["ANDON_MODEL_N_MELS"] == cfg.n_mels
+    gmm = _c_defines(model_dir / export_gmm.GMM_HEADER)
+    h3 = load_config(CONFIGS / "h3_gmm.yaml").raw["window"]
+    assert gmm["ANDON_GMM_N_DIM"] == cfg.n_mels
+    assert (gmm["ANDON_GMM_WINDOW_FRAMES"], gmm["ANDON_GMM_WINDOW_HOP"]) == (
+        h3["frames"],
+        h3["hop"],
+    )

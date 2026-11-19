@@ -126,7 +126,7 @@ static void test_rejects_wrong_shape(void) {
 }
 
 int main(void) {
-    CHECK(ANDON_TV_N_MELS == ANDON_N_MELS);
+    CHECK(ANDON_TV_N_MELS == ANDON_MODEL_N_MELS);
     for (int n = 0; n < ANDON_TV_N; n++) test_patch(n);
     test_stress_patch_saturates();
     test_input_rounds_half_to_even();
