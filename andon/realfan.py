@@ -246,7 +246,10 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
     if excluded_stats:
         lines += ["", "Excluded clips (kept on disk, left out of everything above):", ""]
         for name, st in sorted(excluded_stats.items()):
-            lines.append(f"- `{name}`: {excluded[name]} ({st.clipped} clipped samples)")
+            lines.append(
+                f"- `{name}`: {excluded[name]} (peak {st.peak_dbfs:.1f} dBFS, "
+                f"{st.clipped} clipped samples)"
+            )
     if excluded_take_clips:
         lines += ["", "Excluded takes (kept on disk, left out of everything above):", ""]
         for name, n in sorted(excluded_take_clips.items()):

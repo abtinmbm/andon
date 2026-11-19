@@ -110,9 +110,9 @@ Repeatability against d1 (change from normal in the reference's biggest band, to
 
 Excluded clips (kept on disk, left out of everything above):
 
-- `d1/normal_id_02_00000003.wav`: a knock 9.25-9.34 s into the clip, not the fan (40 clipped samples)
-- `d3/normal_id_02_00000077.wav`: a door thud (heard on listening), not the fan (0 clipped samples)
-- `d3/normal_id_02_00000115.wav`: a door thud (heard on listening), not the fan (0 clipped samples)
+- `d1/normal_id_02_00000003.wav`: a knock 9.25-9.34 s into the clip, not the fan (peak 0.0 dBFS, 40 clipped samples)
+- `d3/normal_id_02_00000077.wav`: a door thud (heard on listening), not the fan (peak -2.5 dBFS, 0 clipped samples)
+- `d3/normal_id_02_00000115.wav`: a door thud (heard on listening), not the fan (peak -3.4 dBFS, 0 clipped samples)
 
 Excluded takes (kept on disk, left out of everything above):
 

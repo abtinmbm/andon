@@ -151,7 +151,7 @@ def test_an_excluded_clip_is_listed_with_its_reason_and_left_out_of_the_tables(c
     ]
     assert "| s1 | dev | id_00 | none | 2 |" in text
     assert "| `s1/normal_id_00_00000001.wav` |" not in text  # not the row's loudest clip
-    assert "- `s1/normal_id_00_00000001.wav`: a knock (40 clipped samples)" in text
+    assert "- `s1/normal_id_00_00000001.wav`: a knock (peak -0.0 dBFS, 40 clipped samples)" in text
     assert "- [ ] `s1/normal_id_00_00000001.wav`" not in text
 
 
@@ -237,6 +237,16 @@ def test_an_excluded_take_is_checked_as_files_and_left_out_of_the_tables(cfg, tm
     # A broken file is a problem even in an excluded take.
     (tmp_path / "realfan" / "s1" / "normal_id_00_00000004.wav").unlink()
     assert any("00000004.wav: missing" in p for p in realfan.check(cfg)[1])
+
+
+def test_each_row_names_its_loudest_clip_outside_excluded_takes(cfg, monkeypatch):
+    levels = iter([1, 3, 2, 8])  # the 8x clip is in a take excluded below
+    monkeypatch.setattr(sys.modules[__name__], "noise", lambda seed: next(levels) * _noise(seed))
+    take(cfg, "s1", "id_00", "none", 3)
+    take(cfg, "s1", "id_00", "none", 1, seed=10)
+    cfg["excluded_takes"] = {"s1-id_00-none-10": "another fan"}
+    row = next(line for line in realfan.check(cfg)[0].splitlines() if "| s1 | dev |" in line)
+    assert row.endswith("| `s1/normal_id_00_00000001.wav` |")
 
 
 def test_tone_check_measures_the_frequency():

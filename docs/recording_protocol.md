@@ -36,7 +36,7 @@ are not changed afterwards.
 | Surface | The plank lies flat on a desk. |
 | Background | Normal room noise is allowed, but no music, speech close by or other machines on purpose. Anything unusual goes in the session notes below. |
 
-Before each session, check the setup against this table and compare it with the reference photos (kept out of git). For d1–d3 these are the dorm photos, taken before d1 is recorded, from the same four angles as the home ones: `C:\andon-photos\h2-dorm-setuptop.jpg`, `h2-dorm-setupside.jpg`, `h2-dorm-setupfront.jpg` and `h2-dorm-setupback.jpg`. The home photos (`h2-setuptop.jpg`, `h2-setupside.jpg`, `h2-setupfront.jpg`, `h2-setupback.jpg`) show the pilot and s1 setup.
+Before each session, check the setup against this table and compare it with the reference photos (kept out of git). For d1–d3 these are the dorm photos, taken before d1 is recorded, from three of the four angles of the home ones (no front photo): `C:\andon-photos\h2-dorm-setuptop.jpg`, `h2-dorm-setupside.jpg` and `h2-dorm-setupback.jpg`. The home photos (`h2-setuptop.jpg`, `h2-setupside.jpg`, `h2-setupfront.jpg`, `h2-setupback.jpg`) show the pilot and s1 setup.
 
 ## Order within a session
 
@@ -44,11 +44,12 @@ To keep the time of day and the room's state from lining up with one fan, the fa
 
 | Session | Order |
 | --- | --- |
-| pilot (home) | id_00 only |
+| pilot (home) | id_00 only, plus id_01 for the gain check |
 | s1 (home) | id_00, id_01, id_02 |
 | d1 | id_00, id_01, id_02 |
 | d2 | id_01, id_02, id_00 |
 | d3 | id_02, id_00, id_01 |
+| dpilot | id_01, then id_00 (trial duties only) |
 
 ## Running a session
 
@@ -62,6 +63,7 @@ To keep the time of day and the room's state from lining up with one fan, the fa
    | `d1` | `id_00`, `id_01`, `id_02` |
    | `d2` | `id_01`, `id_02`, `id_00` |
    | `d3` | `id_02`, `id_00`, `id_01` |
+   | `dpilot` | `id_01`, then `id_00` (trial duties only) |
 
    The first fan rotates, so no fan is always recorded first or last, when the room, the board and the mounting tape are in a different state.
 
@@ -107,11 +109,13 @@ All faults are applied with the fan off and the blades stopped, and fully undone
 uv run python -m andon.realfan check --listen 2 --out results/h2_dataset.md
 ```
 
-This checks every clip against the manifest and the config, adds up stream breaks, and measures each clip's level and clipping. It exits with an error if anything is wrong. With `--listen 2` it also lists two random clips per session, fan and condition. Listen to each one and tick it. A normal clip should be a steady fan sound with no clicks, dropouts or buzz, and each fault should sound different from normal.
+This checks every clip against the manifest and the config, adds up stream breaks, and measures each clip's level and clipping. It exits with an error if anything is wrong. With `--listen 2` it also lists two random clips per session, fan and fault. Listen to each one and tick it. A normal clip should be a steady fan sound with no clicks, dropouts or buzz, and each fault should sound different from normal.
 
 A single clip spoiled by something that isn't the fan (a knock on the desk, a door) is not deleted or re-recorded. It is listed under `excluded_clips` in the config with the reason. The check still verifies the file but leaves it out of the tables and the listening list, and lists it with its reason. H3 must skip these clips too. A take with more than a few such clips is recorded again instead.
 
 A whole take with wrong labels (for example, recorded with another fan's `--fan`) is never renamed or relabelled. It is listed under `excluded_takes` in the config with the reason, and the take is recorded again under the right labels. The check verifies its files, leaves them out of everything else and lists the take with its clip count. Each table row also names its loudest clip, so an outlier peak can be found and listened to.
+
+**Loudest-clip rule (every dev and eval session, decided 2026-11-18).** The check fails only on clipping, so a loud sound that isn't the fan can pass it. For every row of a dev or eval session, except retired faults, listen to the clip the check names as the loudest. If it holds a sound that isn't the fan, exclude it as above, run the check again and listen to the row's new loudest clip. Stop at the first one that is only the fan. The same rule is applied to d1, d2 and d3, so the eval session is not cleaned more than the dev sessions. Write the outcome in the session notes.
 
 ## Session notes
 
@@ -119,7 +123,6 @@ A whole take with wrong labels (for example, recorded with another fan's `--fan`
 | --- | --- | --- |
 | pilot | | Home. |
 | s1 | 2026-11-07 | Home; no control takes. Kept as a session from another room, not used for training or scoring. |
-| d1 | 2026-11-16 | Dorm. No front reference photo (top, side and back taken). Imbalance dropped part-way (see Faults): `id_00` has two imbalance takes (square, then trapezoid, the second after the control take) and `id_01` two stopped ones that saved nothing; all retired. `underspeed` takes recorded after the change. At 85 % `id_00` sounds different by ear, not just quieter: its speed drops much further than `id_01`'s and settles 20–30 s into the take (dpilot check, DECISIONS.md 2026-11-16). `id_00`'s and `id_01`'s underspeed takes were recorded after their control takes, so not on the normal take's mount. `id_01`'s was on the same mount as its control take (not lifted in between). `id_00`'s was on a third mount, about 2 h after its normal take and after `id_01`'s whole run. H3 compares them with the control take too. `id_02`'s guided run was stopped by mistake in its obstruction take (saved nothing) and that take was recorded on its own. One `id_02` normal clip excluded (a knock, see below). Listened to the d1 clips of the check's list on 2026-11-16: all sounded right. |
-| d2 | 2026-11-17 | Dorm, fan order `id_01`, `id_02`, `id_00`. Nothing unusual; no clips excluded. `id_00` underspeed −11.9 dB at 4000-8000 Hz against d1's −14.2 dB (+2.3 dB, inside ±3 dB). Listened to the d2 clips of the check's list on 2026-11-17: all sounded right. |
-| d3 | 2026-11-18 | Dorm, fan order `id_02`, `id_00`, `id_01`. `id_00`'s control take was recorded with `--fan id_02` by mistake (`d3-id_02-none-20261119T031251Z`, 18 clips), found by the check from the clip counts. It is listed under `excluded_takes`, and `id_00`'s control take was recorded again after `id_01`'s whole run, on a fresh mount (the swap from `id_01`). Two `id_02` normal clips excluded, `00000077` and `00000115`: a door thud in each, heard on listening after the check named each in turn as the loudest clip (−2.5 and −3.4 dBFS peaks, neither clipped). `id_00` underspeed −13.7 dB at 4000-8000 Hz against d1's −14.2 dB (+0.4 dB, inside ±3 dB). |
-| d3 | | |
+| d1 | 2026-11-16 | Dorm. No front reference photo (top, side and back taken). Imbalance dropped part-way (see Faults): `id_00` has two imbalance takes (square, then trapezoid, the second after the control take) and `id_01` two stopped ones that saved nothing; all retired. `underspeed` takes recorded after the change. At 85 % `id_00` sounds different by ear, not just quieter: its speed drops much further than `id_01`'s and settles 20–30 s into the take (dpilot check, DECISIONS.md 2026-11-16). `id_00`'s and `id_01`'s underspeed takes were recorded after their control takes, so not on the normal take's mount. `id_01`'s was on the same mount as its control take (not lifted in between). `id_00`'s was on a third mount, about 2 h after its normal take and after `id_01`'s whole run. H3 compares them with the control take too. `id_02`'s guided run was stopped by mistake in its obstruction take (saved nothing) and that take was recorded on its own. One `id_02` normal clip excluded (a knock, see below). Listened to the d1 clips of the check's list on 2026-11-16: all sounded right. The loudest clip of every row (loudest-clip rule, see Checking) heard on 2026-11-18: each was only the fan. |
+| d2 | 2026-11-17 | Dorm, fan order `id_01`, `id_02`, `id_00`. Nothing unusual; no clips excluded. `id_00` underspeed −11.9 dB at 4000-8000 Hz against d1's −14.2 dB (+2.3 dB, inside ±3 dB). Listened to the d2 clips of the check's list on 2026-11-17: all sounded right. The loudest clip of every row heard on 2026-11-18: each was only the fan. |
+| d3 | 2026-11-18 | Dorm, fan order `id_02`, `id_00`, `id_01`. `id_00`'s control take was recorded with `--fan id_02` by mistake (`d3-id_02-none-20261119T031251Z`, 18 clips), found by the check from the clip counts. It is listed under `excluded_takes`, and `id_00`'s control take was recorded again after `id_01`'s whole run, on a fresh mount (the swap from `id_01`). Two `id_02` normal clips excluded, `00000077` and `00000115`: a door thud in each, heard on listening after the check named each in turn as the loudest clip (−2.5 and −3.4 dBFS peaks, neither clipped). `id_00` underspeed −13.7 dB at 4000-8000 Hz against d1's −14.2 dB (+0.4 dB, inside ±3 dB). Listened to the d3 clips of the check's list and to the loudest clip of every row (after the two thuds were excluded) on 2026-11-18: all sounded right, and each loudest clip was only the fan. |

@@ -138,6 +138,7 @@ The numbers above are only worth something if the test was fair, so the project 
 - **Average-spectrum models can't hear valve faults:** every classic detector scored 50.06 to 59.43 on valve on dev, close to guessing. The CNN reaches 87.63 ± 1.14.
 - **The autoencoder baseline doesn't fit the microcontroller:** 272.1 KB even at int8, over the 256 KB budget.
 - **A 2-wire fan can't start at half power.** With PWM on the MOSFET, the Sunon fan ran smoothly at 70 % and 50 % once spinning, but from standstill at 50 % it only jittered. The firmware now runs any start from stopped at a part speed at full power for 1 s first. At 30 % it ran but rattled, which sounds too much like a loose-mount fault to use as a normal speed. These speed results were judged by ear.
+- **Two of the real-fan faults were dropped.** A loosened mount sounded the same as normal running. Tape on one blade (imbalance) wasn't repeatable: on the Sunon fan it raised 0-125 Hz by +8.0 dB in the pilot and +6.6 dB in the first full session, but by only +0.5 dB in the first session in the second room. A larger piece varied from +2.8 to +10.9 dB clip to clip within one take, and on another fan it came loose and buzzed. It was replaced by underspeed: the fan's drive switched on 85 % of the time (PWM duty), which software sets the same way every time ([dataset check](results/h2_dataset.md), [DECISIONS](DECISIONS.md)).
 - **Very loud faults can clip the int8 input**, whose range is set from normal audio. On the DCASE evaluation set at most 0.003 % of input values clipped, but a real fan fault could be much louder, so Stage 2 checks it.
 
 ## Stage 2 roadmap
@@ -146,7 +147,7 @@ The numbers above are only worth something if the test was fair, so the project 
 | --- | --- | --- |
 | H0 First light | Pico SDK in C, LED heartbeat, button cycles a 3-LED andon light | done |
 | H1 Kill switch | 5 V fan through a logic-level MOSFET, off within 100 ms of a command | done: worst 3.35 ms over 40 trials on the board; red cuts it, reset restarts it ([timing](results/h1_fan_latency.md)) |
-| H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of three real fans with safe, staged faults | |
+| H2 Microphone | I2S MEMS mic at 16 kHz, a labelled dataset of three real fans with safe, staged faults | done: three fans over three sessions on different days in one room (two dev, one eval), with no stream breaks; faults are underspeed and a card over the intake ([dataset check](results/h2_dataset.md), [protocol](docs/recording_protocol.md)) |
 | H3 Retrain | the Phase 4 model on the fans' normal audio, each fan a machine ID, AUC under the Stage 1 split rules | |
 | H4 Features in C | log-mel in C, matched against the Python test vectors in CI | done on the PC (CI) |
 | H5 Inference in C | int8 CNN on the Pico 2, measured time, RAM and flash | bit-exact on the PC (CI) and on the board; 10.82 ms per 32 ms frame on one core, under the 20 ms budget ([bench](results/h5_bench_pico2.md)) |

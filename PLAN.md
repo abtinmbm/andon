@@ -142,7 +142,7 @@ Stage 2 starts with small bring-up steps and builds up one piece at a time. All 
 - Three fans, each a machine ID: the Sunon MF40100V2 and two identical ANVISION YDM4010B05 (5 V, 2-pin, 40 x 40 x 10 mm). Swap fans in the same mount; only one is wired at a time.
 - Record 1 to 2 hours of normal running per fan (and per speed, if H1 gives a second one), over separate sessions on different days. The DCASE data has about 2.8 hours per machine ID; the real-fan normals also have to cover training, the SPC calibration and false-alarm counting.
 - Record anomalies created safely, on each fan:
-  - a small piece of tape or Blu-Tack on one blade (imbalance; a washer is too heavy for a 40 mm fan)
+  - a small piece of tape or Blu-Tack on one blade (imbalance; a washer is too heavy for a 40 mm fan): used in the pilot, s1 and d1, then dropped as not repeatable and replaced by underspeed (85 % PWM duty), see DECISIONS.md (2026-11-16)
   - a card partly blocking the intake (obstruction)
   - a loosened mount (rattle): tried in the pilot and dropped, see DECISIONS.md (2026-11-07)
 - **Done when:** the dataset has a written labelling protocol and the recordings play back cleanly.

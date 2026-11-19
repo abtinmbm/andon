@@ -60,6 +60,10 @@ def _manifest_rows(root: Path, session: str, recording: dict | None) -> list[dic
             f"session {session!r} needs data.recording_config, so excluded clips, retired "
             "faults and settling clips are left out"
         )
+    # A pilot informs H3's choices, so it must never see the eval session; H3's own scorer
+    # reads eval only for a config marked final.
+    if recording is not None and session in recording.get("sessions", {}).get("eval", []):
+        raise ValueError(f"session {session!r} is eval; the pilot never reads it")
     with (root / "manifest.csv").open(newline="", encoding="utf-8") as f:
         rows = [r for r in csv.DictReader(f) if r["session"] == session]
     return rows if recording is None else usable_rows(rows, recording)

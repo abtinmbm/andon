@@ -1,7 +1,7 @@
 # Phase H2: the fixed recording setup for the real-fan dataset. Every session uses exactly
 # these settings, so recordings from different days and fans can be pooled. The physical
 # setup (mic position, mount, room) is in docs/recording_protocol.md; anything that changes
-# here after the first real session (s1) makes the sessions incomparable.
+# here after the first dev session (d1) makes the sessions incomparable.
 phase: H2
 
 data:
