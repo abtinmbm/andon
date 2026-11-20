@@ -35,7 +35,9 @@ if not captures:
         "No capture yet. Start a trial (andon.jidoka run ... --out results/h6_jidoka_<fan>.txt)"
         " and this page follows it."
     )
-    st.stop()
+    # Keep looking: the trial creates its capture only when it starts.
+    time.sleep(REFRESH_S)
+    st.rerun()
 c1, c2 = st.columns([3, 1])
 path = c1.selectbox("Capture (newest first)", captures, format_func=lambda p: p.name)
 follow = c2.toggle("Follow live", value=True)

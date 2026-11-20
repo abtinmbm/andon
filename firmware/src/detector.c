@@ -37,6 +37,9 @@ static void begin_listening(detector_t *d) {
 }
 
 static void begin_holdoff(detector_t *d, uint64_t now_us) {
+    // Run counts from before this start (old limits, another fan, or before a stop) must
+    // not count towards a light on the new stream. Red stays latched until the button.
+    if (d->light.state != ANDON_RED) light_reset(&d->light);
     d->last_word_us = now_us;  // the silence check counts from the start
     d->holdoff_left = d->cfg.holdoff_samples;
     d->phase = DET_HOLDOFF;

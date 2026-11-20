@@ -233,6 +233,38 @@ static void test_a_bad_score_trips(void) {
     CHECK((r.ev & DET_EV_TRIP) && d.trip == DET_TRIP_BAD_SCORE && r.n == 1);
 }
 
+// A yellow light and part runs left from before must not carry into a new hold-off: with
+// above_control at 2, one window over the new limit would turn red after 1 window, not 3.
+static void preload(detector_t *d) {
+    d->light.state = ANDON_YELLOW;
+    d->light.above_warn = 2;
+    d->light.above_control = 2;
+}
+
+static bool light_is_fresh(const detector_t *d) {
+    return d->light.state == ANDON_GREEN && d->light.above_warn == 0 &&
+           d->light.above_control == 0 && d->light.below_warn == 0;
+}
+
+static void test_a_new_start_clears_the_light_runs(void) {
+    static detector_t d;
+    start(&d, 1000, base.calib_windows, 0);
+    preload(&d);
+    detector_watch(&d, &andon_gmm[1], 1, 0);
+    CHECK(d.phase == DET_HOLDOFF && light_is_fresh(&d));
+    preload(&d);
+    detector_recalibrate(&d, 0);
+    CHECK(d.phase == DET_HOLDOFF && light_is_fresh(&d));
+    preload(&d);
+    detector_set_running(&d, false, 0);
+    detector_set_running(&d, true, 0);
+    CHECK(d.phase == DET_HOLDOFF && light_is_fresh(&d));
+    // Red is latched: only the button clears it.
+    detector_trip(&d, DET_TRIP_SCORE);
+    detector_recalibrate(&d, 0);
+    CHECK(detector_light(&d) == ANDON_RED && d.trip == DET_TRIP_SCORE);
+}
+
 static void test_names(void) {
     CHECK(strcmp(detector_phase_name(DET_WATCHING), "watching") == 0);
     CHECK(strcmp(detector_trip_name(DET_TRIP_MIC_FLAT), "mic_flat") == 0);
@@ -253,6 +285,7 @@ int main(void) {
     test_idle_without_a_fan_or_when_stopped();
     test_an_overrun_restarts_the_stream();
     test_a_bad_score_trips();
+    test_a_new_start_clears_the_light_runs();
     test_names();
     if (failures) {
         printf("%d check(s) failed\n", failures);

@@ -22,11 +22,11 @@ FINAL = {
     "phase5_andon",
     "h3_gmm",
     "h3_level",
+    "h6_jidoka",
 }
 # Chosen on dev and marked final, but not yet scored on eval. Each moves to FINAL in the
 # commit that logs its one eval run, so a final config can never stay unscored unnoticed.
-# h6_jidoka: live trials of the final model on the board, one row per fan (Phase H6).
-PENDING: set[str] = {"h6_jidoka"}
+PENDING: set[str] = set()
 
 
 def test_only_the_configs_scored_on_eval_are_final():

@@ -61,6 +61,8 @@ _FAN_UPDATE = re.compile(
 )
 _LIGHT = re.compile(r"^light t_us=(\d+) light=(\w+) trip=(\w+) reset=(\d)")
 _BUILD = re.compile(r"^build=(\S+)")
+_DETECTOR = re.compile(r"^detector watch=\S+ .* restarts=(\d+) say_dropped=(\d+)")
+_REC = re.compile(r"^rec ")
 # Matches nothing: waiting on it captures lines until a trip or the timeout.
 _NOTHING = re.compile(r"(?!)")
 
@@ -70,6 +72,7 @@ class TrialSettings:
     normal_pct: int
     fault_pct: int
     normal_s: float
+    settle_s: float  # the board's hold-off after each start
     calib_timeout_s: float
     stop_timeout_s: float
 
@@ -82,6 +85,7 @@ class TrialSettings:
             normal_pct=int(rec["speed_pct"]),
             fault_pct=int(rec["fault_speed_pct"]["underspeed"]),
             normal_s=float(t["normal_seconds"]),
+            settle_s=float(rec["settle_seconds"]),
             calib_timeout_s=float(t["calib_timeout_seconds"]),
             stop_timeout_s=float(t["stop_timeout_seconds"]),
         )
@@ -168,6 +172,9 @@ def run(
         _send(port, cap, f"fan speed {s.normal_pct}")
         _send(port, cap, "fan off")
         _send(port, cap, "status")
+        # The detector and recorder lines follow the status ack; the detector's stream
+        # restart count is how a trial shows it had no gap in the audio.
+        _wait_for(port, cap, _REC, 2.0)
     return cap.lines
 
 
@@ -215,23 +222,29 @@ class Trial:
     trip_reason: str = ""
     windows_to_red: int = -1
     stop_us: int = -1  # the gate pin read back low
+    restarts: int = -1  # audio stream restarts during the trial; -1 if not captured
     problems: list[str] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
         return not self.problems
 
+    @staticmethod
+    def _span(start_us: int, end_us: int, unit_us: float) -> float:
+        # nan, not a negative time, when either end never happened.
+        return (end_us - start_us) / unit_us if start_us >= 0 and end_us >= 0 else math.nan
+
     @property
     def switch_to_red_s(self) -> float:
-        return (self.trip_us - self.switch_us) / 1e6
+        return self._span(self.switch_us, self.trip_us, 1e6)
 
     @property
     def red_to_stop_ms(self) -> float:
-        return (self.stop_us - self.trip_us) / 1e3
+        return self._span(self.trip_us, self.stop_us, 1e3)
 
     @property
     def switch_to_stop_s(self) -> float:
-        return (self.stop_us - self.switch_us) / 1e6
+        return self._span(self.switch_us, self.stop_us, 1e6)
 
 
 def parse_capture(text: str, fault_pct: int) -> Trial:
@@ -241,6 +254,7 @@ def parse_capture(text: str, fault_pct: int) -> Trial:
     t = Trial(fault_pct=fault_pct)
     stage = "setup"  # setup -> calibrating -> watching -> switched -> stopped
     last_n = last_n_at_switch = 0  # the board's window count, so windows to red can be counted
+    restarts: list[int] = []  # from each status's detector line: at the start and the end
     for line in text.splitlines():
         if m := _BUILD.match(line):
             t.build = m[1]
@@ -252,6 +266,12 @@ def parse_capture(text: str, fault_pct: int) -> Trial:
                 stage = "calibrating" if result == "ok" else stage
             elif cmd == f"fan speed {fault_pct}" and stage == "watching" and result == "ok":
                 t.switch_us, stage = int(m[3]), "switched"
+                # A switch while the light is already off green, or that did not take the
+                # fan to the fault duty, would not time the fault from a clean start.
+                if m[8] != "green" or int(m[7]) != fault_pct:
+                    t.problems.append(
+                        f"the switch left the fan at duty {m[7]} with the light {m[8]}"
+                    )
             elif stage == "switched" and cmd.split()[:2] in (["fan", "off"], ["fan", "speed"]):
                 t.problems.append(f'"{cmd}" was sent before the board stopped the fan')
         elif m := _LIMITS.match(line):
@@ -279,8 +299,14 @@ def parse_capture(text: str, fault_pct: int) -> Trial:
                 t.stop_us, stage = int(m[2]), "stopped"
         elif (m := _LIGHT.match(line)) and m[4] == "1" and stage == "switched":
             t.problems.append("the button was pressed before the board stopped the fan")
+        elif m := _DETECTOR.match(line):
+            restarts.append(int(m[1]))
         if stage != "switched":
             last_n_at_switch = last_n
+    if len(restarts) >= 2:
+        t.restarts = restarts[-1] - restarts[0]
+        if t.restarts > 0:
+            t.problems.append(f"the audio stream restarted {t.restarts} time(s) in the trial")
     if not t.fan:
         t.problems.append("no fan was watched")
     if t.calib_windows < 0:
@@ -327,6 +353,9 @@ def log_rows(cfg: Config, seed: int, trials: list[Trial], captures: list[Path], 
     require_final(cfg, "eval")
     if len(trials) != len(captures):
         raise ValueError("one capture per trial")
+    fans = [t.fan for t in trials]
+    if len(set(fans)) != len(fans):
+        raise ValueError(f"one trial per fan: {fans}")
     for t in trials:
         if is_logged(cfg, t.fan, seed, "eval", log):
             raise ValueError(f"{cfg.name} {t.fan} seed {seed} is already logged (once per fan)")
@@ -335,7 +364,8 @@ def log_rows(cfg: Config, seed: int, trials: list[Trial], captures: list[Path], 
             f"trial=jidoka passed={int(t.passed)} switch_to_stop_s={t.switch_to_stop_s:.3f} "
             f"switch_to_red_s={t.switch_to_red_s:.3f} red_to_stop_ms={t.red_to_stop_ms:.3f} "
             f"windows_to_red={t.windows_to_red} normal_windows={t.normal_windows} "
-            f"calib_windows={t.calib_windows} speed={t.fault_pct} build={t.build} "
+            f"calib_windows={t.calib_windows} restarts={t.restarts} speed={t.fault_pct} "
+            f"build={t.build} "
             f"capture={path.as_posix()}"
         )
         append_result(cfg, t.fan, "eval", seed, math.nan, math.nan, notes, log=log)
@@ -391,11 +421,22 @@ def main(argv: list[str] | None = None) -> None:
         captures = _expand(args.captures)
         trials = [parse_capture(p.read_text(encoding="utf-8"), fault_pct) for p in captures]
         table = jidoka_table(trials)
+        calib = {t.calib_windows for t in trials}
+        if len(calib) != 1:
+            raise SystemExit(f"the trials calibrated on different window counts: {calib}")
+        s = TrialSettings.from_config(cfg)
         sources = ", ".join(f"`{p.as_posix()}`" for p in captures)
         args.out.write_text(
             f"# H6: jidoka on the board\n\nGenerated by `andon.jidoka report` from {sources}. "
             "Times are from the board's clock: the switch is the speed command's arrival, "
-            "red the trip, and fan off the gate pin reading back low.\n\n" + table,
+            "red the trip, and fan off the gate pin reading back low (the fan's power cut; "
+            "spin-down is not timed). Red is stamped at the start of the loop pass that "
+            "scored the deciding window, so red to fan off is mostly that window's log-mel "
+            "and GMM score; the fan is cut before anything is printed. Each fan calibrated "
+            f"on its own first {calib.pop()} windows after a {s.settle_s:g} s hold-off, ran "
+            f"{s.normal_s:g} s watched, then was switched from {s.normal_pct} % to "
+            f"{s.fault_pct} % (underspeed) by a serial command. One trial per fan; rows in "
+            f"`results/results_log.csv` (`{cfg.name}`).\n\n" + table,
             encoding="utf-8",
         )
         print(table, end="")

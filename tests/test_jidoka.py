@@ -10,7 +10,8 @@ import pytest
 from andon import jidoka
 from andon.experiment import Config, load_config, read_results
 
-CONFIGS = Path(__file__).resolve().parents[1] / "configs"
+ROOT = Path(__file__).resolve().parents[1]
+CONFIGS = ROOT / "configs"
 FAULT = 85  # h2_recording.yaml: fault_speed_pct.underspeed
 
 
@@ -24,13 +25,16 @@ class Board:
     """Answers commands the way main.c does, and plays a stream of score lines: calibration,
     normal running, then high scores after the switch to the underspeed duty."""
 
-    def __init__(self, calib: int = 3, false_stop: bool = False, stops: bool = True) -> None:
+    def __init__(
+        self, calib: int = 3, false_stop: bool = False, stops: bool = True, restarts: int = 0
+    ) -> None:
         self.t_us, self.n = 1_000_000, 0
         self.out: list[str] = []
         self.calib, self.false_stop, self.stops = calib, false_stop, stops
         self.running = self.red = self.under = False
         self.watch = "none"
         self.clock_s = 0.0
+        self.restarts, self.restarts_at_end = 0, restarts
 
     def clock(self) -> float:
         return self.clock_s
@@ -61,11 +65,13 @@ class Board:
             f"duty={duty} light={'red' if self.red else 'green'} speed=100 want_on=1 kick=0 "
             f"watch={self.watch} phase=calibrating"
         )
-        if cmd == "status":  # main.c prints the detector line after the ack
+        if cmd == "status":  # main.c prints the detector and recorder lines after the ack
             self.out.append(
                 f"detector watch={self.watch} phase=idle light=green trip=none windows={self.n} "
-                f"calib=0/{self.calib} restarts=0 say_dropped=0"
+                f"calib=0/{self.calib} restarts={self.restarts} say_dropped=0"
             )
+            self.out.append("rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0")
+            self.restarts = self.restarts_at_end  # what the closing status will report
 
     def _window(self) -> None:
         # One window per second of board time.
@@ -124,7 +130,7 @@ def test_a_trial_that_stops_by_itself_passes():
     assert t.passed, t.problems
     assert t.fan == "id_01" and t.build == "abc1234" and t.calib_windows == 3
     assert t.normal_windows >= 1 and t.max_normal_score == 10.5
-    assert t.trip_reason == "score" and t.windows_to_red == 3
+    assert t.trip_reason == "score" and t.windows_to_red == 3 and t.restarts == 0
     assert t.switch_us < t.trip_us < t.stop_us
     assert t.red_to_stop_ms == pytest.approx(0.060)
     assert t.switch_to_stop_s == pytest.approx((t.stop_us - t.switch_us) / 1e6)
@@ -132,6 +138,7 @@ def test_a_trial_that_stops_by_itself_passes():
     assert text.startswith("# andon.jidoka, ")
     assert f'ack cmd="fan speed {FAULT}"' in text and "\ntrip " in text
     assert_ends_asked_off(text)
+    assert text.rstrip().splitlines()[-1].startswith("rec ")  # the closing status, whole
 
 
 def assert_ends_asked_off(text: str) -> None:
@@ -164,6 +171,19 @@ def test_a_stop_by_hand_does_not_count():
     pressed = "light t_us=5 light=green trip=none reset=1"
     t = jidoka.parse_capture(text[:i] + "\n" + pressed + text[i:], FAULT)
     assert any("button" in p for p in t.problems)
+
+
+def test_a_switch_off_green_does_not_count():
+    text = run_trial(Board())
+    ack = next(s for s in text.splitlines() if s.startswith(f'ack cmd="fan speed {FAULT}"'))
+    t = jidoka.parse_capture(text.replace(ack, ack.replace("light=green", "light=yellow")), FAULT)
+    assert any("light yellow" in p for p in t.problems)
+
+
+def test_a_stream_restart_in_the_trial_fails():
+    t = jidoka.parse_capture(run_trial(Board(restarts=1)), FAULT)
+    assert t.restarts == 1
+    assert "the audio stream restarted 1 time(s) in the trial" in t.problems
 
 
 def test_red_for_another_reason_fails():
@@ -211,6 +231,18 @@ def test_table_and_log_rows(tmp_path):
         jidoka.log_rows(load_config(CONFIGS / "h6_jidoka.yaml"), 0, [good], paths[:1], log)
 
 
+def test_a_failed_trial_logs_nan_times_and_fans_are_logged_once(tmp_path):
+    bad = jidoka.parse_capture(run_trial(Board(stops=False)), FAULT)
+    assert math.isnan(bad.switch_to_stop_s) and math.isnan(bad.red_to_stop_ms)
+    log = tmp_path / "log.csv"
+    final = load_config(CONFIGS / "h6_jidoka.yaml")
+    jidoka.log_rows(final, 0, [bad], [Path("x.txt")], log)
+    notes = read_results(log)[0]["notes"]
+    assert "passed=0 switch_to_stop_s=nan switch_to_red_s=nan red_to_stop_ms=nan" in notes
+    with pytest.raises(ValueError, match="one trial per fan"):
+        jidoka.log_rows(final, 0, [bad, bad], [Path("a"), Path("b")], tmp_path / "l2.csv")
+
+
 def test_rows_need_a_final_config(tmp_path):
     t = jidoka.parse_capture(run_trial(Board()), FAULT)
     with pytest.raises(ValueError, match="final"):
@@ -248,3 +280,26 @@ def test_the_seed_must_be_the_exported_models():
 
 def test_nan_formats_as_the_log_expects():
     assert f"{math.nan:.4f}" == "nan"
+
+
+def test_committed_captures_pass_and_the_table_is_current(tmp_path, monkeypatch):
+    """H6's done-when: every fan stopped by itself; the committed table is what the report
+    makes from the committed captures, and the logged rows carry the same times."""
+    monkeypatch.chdir(ROOT)
+    captures = sorted((ROOT / "results").glob("h6_jidoka_id_*.txt"))
+    assert [p.stem[-5:] for p in captures] == ["id_00", "id_01", "id_02"]
+    trials = [jidoka.parse_capture(p.read_text(encoding="utf-8"), FAULT) for p in captures]
+    assert all(t.passed and t.trip_reason == "score" for t in trials)
+    assert {t.build for t in trials} == {"55cd2cf"}
+    out = tmp_path / "h6.md"
+    jidoka.main(["report", "--config", "configs/h6_jidoka.yaml", "--seed", "0",
+                 "results/h6_jidoka_id_*.txt", "--out", str(out)])  # fmt: skip
+    assert out.read_text(encoding="utf-8") == (ROOT / "results" / "h6_jidoka.md").read_text(
+        encoding="utf-8"
+    )
+    rows = {r["machine_type"]: r for r in read_results(ROOT / "results" / "results_log.csv")
+            if r["config"] == "h6_jidoka"}  # fmt: skip
+    assert sorted(rows) == ["id_00", "id_01", "id_02"]
+    for t in trials:
+        assert f"switch_to_stop_s={t.switch_to_stop_s:.3f} " in rows[t.fan]["notes"]
+        assert rows[t.fan]["git_commit"] == t.build

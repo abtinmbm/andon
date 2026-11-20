@@ -1,0 +1,811 @@
+# andon.jidoka, 2026-11-20T03:23:28+00:00, fan id_02, speed 100 -> 85 %, normal 60 s, config h6_jidoka, tools 55cd2cf-dirty
+# pc_s=0.1 sent: status
+build=55cd2cf model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=9553518 t_set_us=9553563 t_pin_us=9553566 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=none phase=idle
+# pc_s=0.1 sent: fan off
+detector watch=none phase=idle light=green trip=none windows=0 calib=0/584 restarts=0 say_dropped=4
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+ack cmd="fan off" result=ok t_rx_us=9558225 t_set_us=9558249 t_pin_us=9558252 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=none phase=idle
+# pc_s=0.1 sent: watch id_02
+ack cmd="watch id_02" result=ok t_rx_us=9564540 t_set_us=9564582 t_pin_us=9564583 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_02 phase=idle
+# pc_s=0.1 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=9567847 t_set_us=9567873 t_pin_us=9567874 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_02 phase=idle
+# pc_s=0.1 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=9570194 t_set_us=9570208 t_pin_us=9570250 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_02 phase=holdoff
+# pc_s=0.1 waiting for the limits (hold-off, then calibration)
+t=10000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=holdoff
+t=15000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=16650387 n=1 fan=id_02 phase=calibrating s=326.6789 light=green
+score t_us=17674981 n=2 fan=id_02 phase=calibrating s=317.0567 light=green
+score t_us=18698596 n=3 fan=id_02 phase=calibrating s=226.4662 light=green
+score t_us=19722247 n=4 fan=id_02 phase=calibrating s=226.4391 light=green
+t=20000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=20746288 n=5 fan=id_02 phase=calibrating s=177.0923 light=green
+score t_us=21770905 n=6 fan=id_02 phase=calibrating s=182.3016 light=green
+score t_us=22794468 n=7 fan=id_02 phase=calibrating s=245.1755 light=green
+score t_us=23818136 n=8 fan=id_02 phase=calibrating s=254.9890 light=green
+score t_us=24842737 n=9 fan=id_02 phase=calibrating s=195.0368 light=green
+t=25000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=25866728 n=10 fan=id_02 phase=calibrating s=232.4361 light=green
+score t_us=26890368 n=11 fan=id_02 phase=calibrating s=198.1169 light=green
+score t_us=27914959 n=12 fan=id_02 phase=calibrating s=141.2622 light=green
+score t_us=28938529 n=13 fan=id_02 phase=calibrating s=193.9751 light=green
+score t_us=29962170 n=14 fan=id_02 phase=calibrating s=229.4612 light=green
+t=30000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=30986118 n=15 fan=id_02 phase=calibrating s=216.6689 light=green
+score t_us=32010748 n=16 fan=id_02 phase=calibrating s=198.4669 light=green
+score t_us=33034424 n=17 fan=id_02 phase=calibrating s=207.0792 light=green
+score t_us=34059120 n=18 fan=id_02 phase=calibrating s=209.2262 light=green
+t=35000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=35083063 n=19 fan=id_02 phase=calibrating s=202.7715 light=green
+score t_us=36106692 n=20 fan=id_02 phase=calibrating s=203.4624 light=green
+score t_us=37130351 n=21 fan=id_02 phase=calibrating s=204.8846 light=green
+score t_us=38155018 n=22 fan=id_02 phase=calibrating s=173.6862 light=green
+score t_us=39178632 n=23 fan=id_02 phase=calibrating s=177.5704 light=green
+t=40000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=40202566 n=24 fan=id_02 phase=calibrating s=165.7933 light=green
+score t_us=41226129 n=25 fan=id_02 phase=calibrating s=193.1010 light=green
+score t_us=42250765 n=26 fan=id_02 phase=calibrating s=219.8053 light=green
+score t_us=43274448 n=27 fan=id_02 phase=calibrating s=216.4988 light=green
+score t_us=44298118 n=28 fan=id_02 phase=calibrating s=280.0219 light=green
+t=45000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=45323078 n=29 fan=id_02 phase=calibrating s=261.1314 light=green
+score t_us=46346676 n=30 fan=id_02 phase=calibrating s=234.4539 light=green
+score t_us=47370293 n=31 fan=id_02 phase=calibrating s=245.5011 light=green
+score t_us=48394985 n=32 fan=id_02 phase=calibrating s=178.7180 light=green
+score t_us=49418579 n=33 fan=id_02 phase=calibrating s=163.7943 light=green
+t=50000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=50442611 n=34 fan=id_02 phase=calibrating s=119.6894 light=green
+score t_us=51466214 n=35 fan=id_02 phase=calibrating s=131.4444 light=green
+score t_us=52490770 n=36 fan=id_02 phase=calibrating s=233.0541 light=green
+score t_us=53514385 n=37 fan=id_02 phase=calibrating s=282.0533 light=green
+score t_us=54538959 n=38 fan=id_02 phase=calibrating s=237.0223 light=green
+t=55000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=55562964 n=39 fan=id_02 phase=calibrating s=194.5938 light=green
+score t_us=56586538 n=40 fan=id_02 phase=calibrating s=176.4067 light=green
+score t_us=57610111 n=41 fan=id_02 phase=calibrating s=136.8709 light=green
+score t_us=58634721 n=42 fan=id_02 phase=calibrating s=124.4452 light=green
+score t_us=59658342 n=43 fan=id_02 phase=calibrating s=164.4474 light=green
+t=60000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=60682331 n=44 fan=id_02 phase=calibrating s=150.8814 light=green
+score t_us=61706959 n=45 fan=id_02 phase=calibrating s=158.0901 light=green
+score t_us=62730524 n=46 fan=id_02 phase=calibrating s=191.4672 light=green
+score t_us=63754180 n=47 fan=id_02 phase=calibrating s=193.1326 light=green
+score t_us=64778820 n=48 fan=id_02 phase=calibrating s=185.9090 light=green
+t=65000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=65802802 n=49 fan=id_02 phase=calibrating s=194.4458 light=green
+score t_us=66826431 n=50 fan=id_02 phase=calibrating s=181.1696 light=green
+score t_us=67851060 n=51 fan=id_02 phase=calibrating s=195.8193 light=green
+score t_us=68874676 n=52 fan=id_02 phase=calibrating s=167.0802 light=green
+score t_us=69898267 n=53 fan=id_02 phase=calibrating s=165.1574 light=green
+t=70000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=70922266 n=54 fan=id_02 phase=calibrating s=204.2084 light=green
+score t_us=71946873 n=55 fan=id_02 phase=calibrating s=220.4724 light=green
+score t_us=72970539 n=56 fan=id_02 phase=calibrating s=194.2810 light=green
+score t_us=73994203 n=57 fan=id_02 phase=calibrating s=174.0412 light=green
+t=75000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=75019079 n=58 fan=id_02 phase=calibrating s=184.7615 light=green
+score t_us=76042745 n=59 fan=id_02 phase=calibrating s=228.5338 light=green
+score t_us=77066373 n=60 fan=id_02 phase=calibrating s=221.1956 light=green
+score t_us=78090992 n=61 fan=id_02 phase=calibrating s=194.2410 light=green
+score t_us=79114713 n=62 fan=id_02 phase=calibrating s=206.4064 light=green
+t=80000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=80138722 n=63 fan=id_02 phase=calibrating s=198.5537 light=green
+score t_us=81162326 n=64 fan=id_02 phase=calibrating s=182.2183 light=green
+score t_us=82186948 n=65 fan=id_02 phase=calibrating s=207.8349 light=green
+score t_us=83210576 n=66 fan=id_02 phase=calibrating s=245.6608 light=green
+score t_us=84234233 n=67 fan=id_02 phase=calibrating s=203.0767 light=green
+t=85001 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=85258214 n=68 fan=id_02 phase=calibrating s=163.3953 light=green
+score t_us=86282909 n=69 fan=id_02 phase=calibrating s=174.7807 light=green
+score t_us=87306574 n=70 fan=id_02 phase=calibrating s=201.0021 light=green
+score t_us=88330163 n=71 fan=id_02 phase=calibrating s=214.8978 light=green
+score t_us=89354802 n=72 fan=id_02 phase=calibrating s=240.1357 light=green
+t=90000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=90378780 n=73 fan=id_02 phase=calibrating s=206.8880 light=green
+score t_us=91402401 n=74 fan=id_02 phase=calibrating s=210.3531 light=green
+score t_us=92427002 n=75 fan=id_02 phase=calibrating s=212.5753 light=green
+score t_us=93450597 n=76 fan=id_02 phase=calibrating s=189.6424 light=green
+score t_us=94474189 n=77 fan=id_02 phase=calibrating s=168.1179 light=green
+t=95000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=95498206 n=78 fan=id_02 phase=calibrating s=187.4903 light=green
+score t_us=96522907 n=79 fan=id_02 phase=calibrating s=185.8049 light=green
+score t_us=97546645 n=80 fan=id_02 phase=calibrating s=209.6250 light=green
+score t_us=98570313 n=81 fan=id_02 phase=calibrating s=223.3224 light=green
+score t_us=99594970 n=82 fan=id_02 phase=calibrating s=213.6915 light=green
+t=100000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=100618993 n=83 fan=id_02 phase=calibrating s=213.3081 light=green
+score t_us=101642691 n=84 fan=id_02 phase=calibrating s=204.6114 light=green
+score t_us=102666283 n=85 fan=id_02 phase=calibrating s=177.7584 light=green
+score t_us=103690946 n=86 fan=id_02 phase=calibrating s=175.9029 light=green
+score t_us=104714584 n=87 fan=id_02 phase=calibrating s=173.4353 light=green
+t=105000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=105738616 n=88 fan=id_02 phase=calibrating s=173.5399 light=green
+score t_us=106762194 n=89 fan=id_02 phase=calibrating s=184.1593 light=green
+score t_us=107786834 n=90 fan=id_02 phase=calibrating s=187.6577 light=green
+score t_us=108810471 n=91 fan=id_02 phase=calibrating s=155.2381 light=green
+score t_us=109835074 n=92 fan=id_02 phase=calibrating s=189.2419 light=green
+t=110000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=110859049 n=93 fan=id_02 phase=calibrating s=178.3693 light=green
+score t_us=111882657 n=94 fan=id_02 phase=calibrating s=180.6862 light=green
+score t_us=112906255 n=95 fan=id_02 phase=calibrating s=204.9605 light=green
+score t_us=113930871 n=96 fan=id_02 phase=calibrating s=197.5833 light=green
+score t_us=114954504 n=97 fan=id_02 phase=calibrating s=176.1476 light=green
+t=115000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=115978457 n=98 fan=id_02 phase=calibrating s=224.0571 light=green
+score t_us=117002164 n=99 fan=id_02 phase=calibrating s=201.3639 light=green
+score t_us=118026794 n=100 fan=id_02 phase=calibrating s=190.6812 light=green
+score t_us=119050465 n=101 fan=id_02 phase=calibrating s=218.7733 light=green
+t=120000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=120074429 n=102 fan=id_02 phase=calibrating s=170.3733 light=green
+score t_us=121099097 n=103 fan=id_02 phase=calibrating s=160.9113 light=green
+score t_us=122122660 n=104 fan=id_02 phase=calibrating s=187.8969 light=green
+score t_us=123146280 n=105 fan=id_02 phase=calibrating s=205.2773 light=green
+score t_us=124170966 n=106 fan=id_02 phase=calibrating s=188.6324 light=green
+t=125000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=125194912 n=107 fan=id_02 phase=calibrating s=189.5835 light=green
+score t_us=126218490 n=108 fan=id_02 phase=calibrating s=187.6251 light=green
+score t_us=127243056 n=109 fan=id_02 phase=calibrating s=173.2709 light=green
+score t_us=128266825 n=110 fan=id_02 phase=calibrating s=175.8385 light=green
+score t_us=129290392 n=111 fan=id_02 phase=calibrating s=182.4749 light=green
+t=130000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=130314336 n=112 fan=id_02 phase=calibrating s=149.3445 light=green
+score t_us=131338972 n=113 fan=id_02 phase=calibrating s=176.0287 light=green
+score t_us=132362550 n=114 fan=id_02 phase=calibrating s=202.9047 light=green
+score t_us=133386166 n=115 fan=id_02 phase=calibrating s=204.9853 light=green
+score t_us=134410824 n=116 fan=id_02 phase=calibrating s=194.0595 light=green
+t=135000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=135434854 n=117 fan=id_02 phase=calibrating s=192.9503 light=green
+score t_us=136458459 n=118 fan=id_02 phase=calibrating s=157.5088 light=green
+score t_us=137483080 n=119 fan=id_02 phase=calibrating s=104.0939 light=green
+score t_us=138506711 n=120 fan=id_02 phase=calibrating s=178.6779 light=green
+score t_us=139530293 n=121 fan=id_02 phase=calibrating s=165.6686 light=green
+t=140000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=140554322 n=122 fan=id_02 phase=calibrating s=177.4098 light=green
+score t_us=141578996 n=123 fan=id_02 phase=calibrating s=176.7474 light=green
+score t_us=142602641 n=124 fan=id_02 phase=calibrating s=163.7250 light=green
+score t_us=143626324 n=125 fan=id_02 phase=calibrating s=171.7402 light=green
+score t_us=144650971 n=126 fan=id_02 phase=calibrating s=173.8248 light=green
+t=145000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=145674994 n=127 fan=id_02 phase=calibrating s=173.2426 light=green
+score t_us=146698639 n=128 fan=id_02 phase=calibrating s=151.8590 light=green
+score t_us=147722245 n=129 fan=id_02 phase=calibrating s=152.5572 light=green
+score t_us=148746786 n=130 fan=id_02 phase=calibrating s=175.0561 light=green
+score t_us=149770417 n=131 fan=id_02 phase=calibrating s=177.9672 light=green
+t=150000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=150794357 n=132 fan=id_02 phase=calibrating s=179.0878 light=green
+score t_us=151818975 n=133 fan=id_02 phase=calibrating s=179.1025 light=green
+score t_us=152842572 n=134 fan=id_02 phase=calibrating s=167.2749 light=green
+score t_us=153866147 n=135 fan=id_02 phase=calibrating s=169.0924 light=green
+score t_us=154890707 n=136 fan=id_02 phase=calibrating s=179.5380 light=green
+t=155000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=155914676 n=137 fan=id_02 phase=calibrating s=202.6861 light=green
+score t_us=156938349 n=138 fan=id_02 phase=calibrating s=193.4456 light=green
+score t_us=157962980 n=139 fan=id_02 phase=calibrating s=195.8084 light=green
+score t_us=158986555 n=140 fan=id_02 phase=calibrating s=178.5482 light=green
+t=160000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=160010384 n=141 fan=id_02 phase=calibrating s=197.0635 light=green
+score t_us=161034198 n=142 fan=id_02 phase=calibrating s=209.8328 light=green
+score t_us=162058842 n=143 fan=id_02 phase=calibrating s=208.0287 light=green
+score t_us=163082490 n=144 fan=id_02 phase=calibrating s=207.1371 light=green
+score t_us=164106148 n=145 fan=id_02 phase=calibrating s=168.5512 light=green
+t=165000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=165130121 n=146 fan=id_02 phase=calibrating s=217.6316 light=green
+score t_us=166154763 n=147 fan=id_02 phase=calibrating s=169.0798 light=green
+score t_us=167178311 n=148 fan=id_02 phase=calibrating s=192.4085 light=green
+score t_us=168202927 n=149 fan=id_02 phase=calibrating s=162.4693 light=green
+score t_us=169226527 n=150 fan=id_02 phase=calibrating s=147.2644 light=green
+t=170000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=170250527 n=151 fan=id_02 phase=calibrating s=159.0195 light=green
+score t_us=171274138 n=152 fan=id_02 phase=calibrating s=166.7649 light=green
+score t_us=172298724 n=153 fan=id_02 phase=calibrating s=198.0872 light=green
+score t_us=173322278 n=154 fan=id_02 phase=calibrating s=193.5178 light=green
+score t_us=174346942 n=155 fan=id_02 phase=calibrating s=157.9317 light=green
+t=175000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=175370912 n=156 fan=id_02 phase=calibrating s=140.6970 light=green
+score t_us=176394506 n=157 fan=id_02 phase=calibrating s=161.3110 light=green
+score t_us=177418184 n=158 fan=id_02 phase=calibrating s=147.4725 light=green
+score t_us=178442797 n=159 fan=id_02 phase=calibrating s=150.5783 light=green
+score t_us=179466564 n=160 fan=id_02 phase=calibrating s=151.7122 light=green
+t=180000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=180490534 n=161 fan=id_02 phase=calibrating s=156.0833 light=green
+score t_us=181514110 n=162 fan=id_02 phase=calibrating s=148.8396 light=green
+score t_us=182538821 n=163 fan=id_02 phase=calibrating s=133.6646 light=green
+score t_us=183562474 n=164 fan=id_02 phase=calibrating s=125.9903 light=green
+score t_us=184586173 n=165 fan=id_02 phase=calibrating s=165.8681 light=green
+t=185000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=185610232 n=166 fan=id_02 phase=calibrating s=167.9380 light=green
+score t_us=186634863 n=167 fan=id_02 phase=calibrating s=188.4413 light=green
+score t_us=187658470 n=168 fan=id_02 phase=calibrating s=180.8550 light=green
+score t_us=188682151 n=169 fan=id_02 phase=calibrating s=139.8945 light=green
+score t_us=189706793 n=170 fan=id_02 phase=calibrating s=135.7407 light=green
+t=190000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=190730803 n=171 fan=id_02 phase=calibrating s=135.4505 light=green
+score t_us=191754362 n=172 fan=id_02 phase=calibrating s=136.4928 light=green
+score t_us=192778993 n=173 fan=id_02 phase=calibrating s=148.6242 light=green
+score t_us=193802585 n=174 fan=id_02 phase=calibrating s=148.4176 light=green
+score t_us=194826216 n=175 fan=id_02 phase=calibrating s=185.0274 light=green
+t=195000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=195850220 n=176 fan=id_02 phase=calibrating s=161.8786 light=green
+score t_us=196874891 n=177 fan=id_02 phase=calibrating s=144.6807 light=green
+score t_us=197898567 n=178 fan=id_02 phase=calibrating s=138.8204 light=green
+score t_us=198922159 n=179 fan=id_02 phase=calibrating s=149.5938 light=green
+score t_us=199946849 n=180 fan=id_02 phase=calibrating s=154.8305 light=green
+t=200000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=200970855 n=181 fan=id_02 phase=calibrating s=136.5875 light=green
+score t_us=201994452 n=182 fan=id_02 phase=calibrating s=142.0682 light=green
+score t_us=203019105 n=183 fan=id_02 phase=calibrating s=156.2318 light=green
+score t_us=204042671 n=184 fan=id_02 phase=calibrating s=147.5695 light=green
+t=205000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=205066672 n=185 fan=id_02 phase=calibrating s=170.5920 light=green
+score t_us=206090291 n=186 fan=id_02 phase=calibrating s=143.4942 light=green
+score t_us=207114956 n=187 fan=id_02 phase=calibrating s=113.4794 light=green
+score t_us=208138540 n=188 fan=id_02 phase=calibrating s=136.8109 light=green
+score t_us=209162197 n=189 fan=id_02 phase=calibrating s=149.3773 light=green
+t=210000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=210186160 n=190 fan=id_02 phase=calibrating s=148.2625 light=green
+score t_us=211210805 n=191 fan=id_02 phase=calibrating s=127.5326 light=green
+score t_us=212234463 n=192 fan=id_02 phase=calibrating s=149.8939 light=green
+score t_us=213259087 n=193 fan=id_02 phase=calibrating s=148.1868 light=green
+score t_us=214282730 n=194 fan=id_02 phase=calibrating s=145.1473 light=green
+t=215000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=215306717 n=195 fan=id_02 phase=calibrating s=153.7744 light=green
+score t_us=216330223 n=196 fan=id_02 phase=calibrating s=161.1960 light=green
+score t_us=217354846 n=197 fan=id_02 phase=calibrating s=152.3947 light=green
+score t_us=218378418 n=198 fan=id_02 phase=calibrating s=156.8477 light=green
+score t_us=219403062 n=199 fan=id_02 phase=calibrating s=144.7972 light=green
+t=220000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=220427032 n=200 fan=id_02 phase=calibrating s=128.7625 light=green
+score t_us=221450636 n=201 fan=id_02 phase=calibrating s=148.2788 light=green
+score t_us=222474252 n=202 fan=id_02 phase=calibrating s=152.2728 light=green
+score t_us=223498924 n=203 fan=id_02 phase=calibrating s=147.4816 light=green
+score t_us=224522501 n=204 fan=id_02 phase=calibrating s=143.6491 light=green
+t=225000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=225546526 n=205 fan=id_02 phase=calibrating s=156.3476 light=green
+score t_us=226571107 n=206 fan=id_02 phase=calibrating s=218.5375 light=green
+score t_us=227594720 n=207 fan=id_02 phase=calibrating s=184.9405 light=green
+score t_us=228618314 n=208 fan=id_02 phase=calibrating s=139.0490 light=green
+score t_us=229642942 n=209 fan=id_02 phase=calibrating s=130.7561 light=green
+t=230000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=230666953 n=210 fan=id_02 phase=calibrating s=149.2274 light=green
+score t_us=231690676 n=211 fan=id_02 phase=calibrating s=154.2085 light=green
+score t_us=232714259 n=212 fan=id_02 phase=calibrating s=150.2271 light=green
+score t_us=233738837 n=213 fan=id_02 phase=calibrating s=153.1084 light=green
+score t_us=234762466 n=214 fan=id_02 phase=calibrating s=157.4583 light=green
+t=235000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=235786415 n=215 fan=id_02 phase=calibrating s=148.1465 light=green
+score t_us=236811028 n=216 fan=id_02 phase=calibrating s=159.1324 light=green
+score t_us=237834623 n=217 fan=id_02 phase=calibrating s=155.7720 light=green
+score t_us=238858271 n=218 fan=id_02 phase=calibrating s=161.5112 light=green
+score t_us=239882887 n=219 fan=id_02 phase=calibrating s=135.0562 light=green
+t=240000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=240906913 n=220 fan=id_02 phase=calibrating s=157.1728 light=green
+score t_us=241930516 n=221 fan=id_02 phase=calibrating s=153.7539 light=green
+score t_us=242954164 n=222 fan=id_02 phase=calibrating s=152.2512 light=green
+score t_us=243978764 n=223 fan=id_02 phase=calibrating s=127.3690 light=green
+t=245000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=245002626 n=224 fan=id_02 phase=calibrating s=119.3206 light=green
+score t_us=246026328 n=225 fan=id_02 phase=calibrating s=151.9527 light=green
+score t_us=247051007 n=226 fan=id_02 phase=calibrating s=161.3477 light=green
+score t_us=248074624 n=227 fan=id_02 phase=calibrating s=137.7997 light=green
+score t_us=249098165 n=228 fan=id_02 phase=calibrating s=140.6587 light=green
+t=250000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=250122198 n=229 fan=id_02 phase=calibrating s=162.7613 light=green
+score t_us=251146841 n=230 fan=id_02 phase=calibrating s=153.4963 light=green
+score t_us=252170435 n=231 fan=id_02 phase=calibrating s=144.7896 light=green
+score t_us=253195059 n=232 fan=id_02 phase=calibrating s=155.4353 light=green
+score t_us=254218706 n=233 fan=id_02 phase=calibrating s=172.7656 light=green
+t=255000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=255242748 n=234 fan=id_02 phase=calibrating s=170.9881 light=green
+score t_us=256266380 n=235 fan=id_02 phase=calibrating s=146.5845 light=green
+score t_us=257290990 n=236 fan=id_02 phase=calibrating s=145.6400 light=green
+score t_us=258314607 n=237 fan=id_02 phase=calibrating s=156.5856 light=green
+score t_us=259338233 n=238 fan=id_02 phase=calibrating s=158.6644 light=green
+t=260000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=260362223 n=239 fan=id_02 phase=calibrating s=133.1869 light=green
+score t_us=261386846 n=240 fan=id_02 phase=calibrating s=159.4823 light=green
+score t_us=262410461 n=241 fan=id_02 phase=calibrating s=153.6477 light=green
+score t_us=263435073 n=242 fan=id_02 phase=calibrating s=123.2803 light=green
+score t_us=264458720 n=243 fan=id_02 phase=calibrating s=136.2953 light=green
+t=265000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=265482679 n=244 fan=id_02 phase=calibrating s=177.5847 light=green
+score t_us=266506341 n=245 fan=id_02 phase=calibrating s=177.6448 light=green
+score t_us=267530943 n=246 fan=id_02 phase=calibrating s=146.0409 light=green
+score t_us=268554608 n=247 fan=id_02 phase=calibrating s=129.3860 light=green
+score t_us=269578248 n=248 fan=id_02 phase=calibrating s=126.4100 light=green
+t=270000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=270602195 n=249 fan=id_02 phase=calibrating s=125.4333 light=green
+score t_us=271626877 n=250 fan=id_02 phase=calibrating s=154.8582 light=green
+score t_us=272650515 n=251 fan=id_02 phase=calibrating s=146.8838 light=green
+score t_us=273674181 n=252 fan=id_02 phase=calibrating s=129.6267 light=green
+score t_us=274698867 n=253 fan=id_02 phase=calibrating s=114.0339 light=green
+t=275000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=275722829 n=254 fan=id_02 phase=calibrating s=125.8007 light=green
+score t_us=276746437 n=255 fan=id_02 phase=calibrating s=142.5441 light=green
+score t_us=277771062 n=256 fan=id_02 phase=calibrating s=158.0232 light=green
+score t_us=278794698 n=257 fan=id_02 phase=calibrating s=140.9186 light=green
+score t_us=279818322 n=258 fan=id_02 phase=calibrating s=122.1623 light=green
+t=280000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=280842337 n=259 fan=id_02 phase=calibrating s=142.5538 light=green
+score t_us=281866935 n=260 fan=id_02 phase=calibrating s=139.3263 light=green
+score t_us=282890486 n=261 fan=id_02 phase=calibrating s=139.0001 light=green
+score t_us=283915070 n=262 fan=id_02 phase=calibrating s=139.8644 light=green
+score t_us=284938788 n=263 fan=id_02 phase=calibrating s=140.9909 light=green
+t=285000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=285962745 n=264 fan=id_02 phase=calibrating s=148.2200 light=green
+score t_us=286986308 n=265 fan=id_02 phase=calibrating s=137.7918 light=green
+score t_us=288010942 n=266 fan=id_02 phase=calibrating s=151.0225 light=green
+score t_us=289034499 n=267 fan=id_02 phase=calibrating s=161.8448 light=green
+t=290000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=290058423 n=268 fan=id_02 phase=calibrating s=161.1963 light=green
+score t_us=291082111 n=269 fan=id_02 phase=calibrating s=138.8814 light=green
+score t_us=292106768 n=270 fan=id_02 phase=calibrating s=123.1976 light=green
+score t_us=293130322 n=271 fan=id_02 phase=calibrating s=131.8553 light=green
+score t_us=294154909 n=272 fan=id_02 phase=calibrating s=137.4406 light=green
+t=295000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=295178852 n=273 fan=id_02 phase=calibrating s=148.9447 light=green
+score t_us=296202459 n=274 fan=id_02 phase=calibrating s=135.6088 light=green
+score t_us=297226152 n=275 fan=id_02 phase=calibrating s=119.0607 light=green
+score t_us=298250775 n=276 fan=id_02 phase=calibrating s=164.4906 light=green
+score t_us=299274341 n=277 fan=id_02 phase=calibrating s=146.9963 light=green
+t=300000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=300298320 n=278 fan=id_02 phase=calibrating s=100.6879 light=green
+score t_us=301322999 n=279 fan=id_02 phase=calibrating s=140.7948 light=green
+score t_us=302346561 n=280 fan=id_02 phase=calibrating s=166.3131 light=green
+score t_us=303370194 n=281 fan=id_02 phase=calibrating s=136.4357 light=green
+score t_us=304394875 n=282 fan=id_02 phase=calibrating s=151.1685 light=green
+t=305000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=305418901 n=283 fan=id_02 phase=calibrating s=136.5835 light=green
+score t_us=306442491 n=284 fan=id_02 phase=calibrating s=131.5555 light=green
+score t_us=307467092 n=285 fan=id_02 phase=calibrating s=142.9996 light=green
+score t_us=308490743 n=286 fan=id_02 phase=calibrating s=164.1902 light=green
+score t_us=309514347 n=287 fan=id_02 phase=calibrating s=129.7980 light=green
+t=310000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=310538323 n=288 fan=id_02 phase=calibrating s=130.6075 light=green
+score t_us=311562936 n=289 fan=id_02 phase=calibrating s=129.7306 light=green
+score t_us=312586625 n=290 fan=id_02 phase=calibrating s=142.1118 light=green
+score t_us=313610238 n=291 fan=id_02 phase=calibrating s=127.0319 light=green
+score t_us=314634864 n=292 fan=id_02 phase=calibrating s=130.0270 light=green
+t=315000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=315658890 n=293 fan=id_02 phase=calibrating s=132.2366 light=green
+score t_us=316682469 n=294 fan=id_02 phase=calibrating s=136.4965 light=green
+score t_us=317707088 n=295 fan=id_02 phase=calibrating s=142.7681 light=green
+score t_us=318730695 n=296 fan=id_02 phase=calibrating s=132.2201 light=green
+score t_us=319754376 n=297 fan=id_02 phase=calibrating s=148.4418 light=green
+t=320000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=320778266 n=298 fan=id_02 phase=calibrating s=130.1822 light=green
+score t_us=321802893 n=299 fan=id_02 phase=calibrating s=111.2603 light=green
+score t_us=322826500 n=300 fan=id_02 phase=calibrating s=130.6811 light=green
+score t_us=323850135 n=301 fan=id_02 phase=calibrating s=156.1519 light=green
+score t_us=324874781 n=302 fan=id_02 phase=calibrating s=140.5162 light=green
+t=325000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=325898738 n=303 fan=id_02 phase=calibrating s=133.0793 light=green
+score t_us=326922267 n=304 fan=id_02 phase=calibrating s=148.7450 light=green
+score t_us=327946919 n=305 fan=id_02 phase=calibrating s=154.1398 light=green
+score t_us=328970638 n=306 fan=id_02 phase=calibrating s=151.5634 light=green
+score t_us=329994243 n=307 fan=id_02 phase=calibrating s=148.0717 light=green
+t=330004 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=331018995 n=308 fan=id_02 phase=calibrating s=132.7534 light=green
+score t_us=332042595 n=309 fan=id_02 phase=calibrating s=128.7506 light=green
+score t_us=333066172 n=310 fan=id_02 phase=calibrating s=134.2074 light=green
+score t_us=334090821 n=311 fan=id_02 phase=calibrating s=125.9179 light=green
+t=335000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=335114881 n=312 fan=id_02 phase=calibrating s=117.4172 light=green
+score t_us=336138467 n=313 fan=id_02 phase=calibrating s=144.6960 light=green
+score t_us=337163089 n=314 fan=id_02 phase=calibrating s=155.5186 light=green
+score t_us=338186691 n=315 fan=id_02 phase=calibrating s=185.5884 light=green
+score t_us=339210350 n=316 fan=id_02 phase=calibrating s=196.8815 light=green
+t=340000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=340234352 n=317 fan=id_02 phase=calibrating s=149.7920 light=green
+score t_us=341258975 n=318 fan=id_02 phase=calibrating s=138.9725 light=green
+score t_us=342282584 n=319 fan=id_02 phase=calibrating s=156.4935 light=green
+score t_us=343306203 n=320 fan=id_02 phase=calibrating s=200.7747 light=green
+score t_us=344330847 n=321 fan=id_02 phase=calibrating s=181.1390 light=green
+t=345000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=345354815 n=322 fan=id_02 phase=calibrating s=144.5938 light=green
+score t_us=346378352 n=323 fan=id_02 phase=calibrating s=160.0752 light=green
+score t_us=347402987 n=324 fan=id_02 phase=calibrating s=179.5434 light=green
+score t_us=348426653 n=325 fan=id_02 phase=calibrating s=130.9797 light=green
+score t_us=349450191 n=326 fan=id_02 phase=calibrating s=152.3243 light=green
+t=350000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=350474228 n=327 fan=id_02 phase=calibrating s=161.1243 light=green
+score t_us=351498868 n=328 fan=id_02 phase=calibrating s=143.6406 light=green
+score t_us=352522455 n=329 fan=id_02 phase=calibrating s=109.0359 light=green
+score t_us=353547102 n=330 fan=id_02 phase=calibrating s=122.4751 light=green
+score t_us=354570757 n=331 fan=id_02 phase=calibrating s=156.0309 light=green
+t=355000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=355594769 n=332 fan=id_02 phase=calibrating s=129.5748 light=green
+score t_us=356618374 n=333 fan=id_02 phase=calibrating s=130.8706 light=green
+score t_us=357643049 n=334 fan=id_02 phase=calibrating s=135.5369 light=green
+score t_us=358666661 n=335 fan=id_02 phase=calibrating s=137.6253 light=green
+score t_us=359690273 n=336 fan=id_02 phase=calibrating s=164.0466 light=green
+t=360000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=360714249 n=337 fan=id_02 phase=calibrating s=167.6317 light=green
+score t_us=361738913 n=338 fan=id_02 phase=calibrating s=128.3906 light=green
+score t_us=362762467 n=339 fan=id_02 phase=calibrating s=144.6926 light=green
+score t_us=363787051 n=340 fan=id_02 phase=calibrating s=162.3622 light=green
+score t_us=364810685 n=341 fan=id_02 phase=calibrating s=176.7449 light=green
+t=365000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=365834681 n=342 fan=id_02 phase=calibrating s=167.2430 light=green
+score t_us=366858301 n=343 fan=id_02 phase=calibrating s=191.5666 light=green
+score t_us=367882938 n=344 fan=id_02 phase=calibrating s=229.7741 light=green
+score t_us=368906628 n=345 fan=id_02 phase=calibrating s=205.7117 light=green
+score t_us=369930221 n=346 fan=id_02 phase=calibrating s=151.8850 light=green
+t=370000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=370954160 n=347 fan=id_02 phase=calibrating s=177.1628 light=green
+score t_us=371978828 n=348 fan=id_02 phase=calibrating s=203.1148 light=green
+score t_us=373002400 n=349 fan=id_02 phase=calibrating s=191.1540 light=green
+score t_us=374026987 n=350 fan=id_02 phase=calibrating s=171.4271 light=green
+t=375000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=375050934 n=351 fan=id_02 phase=calibrating s=156.6813 light=green
+score t_us=376074530 n=352 fan=id_02 phase=calibrating s=159.7068 light=green
+score t_us=377098149 n=353 fan=id_02 phase=calibrating s=180.9233 light=green
+score t_us=378122737 n=354 fan=id_02 phase=calibrating s=149.0491 light=green
+score t_us=379146412 n=355 fan=id_02 phase=calibrating s=179.9489 light=green
+t=380000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=380170428 n=356 fan=id_02 phase=calibrating s=157.8935 light=green
+score t_us=381195015 n=357 fan=id_02 phase=calibrating s=125.7116 light=green
+score t_us=382218646 n=358 fan=id_02 phase=calibrating s=128.4895 light=green
+score t_us=383242362 n=359 fan=id_02 phase=calibrating s=148.9427 light=green
+score t_us=384266988 n=360 fan=id_02 phase=calibrating s=151.6201 light=green
+t=385000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=385291010 n=361 fan=id_02 phase=calibrating s=130.9402 light=green
+score t_us=386314639 n=362 fan=id_02 phase=calibrating s=185.1330 light=green
+score t_us=387338227 n=363 fan=id_02 phase=calibrating s=231.8917 light=green
+score t_us=388362883 n=364 fan=id_02 phase=calibrating s=193.2326 light=green
+score t_us=389386518 n=365 fan=id_02 phase=calibrating s=180.5996 light=green
+t=390000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=390410550 n=366 fan=id_02 phase=calibrating s=181.9922 light=green
+score t_us=391434136 n=367 fan=id_02 phase=calibrating s=159.5169 light=green
+score t_us=392458784 n=368 fan=id_02 phase=calibrating s=135.0992 light=green
+score t_us=393482383 n=369 fan=id_02 phase=calibrating s=150.8287 light=green
+score t_us=394507058 n=370 fan=id_02 phase=calibrating s=170.0815 light=green
+t=395000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=395531018 n=371 fan=id_02 phase=calibrating s=163.1329 light=green
+score t_us=396554621 n=372 fan=id_02 phase=calibrating s=182.6097 light=green
+score t_us=397578394 n=373 fan=id_02 phase=calibrating s=205.2344 light=green
+score t_us=398602993 n=374 fan=id_02 phase=calibrating s=181.0028 light=green
+score t_us=399626609 n=375 fan=id_02 phase=calibrating s=150.4855 light=green
+t=400000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=400650573 n=376 fan=id_02 phase=calibrating s=155.4627 light=green
+score t_us=401674175 n=377 fan=id_02 phase=calibrating s=182.0235 light=green
+score t_us=402698850 n=378 fan=id_02 phase=calibrating s=190.5903 light=green
+score t_us=403722403 n=379 fan=id_02 phase=calibrating s=172.5650 light=green
+score t_us=404747123 n=380 fan=id_02 phase=calibrating s=138.8997 light=green
+t=405000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=405771065 n=381 fan=id_02 phase=calibrating s=124.3742 light=green
+score t_us=406794719 n=382 fan=id_02 phase=calibrating s=125.6291 light=green
+score t_us=407818365 n=383 fan=id_02 phase=calibrating s=147.8616 light=green
+score t_us=408843013 n=384 fan=id_02 phase=calibrating s=160.7160 light=green
+score t_us=409866611 n=385 fan=id_02 phase=calibrating s=181.1121 light=green
+t=410000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=410890624 n=386 fan=id_02 phase=calibrating s=157.2316 light=green
+score t_us=411914271 n=387 fan=id_02 phase=calibrating s=142.5245 light=green
+score t_us=412938871 n=388 fan=id_02 phase=calibrating s=159.7830 light=green
+score t_us=413962480 n=389 fan=id_02 phase=calibrating s=164.4744 light=green
+score t_us=414986119 n=390 fan=id_02 phase=calibrating s=149.1153 light=green
+t=415000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=416010941 n=391 fan=id_02 phase=calibrating s=155.5214 light=green
+score t_us=417034525 n=392 fan=id_02 phase=calibrating s=153.3508 light=green
+score t_us=418058168 n=393 fan=id_02 phase=calibrating s=161.2657 light=green
+score t_us=419082835 n=394 fan=id_02 phase=calibrating s=161.7803 light=green
+t=420000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=420106810 n=395 fan=id_02 phase=calibrating s=153.2242 light=green
+score t_us=421130454 n=396 fan=id_02 phase=calibrating s=177.7474 light=green
+score t_us=422155080 n=397 fan=id_02 phase=calibrating s=175.6761 light=green
+score t_us=423178685 n=398 fan=id_02 phase=calibrating s=120.5323 light=green
+score t_us=424202298 n=399 fan=id_02 phase=calibrating s=115.4100 light=green
+t=425000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=425226295 n=400 fan=id_02 phase=calibrating s=146.0306 light=green
+score t_us=426250911 n=401 fan=id_02 phase=calibrating s=140.5549 light=green
+score t_us=427274476 n=402 fan=id_02 phase=calibrating s=160.3708 light=green
+score t_us=428298115 n=403 fan=id_02 phase=calibrating s=174.4579 light=green
+score t_us=429322735 n=404 fan=id_02 phase=calibrating s=152.8414 light=green
+t=430000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=430346710 n=405 fan=id_02 phase=calibrating s=157.7616 light=green
+score t_us=431370284 n=406 fan=id_02 phase=calibrating s=130.7274 light=green
+score t_us=432394898 n=407 fan=id_02 phase=calibrating s=135.5832 light=green
+score t_us=433418534 n=408 fan=id_02 phase=calibrating s=153.9651 light=green
+score t_us=434442235 n=409 fan=id_02 phase=calibrating s=153.9036 light=green
+t=435000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=435466185 n=410 fan=id_02 phase=calibrating s=164.7730 light=green
+score t_us=436490798 n=411 fan=id_02 phase=calibrating s=166.5962 light=green
+score t_us=437514423 n=412 fan=id_02 phase=calibrating s=169.8989 light=green
+score t_us=438539067 n=413 fan=id_02 phase=calibrating s=140.7905 light=green
+score t_us=439562638 n=414 fan=id_02 phase=calibrating s=140.3130 light=green
+t=440000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=440586635 n=415 fan=id_02 phase=calibrating s=148.4314 light=green
+score t_us=441610258 n=416 fan=id_02 phase=calibrating s=141.3866 light=green
+score t_us=442634872 n=417 fan=id_02 phase=calibrating s=148.2020 light=green
+score t_us=443658446 n=418 fan=id_02 phase=calibrating s=155.4942 light=green
+score t_us=444683039 n=419 fan=id_02 phase=calibrating s=126.7243 light=green
+t=445000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=445706976 n=420 fan=id_02 phase=calibrating s=126.6169 light=green
+score t_us=446730575 n=421 fan=id_02 phase=calibrating s=156.9834 light=green
+score t_us=447754221 n=422 fan=id_02 phase=calibrating s=147.5560 light=green
+score t_us=448778884 n=423 fan=id_02 phase=calibrating s=117.3687 light=green
+score t_us=449802467 n=424 fan=id_02 phase=calibrating s=125.4796 light=green
+t=450000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=450826440 n=425 fan=id_02 phase=calibrating s=152.9808 light=green
+score t_us=451851032 n=426 fan=id_02 phase=calibrating s=156.0953 light=green
+score t_us=452874638 n=427 fan=id_02 phase=calibrating s=142.6918 light=green
+score t_us=453898226 n=428 fan=id_02 phase=calibrating s=157.7188 light=green
+score t_us=454922826 n=429 fan=id_02 phase=calibrating s=170.5994 light=green
+t=455000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=455946815 n=430 fan=id_02 phase=calibrating s=145.5269 light=green
+score t_us=456970414 n=431 fan=id_02 phase=calibrating s=159.6105 light=green
+score t_us=457995074 n=432 fan=id_02 phase=calibrating s=155.4170 light=green
+score t_us=459018687 n=433 fan=id_02 phase=calibrating s=137.9907 light=green
+t=460000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=460042683 n=434 fan=id_02 phase=calibrating s=116.1675 light=green
+score t_us=461066347 n=435 fan=id_02 phase=calibrating s=135.8810 light=green
+score t_us=462091034 n=436 fan=id_02 phase=calibrating s=151.4972 light=green
+score t_us=463114753 n=437 fan=id_02 phase=calibrating s=153.1127 light=green
+score t_us=464138369 n=438 fan=id_02 phase=calibrating s=157.8339 light=green
+t=465000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=465162434 n=439 fan=id_02 phase=calibrating s=172.7838 light=green
+score t_us=466187043 n=440 fan=id_02 phase=calibrating s=230.2797 light=green
+score t_us=467210572 n=441 fan=id_02 phase=calibrating s=184.5825 light=green
+score t_us=468234170 n=442 fan=id_02 phase=calibrating s=155.3233 light=green
+score t_us=469258790 n=443 fan=id_02 phase=calibrating s=139.1011 light=green
+t=470000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=470282866 n=444 fan=id_02 phase=calibrating s=147.4084 light=green
+score t_us=471306474 n=445 fan=id_02 phase=calibrating s=169.1576 light=green
+score t_us=472331080 n=446 fan=id_02 phase=calibrating s=166.0216 light=green
+score t_us=473354707 n=447 fan=id_02 phase=calibrating s=192.1562 light=green
+score t_us=474378357 n=448 fan=id_02 phase=calibrating s=173.3762 light=green
+t=475000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=475402330 n=449 fan=id_02 phase=calibrating s=186.4480 light=green
+score t_us=476426977 n=450 fan=id_02 phase=calibrating s=173.6286 light=green
+score t_us=477450581 n=451 fan=id_02 phase=calibrating s=142.8391 light=green
+score t_us=478474232 n=452 fan=id_02 phase=calibrating s=133.5670 light=green
+score t_us=479498926 n=453 fan=id_02 phase=calibrating s=148.9494 light=green
+t=480000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=480522910 n=454 fan=id_02 phase=calibrating s=149.4127 light=green
+score t_us=481546578 n=455 fan=id_02 phase=calibrating s=146.5422 light=green
+score t_us=482570174 n=456 fan=id_02 phase=calibrating s=156.5345 light=green
+score t_us=483594846 n=457 fan=id_02 phase=calibrating s=181.8249 light=green
+score t_us=484618469 n=458 fan=id_02 phase=calibrating s=165.2945 light=green
+t=485000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=485642404 n=459 fan=id_02 phase=calibrating s=139.1651 light=green
+score t_us=486667028 n=460 fan=id_02 phase=calibrating s=124.6258 light=green
+score t_us=487690706 n=461 fan=id_02 phase=calibrating s=125.4951 light=green
+score t_us=488714378 n=462 fan=id_02 phase=calibrating s=169.7850 light=green
+score t_us=489738989 n=463 fan=id_02 phase=calibrating s=161.9136 light=green
+t=490000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=490763060 n=464 fan=id_02 phase=calibrating s=183.0217 light=green
+score t_us=491786668 n=465 fan=id_02 phase=calibrating s=156.4852 light=green
+score t_us=492810307 n=466 fan=id_02 phase=calibrating s=170.6735 light=green
+score t_us=493834901 n=467 fan=id_02 phase=calibrating s=189.4097 light=green
+score t_us=494858533 n=468 fan=id_02 phase=calibrating s=166.9711 light=green
+t=495000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=495882512 n=469 fan=id_02 phase=calibrating s=184.3517 light=green
+score t_us=496906129 n=470 fan=id_02 phase=calibrating s=193.6201 light=green
+score t_us=497930796 n=471 fan=id_02 phase=calibrating s=151.1471 light=green
+score t_us=498954325 n=472 fan=id_02 phase=calibrating s=127.2310 light=green
+score t_us=499978920 n=473 fan=id_02 phase=calibrating s=162.0889 light=green
+t=500000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=501002742 n=474 fan=id_02 phase=calibrating s=131.8636 light=green
+score t_us=502026377 n=475 fan=id_02 phase=calibrating s=101.7273 light=green
+score t_us=503051010 n=476 fan=id_02 phase=calibrating s=138.3323 light=green
+score t_us=504074635 n=477 fan=id_02 phase=calibrating s=129.9269 light=green
+t=505000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=505098546 n=478 fan=id_02 phase=calibrating s=120.6951 light=green
+score t_us=506122143 n=479 fan=id_02 phase=calibrating s=126.5413 light=green
+score t_us=507146797 n=480 fan=id_02 phase=calibrating s=148.0073 light=green
+score t_us=508170386 n=481 fan=id_02 phase=calibrating s=169.0151 light=green
+score t_us=509195003 n=482 fan=id_02 phase=calibrating s=179.3345 light=green
+t=510000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=510218992 n=483 fan=id_02 phase=calibrating s=158.7815 light=green
+score t_us=511242591 n=484 fan=id_02 phase=calibrating s=157.7120 light=green
+score t_us=512266183 n=485 fan=id_02 phase=calibrating s=138.7560 light=green
+score t_us=513290710 n=486 fan=id_02 phase=calibrating s=165.0975 light=green
+score t_us=514314372 n=487 fan=id_02 phase=calibrating s=150.3657 light=green
+t=515000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=515338358 n=488 fan=id_02 phase=calibrating s=153.6464 light=green
+score t_us=516362960 n=489 fan=id_02 phase=calibrating s=145.8162 light=green
+score t_us=517386590 n=490 fan=id_02 phase=calibrating s=132.2022 light=green
+score t_us=518410223 n=491 fan=id_02 phase=calibrating s=144.5147 light=green
+score t_us=519434826 n=492 fan=id_02 phase=calibrating s=128.3758 light=green
+t=520000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=520458789 n=493 fan=id_02 phase=calibrating s=120.2072 light=green
+score t_us=521482404 n=494 fan=id_02 phase=calibrating s=123.7780 light=green
+score t_us=522506988 n=495 fan=id_02 phase=calibrating s=140.1193 light=green
+score t_us=523530595 n=496 fan=id_02 phase=calibrating s=126.2377 light=green
+score t_us=524554199 n=497 fan=id_02 phase=calibrating s=144.6473 light=green
+t=525000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=525578168 n=498 fan=id_02 phase=calibrating s=150.2682 light=green
+score t_us=526602760 n=499 fan=id_02 phase=calibrating s=132.0475 light=green
+score t_us=527626387 n=500 fan=id_02 phase=calibrating s=135.8886 light=green
+score t_us=528651038 n=501 fan=id_02 phase=calibrating s=132.8914 light=green
+score t_us=529674733 n=502 fan=id_02 phase=calibrating s=147.8686 light=green
+t=530000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=530698858 n=503 fan=id_02 phase=calibrating s=145.3451 light=green
+score t_us=531722534 n=504 fan=id_02 phase=calibrating s=141.9315 light=green
+score t_us=532746140 n=505 fan=id_02 phase=calibrating s=153.2452 light=green
+score t_us=533770748 n=506 fan=id_02 phase=calibrating s=144.0571 light=green
+score t_us=534794427 n=507 fan=id_02 phase=calibrating s=136.9040 light=green
+t=535000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=535818495 n=508 fan=id_02 phase=calibrating s=160.9366 light=green
+score t_us=536843105 n=509 fan=id_02 phase=calibrating s=160.5628 light=green
+score t_us=537866711 n=510 fan=id_02 phase=calibrating s=153.0333 light=green
+score t_us=538890336 n=511 fan=id_02 phase=calibrating s=135.4031 light=green
+score t_us=539914923 n=512 fan=id_02 phase=calibrating s=149.8419 light=green
+t=540000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=540938853 n=513 fan=id_02 phase=calibrating s=165.3328 light=green
+score t_us=541962544 n=514 fan=id_02 phase=calibrating s=141.7363 light=green
+score t_us=542986212 n=515 fan=id_02 phase=calibrating s=113.1855 light=green
+score t_us=544010793 n=516 fan=id_02 phase=calibrating s=148.3253 light=green
+t=545000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=545034846 n=517 fan=id_02 phase=calibrating s=185.3742 light=green
+score t_us=546058523 n=518 fan=id_02 phase=calibrating s=177.2875 light=green
+score t_us=547082130 n=519 fan=id_02 phase=calibrating s=142.4383 light=green
+score t_us=548106858 n=520 fan=id_02 phase=calibrating s=142.2558 light=green
+score t_us=549130510 n=521 fan=id_02 phase=calibrating s=136.5479 light=green
+t=550000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=550154528 n=522 fan=id_02 phase=calibrating s=149.3543 light=green
+score t_us=551178167 n=523 fan=id_02 phase=calibrating s=157.9839 light=green
+score t_us=552202793 n=524 fan=id_02 phase=calibrating s=138.3147 light=green
+score t_us=553226387 n=525 fan=id_02 phase=calibrating s=140.4568 light=green
+score t_us=554251023 n=526 fan=id_02 phase=calibrating s=125.6420 light=green
+t=555000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=555275005 n=527 fan=id_02 phase=calibrating s=150.3658 light=green
+score t_us=556298555 n=528 fan=id_02 phase=calibrating s=149.0381 light=green
+score t_us=557322161 n=529 fan=id_02 phase=calibrating s=116.9018 light=green
+score t_us=558346739 n=530 fan=id_02 phase=calibrating s=136.2616 light=green
+score t_us=559370383 n=531 fan=id_02 phase=calibrating s=137.4292 light=green
+t=560000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=560394365 n=532 fan=id_02 phase=calibrating s=134.3755 light=green
+score t_us=561419003 n=533 fan=id_02 phase=calibrating s=139.5962 light=green
+score t_us=562442613 n=534 fan=id_02 phase=calibrating s=147.5224 light=green
+score t_us=563466206 n=535 fan=id_02 phase=calibrating s=137.7729 light=green
+score t_us=564490801 n=536 fan=id_02 phase=calibrating s=157.8300 light=green
+t=565000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=565514744 n=537 fan=id_02 phase=calibrating s=140.8946 light=green
+score t_us=566538357 n=538 fan=id_02 phase=calibrating s=149.3777 light=green
+score t_us=567563014 n=539 fan=id_02 phase=calibrating s=147.2428 light=green
+score t_us=568586613 n=540 fan=id_02 phase=calibrating s=159.3485 light=green
+score t_us=569610280 n=541 fan=id_02 phase=calibrating s=155.1186 light=green
+t=570000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=570634256 n=542 fan=id_02 phase=calibrating s=136.5015 light=green
+score t_us=571658880 n=543 fan=id_02 phase=calibrating s=150.2861 light=green
+score t_us=572682482 n=544 fan=id_02 phase=calibrating s=153.0371 light=green
+score t_us=573706162 n=545 fan=id_02 phase=calibrating s=208.3745 light=green
+score t_us=574730785 n=546 fan=id_02 phase=calibrating s=174.7360 light=green
+t=575000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=575754793 n=547 fan=id_02 phase=calibrating s=142.1947 light=green
+score t_us=576778419 n=548 fan=id_02 phase=calibrating s=133.3917 light=green
+score t_us=577803043 n=549 fan=id_02 phase=calibrating s=161.0224 light=green
+score t_us=578826626 n=550 fan=id_02 phase=calibrating s=158.8811 light=green
+score t_us=579850252 n=551 fan=id_02 phase=calibrating s=159.9348 light=green
+t=580000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=580874270 n=552 fan=id_02 phase=calibrating s=152.6013 light=green
+score t_us=581898825 n=553 fan=id_02 phase=calibrating s=164.6691 light=green
+score t_us=582922432 n=554 fan=id_02 phase=calibrating s=167.2056 light=green
+score t_us=583947100 n=555 fan=id_02 phase=calibrating s=151.3673 light=green
+score t_us=584970746 n=556 fan=id_02 phase=calibrating s=148.0609 light=green
+t=585000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=585994419 n=557 fan=id_02 phase=calibrating s=138.7525 light=green
+score t_us=587019001 n=558 fan=id_02 phase=calibrating s=164.8290 light=green
+score t_us=588042615 n=559 fan=id_02 phase=calibrating s=170.2618 light=green
+score t_us=589066244 n=560 fan=id_02 phase=calibrating s=162.9414 light=green
+t=590000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=590090254 n=561 fan=id_02 phase=calibrating s=166.7955 light=green
+score t_us=591114921 n=562 fan=id_02 phase=calibrating s=139.7416 light=green
+score t_us=592138514 n=563 fan=id_02 phase=calibrating s=166.3249 light=green
+score t_us=593162136 n=564 fan=id_02 phase=calibrating s=182.3950 light=green
+score t_us=594186840 n=565 fan=id_02 phase=calibrating s=141.2341 light=green
+t=595000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=595210777 n=566 fan=id_02 phase=calibrating s=117.5142 light=green
+score t_us=596234392 n=567 fan=id_02 phase=calibrating s=134.8405 light=green
+score t_us=597259031 n=568 fan=id_02 phase=calibrating s=144.1382 light=green
+score t_us=598282623 n=569 fan=id_02 phase=calibrating s=134.1108 light=green
+score t_us=599306241 n=570 fan=id_02 phase=calibrating s=140.1501 light=green
+t=600000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=600330287 n=571 fan=id_02 phase=calibrating s=139.8877 light=green
+score t_us=601354904 n=572 fan=id_02 phase=calibrating s=130.6803 light=green
+score t_us=602378502 n=573 fan=id_02 phase=calibrating s=143.4531 light=green
+score t_us=603403123 n=574 fan=id_02 phase=calibrating s=136.2841 light=green
+score t_us=604426743 n=575 fan=id_02 phase=calibrating s=147.5301 light=green
+t=605000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=605450723 n=576 fan=id_02 phase=calibrating s=154.7629 light=green
+score t_us=606474310 n=577 fan=id_02 phase=calibrating s=160.2356 light=green
+score t_us=607498909 n=578 fan=id_02 phase=calibrating s=159.3783 light=green
+score t_us=608522565 n=579 fan=id_02 phase=calibrating s=142.5036 light=green
+score t_us=609546161 n=580 fan=id_02 phase=calibrating s=153.3342 light=green
+t=610000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=calibrating
+score t_us=610570166 n=581 fan=id_02 phase=calibrating s=122.2926 light=green
+score t_us=611594915 n=582 fan=id_02 phase=calibrating s=126.5125 light=green
+score t_us=612618623 n=583 fan=id_02 phase=calibrating s=135.2222 light=green
+score t_us=613642287 n=584 fan=id_02 phase=watching s=133.5917 light=green
+limits t_us=613642287 fan=id_02 n=584 center=161.6170 sigma=29.9320 warn=221.4810 control=251.4130
+# pc_s=604.2 limits fitted; running watched for 60 s
+score t_us=614666119 n=585 fan=id_02 phase=watching s=140.2542 light=green
+t=615000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=615690135 n=586 fan=id_02 phase=watching s=166.4174 light=green
+score t_us=616714790 n=587 fan=id_02 phase=watching s=159.5479 light=green
+score t_us=617738460 n=588 fan=id_02 phase=watching s=156.6594 light=green
+score t_us=618763108 n=589 fan=id_02 phase=watching s=163.0934 light=green
+score t_us=619786694 n=590 fan=id_02 phase=watching s=159.8067 light=green
+t=620000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=620810641 n=591 fan=id_02 phase=watching s=192.2247 light=green
+score t_us=621834195 n=592 fan=id_02 phase=watching s=220.9751 light=green
+score t_us=622858805 n=593 fan=id_02 phase=watching s=163.8823 light=green
+score t_us=623882394 n=594 fan=id_02 phase=watching s=135.7067 light=green
+score t_us=624907006 n=595 fan=id_02 phase=watching s=157.4830 light=green
+t=625000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=625930946 n=596 fan=id_02 phase=watching s=154.8404 light=green
+score t_us=626954513 n=597 fan=id_02 phase=watching s=147.6128 light=green
+score t_us=627979095 n=598 fan=id_02 phase=watching s=166.2131 light=green
+score t_us=629002717 n=599 fan=id_02 phase=watching s=148.1366 light=green
+t=630000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=630026587 n=600 fan=id_02 phase=watching s=156.9221 light=green
+score t_us=631050277 n=601 fan=id_02 phase=watching s=222.1814 light=green
+score t_us=632074840 n=602 fan=id_02 phase=watching s=188.3150 light=green
+score t_us=633098381 n=603 fan=id_02 phase=watching s=169.1252 light=green
+score t_us=634123040 n=604 fan=id_02 phase=watching s=150.3950 light=green
+t=635000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=635147095 n=605 fan=id_02 phase=watching s=157.2074 light=green
+score t_us=636170692 n=606 fan=id_02 phase=watching s=154.1954 light=green
+score t_us=637194309 n=607 fan=id_02 phase=watching s=147.9399 light=green
+score t_us=638218848 n=608 fan=id_02 phase=watching s=141.9443 light=green
+score t_us=639242476 n=609 fan=id_02 phase=watching s=145.7949 light=green
+t=640001 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=640266458 n=610 fan=id_02 phase=watching s=137.8365 light=green
+score t_us=641291059 n=611 fan=id_02 phase=watching s=134.2060 light=green
+score t_us=642314692 n=612 fan=id_02 phase=watching s=143.4444 light=green
+score t_us=643338293 n=613 fan=id_02 phase=watching s=152.4223 light=green
+score t_us=644362953 n=614 fan=id_02 phase=watching s=151.6703 light=green
+t=645000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=645386939 n=615 fan=id_02 phase=watching s=172.7653 light=green
+score t_us=646410550 n=616 fan=id_02 phase=watching s=139.2897 light=green
+score t_us=647434232 n=617 fan=id_02 phase=watching s=142.6386 light=green
+score t_us=648458823 n=618 fan=id_02 phase=watching s=145.8802 light=green
+score t_us=649482471 n=619 fan=id_02 phase=watching s=152.3275 light=green
+t=650000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=650506509 n=620 fan=id_02 phase=watching s=139.6843 light=green
+score t_us=651530122 n=621 fan=id_02 phase=watching s=155.1167 light=green
+score t_us=652554760 n=622 fan=id_02 phase=watching s=173.5036 light=green
+score t_us=653578422 n=623 fan=id_02 phase=watching s=158.1619 light=green
+score t_us=654603013 n=624 fan=id_02 phase=watching s=151.8395 light=green
+t=655000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=655627028 n=625 fan=id_02 phase=watching s=151.4321 light=green
+score t_us=656650679 n=626 fan=id_02 phase=watching s=141.5284 light=green
+score t_us=657674319 n=627 fan=id_02 phase=watching s=152.5078 light=green
+score t_us=658698884 n=628 fan=id_02 phase=watching s=147.6350 light=green
+score t_us=659722511 n=629 fan=id_02 phase=watching s=145.1705 light=green
+t=660000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=660746567 n=630 fan=id_02 phase=watching s=163.4231 light=green
+score t_us=661770141 n=631 fan=id_02 phase=watching s=183.9390 light=green
+score t_us=662794742 n=632 fan=id_02 phase=watching s=166.7558 light=green
+score t_us=663818427 n=633 fan=id_02 phase=watching s=173.9826 light=green
+score t_us=664843028 n=634 fan=id_02 phase=watching s=195.8151 light=green
+t=665000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=665867016 n=635 fan=id_02 phase=watching s=168.7170 light=green
+score t_us=666890635 n=636 fan=id_02 phase=watching s=144.9052 light=green
+score t_us=667914247 n=637 fan=id_02 phase=watching s=140.6813 light=green
+score t_us=668938868 n=638 fan=id_02 phase=watching s=135.5299 light=green
+score t_us=669962538 n=639 fan=id_02 phase=watching s=155.9418 light=green
+t=670000 ms alive build=55cd2cf light=green fan duty=100 watch=id_02 phase=watching
+score t_us=670986399 n=640 fan=id_02 phase=watching s=178.7782 light=green
+score t_us=672010940 n=641 fan=id_02 phase=watching s=140.3907 light=green
+score t_us=673034609 n=642 fan=id_02 phase=watching s=143.1246 light=green
+# pc_s=664.2 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=673678205 t_set_us=673678261 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_02 phase=watching
+# pc_s=664.2 switched to underspeed; waiting for the board to stop the fan
+score t_us=674058960 n=643 fan=id_02 phase=watching s=227.5453 light=green
+t=675000 ms alive build=55cd2cf light=green fan duty=85 watch=id_02 phase=watching
+score t_us=675082918 n=644 fan=id_02 phase=watching s=2107.7598 light=yellow
+light t_us=675082918 light=yellow trip=none reset=0
+score t_us=676106664 n=645 fan=id_02 phase=watching s=7995.8545 light=yellow
+score t_us=677130258 n=646 fan=id_02 phase=idle s=11571.2959 light=red
+trip t_us=677130258 reason=score fan=id_02 n=646 s=11571.2959
+light t_us=677130258 light=red trip=score reset=0
+fan update t_set_us=677139176 t_pin_us=677139193 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=667.7 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=677148346 t_set_us=677148396 t_pin_us=677148399 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_02 phase=idle
+# pc_s=667.7 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=677153821 t_set_us=677153840 t_pin_us=677153842 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_02 phase=idle
+# pc_s=667.7 sent: status
+build=55cd2cf model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=677158079 t_set_us=677158097 t_pin_us=677158099 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_02 phase=idle
