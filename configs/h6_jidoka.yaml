@@ -1,0 +1,22 @@
+# Phase H6: jidoka on the board. One trial per fan (PM, 2026-11-19; H7 runs 10 per fault):
+# the board watches the fan with h3_gmm, calibrates on its first 10 min of normal running,
+# then the fan runs watched for normal_seconds, is switched to the underspeed duty by a
+# serial command, and must stop by itself. The time from the switch to the stop is taken
+# from the board's own clock (the command's t_rx_us to the gate pin reading back low).
+# Nothing is tuned on these trials: the model, the limits rule and the light are H3's, and
+# the detector's settings are exported from h3_gmm.yaml and h2_recording.yaml.
+phase: H6
+final: true  # a live measurement of the final model, logged once per fan; nothing is chosen from it
+
+model_config: configs/h3_gmm.yaml  # exported with --seed 0 (andon.export_gmm) and flashed
+seed: 0
+model:
+  type: gmm
+
+data:
+  recording_config: configs/h2_recording.yaml  # normal speed_pct and the underspeed duty
+
+trial:
+  normal_seconds: 60          # watched normal running after the limits, before the switch
+  calib_timeout_seconds: 720  # hold-off 5 s + 584 windows (600 s of audio) + margin
+  stop_timeout_seconds: 60    # after the switch; H3's d3 delay to red was 4.10 s

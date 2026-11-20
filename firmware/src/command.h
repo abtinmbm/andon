@@ -2,7 +2,8 @@
 // builds on the PC.
 //
 // Commands are one per line, ended by '\n' or '\r' (terminals send either):
-//   fan on | fan off | fan speed <0-100> | status | rec start <gain 0-8> | rec stop
+//   fan on | fan off | fan speed <0-100> | status | rec start <gain 0-8> | rec stop |
+//   watch <machine id> | watch none | calibrate
 #ifndef COMMAND_H
 #define COMMAND_H
 
@@ -10,6 +11,7 @@
 #include <stddef.h>
 
 #define COMMAND_MAX_LEN 31u
+#define COMMAND_NAME_MAX 15u  // the longest name a command takes (a machine ID)
 
 typedef enum {
     CMD_INVALID = 0,
@@ -19,11 +21,14 @@ typedef enum {
     CMD_STATUS,
     CMD_REC_START,  // stream the mic over USB at a gain shift of arg (mic_stream.h)
     CMD_REC_STOP,
+    CMD_WATCH,      // watch the fan whose machine ID is name ("none": watch nothing)
+    CMD_CALIBRATE,  // fit the limits again (after a remount)
 } command_kind_t;
 
 typedef struct {
     command_kind_t kind;
     int arg;  // the speed for CMD_FAN_SPEED, the gain shift for CMD_REC_START, else 0
+    char name[COMMAND_NAME_MAX + 1];  // the machine ID for CMD_WATCH, else ""
 } command_t;
 
 typedef struct {

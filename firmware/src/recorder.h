@@ -23,8 +23,9 @@ typedef struct {
 
 void recorder_init(void);
 
-// Drain the mic's DMA ring; while streaming, send each full frame. Call every loop pass.
-void recorder_poll(void);
+// The words main read from the mic this pass (the detector gets the same ones). overrun:
+// words before these were lost. While streaming, each full frame is sent.
+void recorder_feed(const uint32_t *words, uint32_t n, bool overrun);
 
 void recorder_start(unsigned gain_shift);
 void recorder_stop(void);

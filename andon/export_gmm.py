@@ -18,9 +18,16 @@ Three headers are written, then read back and checked against scikit-learn:
   Cholesky factor ``P`` of the precision matrix (precision = ``P @ P.T``, scikit-learn's
   ``precisions_cholesky_``) packed column by column, and the constant
   ``log weight + sum(log diag P) - D / 2 * log(2 pi)``.
+  It also holds the board's detector settings (H6), all read from the configs: the mic's
+  gain shift and the hold-off after a fan start (``h2_recording.yaml``), how many windows
+  calibrate the limits (``limit_clips`` of normal running, as H3 fits them), and the
+  light's limits and run lengths.
 - ``andon_gmm_vectors.h``: per fan, int16 audio, its log-mel frames, the mean spectrum of
   each 64-frame window every 32 frames, and each window's score under every fan's GMM (a
-  window scored by another fan's GMM gives the large scores a fault gives).
+  window scored by another fan's GMM gives the large scores a fault gives). Also the
+  scores of the windows the board's stream gives (frames without padding, so one frame
+  later than the centred ones), and a light test: scores, the limits ``andon.light`` fits
+  on the first of them, and the light after each later one.
 
 The arithmetic the C code must reproduce, in float32:
 
@@ -46,6 +53,7 @@ from andon.data.audio import read_wav
 from andon.data.features import SplitFeatures, load_or_extract
 from andon.experiment import Config, load_config
 from andon.features.logmel import LogMelConfig, logmel
+from andon.light import AndonLight, LightSettings, fit_limits
 from andon.models.classic import build_detector
 
 GMM_HEADER = "andon_gmm.h"
@@ -57,6 +65,8 @@ TOOL = "andon.export_gmm"
 # printed by ``main``.
 SCORE_RTOL = 1e-5
 SCORE_ATOL = 1e-3
+LIGHT_CODES = {"green": 0, "yellow": 1, "red": 2}  # andon_light_t in firmware/src/andon_light.h
+LIGHT_CALIB = 50  # scores that fit the light test's limits: it tests arithmetic, not length
 
 
 @dataclass
@@ -110,6 +120,40 @@ class GmmBank:
         return cls(fans, mean, chol, log_const)
 
 
+@dataclass(frozen=True)
+class DetectorSettings:
+    """What the board's detector needs besides the model, all from the configs."""
+
+    gain_shift: int  # the mic's digital gain, as every clip was recorded
+    holdoff_samples: int  # skipped after a fan start: spin-up is not normal running
+    calib_windows: int  # windows of normal running that fit the limits
+    warn_sigma: float
+    control_sigma: float
+    light: LightSettings
+
+    @classmethod
+    def from_config(cls, cfg: Config, width: int, hop: int) -> DetectorSettings:
+        recording = h3.read_recording(cfg)
+        lim = cfg.raw["limits"]
+        if lim["log_scale"]:
+            raise ValueError("the board fits its limits on raw scores: log_scale must be false")
+        sr = cfg.logmel.sample_rate
+        if int(recording["audio"]["sample_rate"]) != sr:
+            raise ValueError("the recordings' sample rate differs from the front end's")
+        # H3 fits the limits on the first limit_clips clips of normal running. That much
+        # audio, streamed without padding, gives this many windows.
+        calib_s = int(cfg.raw["data"]["limit_clips"]) * int(recording["audio"]["clip_seconds"])
+        frames = (calib_s * sr - cfg.logmel.n_fft) // cfg.logmel.hop_length + 1
+        return cls(
+            gain_shift=int(recording["audio"]["gain_shift"]),
+            holdoff_samples=int(recording["recording"]["settle_seconds"]) * sr,
+            calib_windows=(frames - width) // hop + 1,
+            warn_sigma=float(lim["warn_sigma"]),
+            control_sigma=float(lim["control_sigma"]),
+            light=LightSettings(**{k: int(v) for k, v in cfg.raw["light"].items()}),
+        )
+
+
 @dataclass
 class GmmExport:
     """Everything that goes into the three headers."""
@@ -120,6 +164,7 @@ class GmmExport:
     logmel_cfg: LogMelConfig
     width: int  # frames per window
     hop: int  # frames between windows
+    detector: DetectorSettings
 
 
 def fit_gmms(
@@ -168,6 +213,7 @@ def gmm_header(ex: GmmExport) -> str:
         + export_c._define("ANDON_GMM_N_TRI", dims * (dims + 1) // 2)
         + export_c._define("ANDON_GMM_WINDOW_FRAMES", ex.width)
         + export_c._define("ANDON_GMM_WINDOW_HOP", ex.hop),
+        detector_block(ex.detector),
         f"/* Fan index -> machine ID. */\nstatic const char *const andon_gmm_fan_id[{n_fans}]"
         f" = {{{ids}}};\n",
         "/* Component k of fan f: mean, then P (precision = P P^T) packed column by column,"
@@ -180,11 +226,94 @@ def gmm_header(ex: GmmExport) -> str:
     return export_c._guard("ANDON_GMM_H", f"Per-fan GMM: {ex.source}.", body, TOOL)
 
 
+def detector_block(d: DetectorSettings) -> str:
+    define = export_c._define
+    return (
+        "/* The board's detector (H6): the mic's gain shift, samples skipped after a fan start,"
+        " windows that calibrate the limits, and the light's run lengths. */\n"
+        + define("ANDON_MIC_GAIN_SHIFT", d.gain_shift)
+        + define("ANDON_HOLDOFF_SAMPLES", d.holdoff_samples)
+        + define("ANDON_CALIB_WINDOWS", d.calib_windows)
+        + define("ANDON_LIGHT_WARN_ON", d.light.warn_on)
+        + define("ANDON_LIGHT_WARN_OFF", d.light.warn_off)
+        + define("ANDON_LIGHT_RED_HOLD", d.light.red_hold)
+        + "/* The warning and control limits are the mean plus these many sigma. */\n"
+        + export_c.c_array(
+            "double",
+            "andon_light_sigma",
+            np.array([d.warn_sigma, d.control_sigma]),
+            "warn, control",
+        )
+    )
+
+
+def detector_from_header(text: str) -> DetectorSettings:
+    a, d = export_c.read_header(text)
+    warn, control = (float(v) for v in a["andon_light_sigma"])
+    return DetectorSettings(
+        gain_shift=d["ANDON_MIC_GAIN_SHIFT"],
+        holdoff_samples=d["ANDON_HOLDOFF_SAMPLES"],
+        calib_windows=d["ANDON_CALIB_WINDOWS"],
+        warn_sigma=warn,
+        control_sigma=control,
+        light=LightSettings(
+            d["ANDON_LIGHT_WARN_ON"], d["ANDON_LIGHT_WARN_OFF"], d["ANDON_LIGHT_RED_HOLD"]
+        ),
+    )
+
+
+@dataclass
+class LightVectors:
+    score: np.ndarray  # float32; the first n_calib fit the limits
+    n_calib: int
+    limits: np.ndarray  # center, sigma, warn, control, float64 as andon.light fits them
+    light: np.ndarray  # int8 LIGHT_CODES after each score from n_calib on
+
+
+def light_vectors(d: DetectorSettings, seed: int = 0) -> LightVectors:
+    """Scores that walk the light through every change, and what ``andon.light`` makes of
+    them. The later scores sit just below or above the fitted limits, so each run length is
+    tested one short of its setting and at it."""
+    rng = np.random.default_rng(seed)
+    calib = (100.0 + 5.0 * rng.standard_normal(LIGHT_CALIB)).astype(np.float32)
+    lim = fit_limits(calib.astype(np.float64), d.warn_sigma, d.control_sigma)
+    s = d.light
+    quiet = lim.center  # below the warning limit
+    warn = (lim.warn + lim.control) / 2  # between the limits
+    high = lim.control + lim.sigma  # above the control limit
+    plan = (
+        [quiet] * 3
+        + [warn] * (s.warn_on - 1)
+        + [quiet]  # one short: stays green
+        + [warn] * s.warn_on  # yellow
+        + [quiet] * (s.warn_off - 1)
+        + [warn]  # one short: stays yellow
+        + [quiet] * s.warn_off  # green again
+        + [high] * (s.red_hold - 1)
+        + [quiet]  # one short of red (but long enough for yellow)
+        + [quiet] * s.warn_off
+        + [high] * s.red_hold  # red
+        + [quiet] * 3  # red is latched
+    )
+    jitter = 0.01 * lim.sigma * rng.standard_normal(len(plan))
+    later = (np.array(plan) + jitter).astype(np.float32)
+    light = AndonLight(lim, s)
+    states = [LIGHT_CODES[light.update(float(x)).value] for x in later]
+    return LightVectors(
+        score=np.r_[calib, later].astype(np.float32),
+        n_calib=LIGHT_CALIB,
+        limits=np.array([lim.center, lim.sigma, lim.warn, lim.control]),
+        light=np.array(states, dtype=np.int8),
+    )
+
+
 @dataclass
 class Vectors:
     logmel: np.ndarray  # (fans, frames, mels) float32
     window_mean: np.ndarray  # (fans, windows, mels) float64
     score: np.ndarray  # (fans, windows, model fans) float64
+    stream_score: np.ndarray  # (fans, stream windows, model fans) float64
+    light: LightVectors
 
 
 def reference_vectors(ex: GmmExport, mixtures: dict[str, GaussianMixture] | None) -> Vectors:
@@ -195,15 +324,26 @@ def reference_vectors(ex: GmmExport, mixtures: dict[str, GaussianMixture] | None
     if len(starts) != N_WINDOWS or starts[-1] != (N_WINDOWS - 1) * ex.hop:
         raise ValueError(f"{frames.shape[1]} frames do not hold exactly {N_WINDOWS} windows")
     means = np.stack([h3.window_means(f, starts, ex.width) for f in frames])
+    # The board frames its stream without padding: its frame t is centred frame t + 1, and
+    # the reflect-padded first and last frames never occur. Its windows are every hop frames.
+    inner = frames[:, 1:-1]
+    stream_starts = np.arange(0, inner.shape[1] - ex.width + 1, ex.hop)
+    stream_means = np.stack([h3.window_means(f, stream_starts, ex.width) for f in inner])
     fans = ex.bank.fans
-    scores = np.empty((len(fans), len(starts), len(fans)))
-    for m, fan in enumerate(fans):
-        for f in range(len(fans)):
-            if mixtures is not None:
-                scores[f, :, m] = -mixtures[fan].score_samples(means[f])
-            else:
-                scores[f, :, m] = ex.bank.score(m, means[f])
-    return Vectors(frames, means, scores)
+
+    def score_all(x: np.ndarray) -> np.ndarray:
+        out = np.empty((len(fans), x.shape[1], len(fans)))
+        for m, fan in enumerate(fans):
+            for f in range(len(fans)):
+                if mixtures is not None:
+                    out[f, :, m] = -mixtures[fan].score_samples(x[f])
+                else:
+                    out[f, :, m] = ex.bank.score(m, x[f])
+        return out
+
+    return Vectors(
+        frames, means, score_all(means), score_all(stream_means), light_vectors(ex.detector)
+    )
 
 
 def vectors_header(ex: GmmExport, v: Vectors) -> str:
@@ -227,6 +367,22 @@ def vectors_header(ex: GmmExport, v: Vectors) -> str:
         " log-mel, and its score (negative log-likelihood) under every fan's GMM. */\n"
         + export_c.c_array("float", "andon_gv_window_mean", v.window_mean, "[fan][window][mel]")
         + export_c.c_array("float", "andon_gv_score", v.score, "[fan][window][model fan]"),
+        "/* The board's stream of the same audio: frames without padding (its frame t is"
+        f" centred frame t + 1), window w being its frames w * {ex.hop} to"
+        f" w * {ex.hop} + {ex.width - 1}. Each window's score under every fan's GMM. */\n"
+        + d("ANDON_GV_STREAM_WINDOWS", v.stream_score.shape[1])
+        + export_c.c_array(
+            "float", "andon_gv_stream_score", v.stream_score, "[fan][window][model fan]"
+        ),
+        "/* The light (andon.light): limits fitted on the first ANDON_LV_N_CALIB scores, then"
+        " the light after each later score (0 green, 1 yellow, 2 red). */\n"
+        + d("ANDON_LV_N_SCORES", len(v.light.score))
+        + d("ANDON_LV_N_CALIB", v.light.n_calib)
+        + export_c.c_array("float", "andon_lv_score", v.light.score)
+        + export_c.c_array(
+            "double", "andon_lv_limits", v.light.limits, "center, sigma, warn, control"
+        )
+        + export_c.c_array("int8_t", "andon_lv_light", v.light.light),
     ]
     return export_c._guard("ANDON_GMM_VECTORS_H", f"GMM test vectors for {ex.source}.", body, TOOL)
 
@@ -256,13 +412,20 @@ def verify(out_dir: Path, cfg: LogMelConfig) -> float:
     n_fans, n_win, n_mels = d["ANDON_GV_N_FANS"], d["ANDON_GV_N_WINDOWS"], d["ANDON_GV_N_MELS"]
     width, hop = gd["ANDON_GMM_WINDOW_FRAMES"], gd["ANDON_GMM_WINDOW_HOP"]
     audio = tv["andon_gv_audio"].reshape(n_fans, -1)
-    back = reference_vectors(GmmExport(bank, "", audio, cfg, width, hop), None)
+    detector = detector_from_header(g_text)
+    back = reference_vectors(GmmExport(bank, "", audio, cfg, width, hop, detector), None)
     np.testing.assert_array_equal(back.logmel.ravel(), tv["andon_gv_logmel"])
     np.testing.assert_array_equal(
         back.window_mean.astype(np.float32).ravel(), tv["andon_gv_window_mean"]
     )
     want = tv["andon_gv_score"].astype(np.float64).reshape(n_fans, n_win, n_fans)
     np.testing.assert_allclose(back.score, want, rtol=SCORE_RTOL, atol=SCORE_ATOL)
+    n_stream = d["ANDON_GV_STREAM_WINDOWS"]
+    stream = tv["andon_gv_stream_score"].astype(np.float64).reshape(n_fans, n_stream, n_fans)
+    np.testing.assert_allclose(back.stream_score, stream, rtol=SCORE_RTOL, atol=SCORE_ATOL)
+    np.testing.assert_array_equal(back.light.score, tv["andon_lv_score"])
+    np.testing.assert_array_equal(back.light.limits, tv["andon_lv_limits"])
+    np.testing.assert_array_equal(back.light.light, tv["andon_lv_light"])
     if back.window_mean.shape[-1] != n_mels:
         raise ValueError("the vectors' mel count differs from the windows'")
     # The same relative error the C self-test prints: |difference| / max(|score|, 1).
@@ -311,9 +474,9 @@ def synthetic_export(seed: int = 0) -> tuple[GmmExport, dict[str, GaussianMixtur
     mixtures = fit_gmms(src.raw["model"], seed, feats, fans, width, hop)
     n = audio_len(N_WINDOWS, width, hop, cfg)
     audio = np.stack([fan(k, n / cfg.sample_rate + 1)[:n] for k in range(3)])
-    ex = GmmExport(
-        GmmBank.from_mixtures(mixtures), f"synthetic, seed {seed}", audio, cfg, width, hop
-    )
+    detector = DetectorSettings.from_config(src, width, hop)
+    bank = GmmBank.from_mixtures(mixtures)
+    ex = GmmExport(bank, f"synthetic, seed {seed}", audio, cfg, width, hop, detector)
     return ex, mixtures
 
 
@@ -345,7 +508,8 @@ def real_export(cfg: Config, seed: int) -> tuple[GmmExport, dict[str, GaussianMi
         names
     )
     bank = GmmBank.from_mixtures(mixtures)
-    return GmmExport(bank, source, np.stack(audio), cfg.logmel, width, hop), mixtures
+    detector = DetectorSettings.from_config(cfg, width, hop)
+    return GmmExport(bank, source, np.stack(audio), cfg.logmel, width, hop, detector), mixtures
 
 
 def main(argv: list[str] | None = None) -> None:

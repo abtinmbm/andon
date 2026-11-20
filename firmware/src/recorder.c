@@ -3,19 +3,12 @@
 #include "pico/stdlib.h"
 #include "tusb.h"
 
-#include "mic.h"
 #include "mic_stream.h"
-
-#define READ_CHUNK_WORDS 512u
 
 static mic_framer_t framer;
 static recorder_stats_t stats;
-static uint32_t words[READ_CHUNK_WORDS];
 
-void recorder_init(void) {
-    mic_init();
-    mic_framer_init(&framer);
-}
+void recorder_init(void) { mic_framer_init(&framer); }
 
 static void send_frame(void) {
     if (framer.bytes[9] & MIC_FLAG_CLIPPED) {
@@ -30,22 +23,15 @@ static void send_frame(void) {
     }
 }
 
-void recorder_poll(void) {
-    while (true) {
-        bool overrun = false;
-        uint32_t n = mic_read(words, READ_CHUNK_WORDS, &overrun);
-        if (overrun) {
-            stats.overruns++;
-            mic_framer_mark_overrun(&framer);
-        }
-        for (uint32_t i = 0; i < n; i++) {
-            // Frames are built even when not streaming, so a recording starts at once.
-            if (mic_framer_add(&framer, words[i], stats.gain_shift) && stats.streaming) {
-                send_frame();
-            }
-        }
-        if (n < READ_CHUNK_WORDS) {
-            return;
+void recorder_feed(const uint32_t *words, uint32_t n, bool overrun) {
+    if (overrun) {
+        stats.overruns++;
+        mic_framer_mark_overrun(&framer);
+    }
+    for (uint32_t i = 0; i < n; i++) {
+        // Frames are built even when not streaming, so a recording starts at once.
+        if (mic_framer_add(&framer, words[i], stats.gain_shift) && stats.streaming) {
+            send_frame();
         }
     }
 }

@@ -12,6 +12,7 @@ from test_h3 import RECORDING, manifest
 from andon import export_c, export_gmm, h3
 from andon.data.features import SplitFeatures
 from andon.experiment import Config, load_config
+from andon.features.logmel import logmel
 
 CONFIGS = Path(__file__).resolve().parents[1] / "configs"
 
@@ -167,3 +168,57 @@ def test_training_clips_are_dev_only_and_match_the_eval_fold():
 def test_real_export_needs_a_full_covariance_gmm_config():
     with pytest.raises(ValueError, match="per-fan GMM"):
         export_gmm.real_export(load_config(CONFIGS / "h3_level.yaml"), 0)
+
+
+# --- H6: the board's detector settings and its stream ------------------------------------
+
+
+def test_detector_settings_come_from_the_configs(exported):
+    _, _, out = exported
+    d = export_gmm.detector_from_header((out / export_gmm.GMM_HEADER).read_text(encoding="utf-8"))
+    # h2_recording.yaml: gain shift 4, 5 s settle; h3_gmm.yaml: 60 clips of 10 s set the
+    # limits, at 2 and 3 sigma, light 2/3/3.
+    assert (d.gain_shift, d.holdoff_samples) == (4, 5 * 16000)
+    # 600 s streamed: (600 * 16000 - 1024) // 512 + 1 = 18749 frames; (18749 - 64) // 32 + 1.
+    assert d.calib_windows == 584
+    assert (d.warn_sigma, d.control_sigma) == (2.0, 3.0)
+    assert (d.light.warn_on, d.light.warn_off, d.light.red_hold) == (2, 3, 3)
+
+
+def test_the_board_cannot_take_log_scale_limits():
+    raw = load_config(CONFIGS / "h3_gmm.yaml").raw
+    raw = dict(raw, limits=dict(raw["limits"], log_scale=True))
+    with pytest.raises(ValueError, match="log_scale"):
+        export_gmm.DetectorSettings.from_config(Config("h3_gmm", raw), 64, 32)
+
+
+def test_light_vectors_reach_every_state_and_follow_andon_light(exported):
+    ex, _, _ = exported
+    lv = export_gmm.light_vectors(ex.detector)
+    assert set(lv.light.tolist()) == {0, 1, 2}
+    assert lv.light[-1] == 2 and lv.n_calib == export_gmm.LIGHT_CALIB
+    calib = lv.score[: lv.n_calib].astype(np.float64)
+    assert lv.limits[0] == calib.mean() and lv.limits[1] == calib.std(ddof=1)
+
+
+def test_stream_frames_are_the_centred_frames_one_later(exported):
+    """The board's frame t is samples t * hop to t * hop + n_fft - 1, with no padding: the
+    middle frame of the centred log-mel of exactly those samples, and centred frame t + 1."""
+    ex, _, _ = exported
+    cfg = ex.logmel_cfg
+    audio = ex.audio[0].astype(np.float32) / 32768
+    centred = logmel(audio, cfg)
+    for t in (0, 1, 50, centred.shape[0] - 3):
+        chunk = audio[t * cfg.hop_length : t * cfg.hop_length + cfg.n_fft]
+        # Same samples, but NumPy's batched matrix product rounds a 3-frame and a 128-frame
+        # spectrogram differently in the last float32 bit (seen: 1.9e-07 relative).
+        np.testing.assert_allclose(logmel(chunk, cfg)[1], centred[t + 1], rtol=1e-6)
+
+
+def test_stream_scores_are_the_scores_of_the_shifted_windows(exported):
+    ex, mixtures, _ = exported
+    v = export_gmm.reference_vectors(ex, mixtures)
+    inner = v.logmel[0, 1:-1]
+    assert v.stream_score.shape[1] == (inner.shape[0] - ex.width) // ex.hop + 1
+    x = inner[ex.hop : ex.hop + ex.width].mean(axis=0, dtype=np.float64)[None]
+    np.testing.assert_allclose(v.stream_score[0, 1, 0], -mixtures["id_00"].score_samples(x)[0])

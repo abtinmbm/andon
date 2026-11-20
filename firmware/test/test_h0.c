@@ -1,4 +1,4 @@
-// Host test for the Phase H0 logic (andon light cycle, button debounce). Built and run on
+// Host test for the Phase H0 logic (light names, button debounce). Built and run on
 // the PC by tests/test_firmware.py; prints each failure and exits non-zero if any failed.
 #include <stdint.h>
 #include <stdio.h>
@@ -25,13 +25,6 @@ static int hold(button_t *b, int is_down, uint32_t *now_ms, uint32_t ms) {
         presses += button_pressed(b, is_down, (*now_ms)++);
     }
     return presses;
-}
-
-static void test_light_cycles_green_yellow_red(void) {
-    CHECK(andon_light_next(ANDON_GREEN) == ANDON_YELLOW);
-    CHECK(andon_light_next(ANDON_YELLOW) == ANDON_RED);
-    CHECK(andon_light_next(ANDON_RED) == ANDON_GREEN);
-    CHECK(andon_light_next((andon_light_t)7) == ANDON_GREEN);
 }
 
 static void test_light_names(void) {
@@ -88,7 +81,6 @@ static void test_press_across_millisecond_wraparound(void) {
 }
 
 int main(void) {
-    test_light_cycles_green_yellow_red();
     test_light_names();
     test_clean_press_counts_once();
     test_bounce_is_ignored();

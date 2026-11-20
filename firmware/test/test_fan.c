@@ -59,8 +59,7 @@ static void test_reset_restarts_a_fan_that_was_running(void) {
     CHECK(fan_turn_on(&fan, ANDON_GREEN) == FAN_OK);
     andon_light_t light = ANDON_RED;
     CHECK(fan_duty_pct(&fan, light) == 0);
-    light = andon_light_next(light);
-    CHECK(light == ANDON_GREEN);
+    light = ANDON_GREEN;  // the reset button
     CHECK(fan_duty_pct(&fan, light) == 100);
 }
 
@@ -241,7 +240,29 @@ static void test_parse_rejects(void) {
     }
 }
 
+// H6: choosing the fan the detector watches, and recalibrating.
+static void test_parse_watch_and_calibrate(void) {
+    command_t c = command_parse("watch id_01");
+    CHECK(c.kind == CMD_WATCH && strcmp(c.name, "id_01") == 0 && c.arg == 0);
+    c = command_parse("  watch\tnone ");
+    CHECK(c.kind == CMD_WATCH && strcmp(c.name, "none") == 0);
+    CHECK(command_parse("calibrate").kind == CMD_CALIBRATE);
+    const char *bad[] = {"watch", "watch id_01 now", "watch id-01", "watch 0123456789abcdef",
+                         "calibrate now", "WATCH id_00", "watch id_01;fan"};
+    for (size_t i = 0; i < sizeof bad / sizeof bad[0]; i++) {
+        c = command_parse(bad[i]);
+        if (c.kind != CMD_INVALID || c.name[0] != '\0') {
+            printf("FAIL: \"%s\" parsed as a command\n", bad[i]);
+            failures++;
+        }
+    }
+    // A name of exactly COMMAND_NAME_MAX characters fits.
+    c = command_parse("watch 0123456789abcde");
+    CHECK(c.kind == CMD_WATCH && strlen(c.name) == COMMAND_NAME_MAX);
+}
+
 int main(void) {
+    test_parse_watch_and_calibrate();
     test_fan_is_off_at_boot_until_turned_on();
     test_red_always_stops_the_fan();
     test_fan_on_is_refused_on_red();

@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #define LOGMEL_N_FFT 1024
+#define LOGMEL_HOP 512  // samples between frames (the features' hop_length)
 #define LOGMEL_N_BINS (LOGMEL_N_FFT / 2 + 1)
 
 // Mel filterbank stored sparse, as andon.export_c writes it: band m covers FFT bins

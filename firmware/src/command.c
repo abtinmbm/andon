@@ -76,8 +76,25 @@ static bool parse_small_uint(const char *start, size_t len, int *out) {
     return true;
 }
 
+// A name of letters, digits and '_', at most COMMAND_NAME_MAX long, copied into out.
+static bool parse_name(const char *start, size_t len, char *out) {
+    if (len == 0 || len > COMMAND_NAME_MAX) {
+        return false;
+    }
+    for (size_t i = 0; i < len; i++) {
+        char c = start[i];
+        if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+              c == '_')) {
+            return false;
+        }
+    }
+    memcpy(out, start, len);
+    out[len] = '\0';
+    return true;
+}
+
 command_t command_parse(const char *line) {
-    command_t cmd = {CMD_INVALID, 0};
+    command_t cmd = {CMD_INVALID, 0, ""};
     const char *w[MAX_WORDS];
     size_t n[MAX_WORDS];
     int count = split_words(line, w, n);
@@ -96,6 +113,13 @@ command_t command_parse(const char *line) {
         cmd.kind = CMD_REC_START;
     } else if (count == 2 && word_is(w[0], n[0], "rec") && word_is(w[1], n[1], "stop")) {
         cmd.kind = CMD_REC_STOP;
+    } else if (count == 2 && word_is(w[0], n[0], "watch") && parse_name(w[1], n[1], cmd.name)) {
+        cmd.kind = CMD_WATCH;
+    } else if (count == 1 && word_is(w[0], n[0], "calibrate")) {
+        cmd.kind = CMD_CALIBRATE;
+    }
+    if (cmd.kind != CMD_WATCH) {
+        cmd.name[0] = '\0';
     }
     if (cmd.kind != CMD_FAN_SPEED && cmd.kind != CMD_REC_START) {
         cmd.arg = 0;

@@ -15,6 +15,7 @@ import time
 from pathlib import Path
 
 import pytest
+import yaml
 
 from andon import export_c, export_gmm
 from andon.experiment import load_config
@@ -24,7 +25,7 @@ REAL_MODEL = FIRMWARE / "model"
 CONFIGS = FIRMWARE.parent / "configs"
 COMPILER = shutil.which("gcc") or shutil.which("cc")
 # These call the Pico SDK; everything else in src must build on the PC.
-DEVICE_ONLY = {"main.c", "bench.c", "mic.c", "recorder.c"}
+DEVICE_ONLY = {"main.c", "bench.c", "mic.c", "recorder.c", "say.c"}
 HOST_SOURCES = sorted(p for p in (FIRMWARE / "src").glob("*.c") if p.name not in DEVICE_ONLY)
 TESTS = sorted((FIRMWARE / "test").glob("test_*.c"))
 # The generated headers define every array static, so a file that uses only some of them
@@ -114,15 +115,24 @@ def _c_defines(path: Path) -> dict[str, int]:
 # for the real fans is only usable on the device if its features are those, so a config
 # change that breaks this fails here instead of on the board.
 FRONT_END_SOURCE = CONFIGS / "phase3_idcnn_mixup.yaml"
-STAGE2_FINAL = sorted(
-    p
-    for p in CONFIGS.glob("*.yaml")
+_STAGE2 = [
+    (p, c)
+    for p in sorted(CONFIGS.glob("*.yaml"))
     if (c := load_config(p)).raw.get("final") is True and str(c.phase).startswith("H")
-)
+]
+# A trial config (H6 on) names the model it runs with model_config instead of holding one.
+STAGE2_FINAL = [p for p, c in _STAGE2 if "model_config" not in c.raw]
+STAGE2_TRIALS = [c for _, c in _STAGE2 if "model_config" in c.raw]
 
 
 def test_stage2_final_configs_exist():
     assert {p.stem for p in STAGE2_FINAL} >= {"h3_gmm", "h3_level"}
+    assert {c.name for c in STAGE2_TRIALS} >= {"h6_jidoka"}
+
+
+def test_stage2_trials_run_a_final_model_with_the_device_front_end():
+    for c in STAGE2_TRIALS:
+        assert (CONFIGS.parent / c.raw["model_config"]).resolve() in STAGE2_FINAL, c.name
 
 
 # Config.logmel reads only these keys, so any other key (fmax, say) would be ignored
@@ -145,6 +155,8 @@ def test_front_end_source_matches_c_constants(headers: str, synthetic_headers: P
     src = FIRMWARE / "src"
     assert cfg.power == 2.0  # logmel.c squares the magnitude
     assert cfg.n_fft == _c_defines(src / "logmel.h")["LOGMEL_N_FFT"]
+    # The board's detector frames its stream every LOGMEL_HOP samples.
+    assert cfg.hop_length == _c_defines(src / "logmel.h")["LOGMEL_HOP"]
     assert cfg.sample_rate == _c_defines(src / "mic_stream.h")["MIC_SAMPLE_RATE_HZ"]
     model_dir = synthetic_headers if headers == "synthetic" else REAL_MODEL
     fe = _c_defines(model_dir / export_c.FRONTEND_HEADER)
@@ -158,3 +170,6 @@ def test_front_end_source_matches_c_constants(headers: str, synthetic_headers: P
         h3["frames"],
         h3["hop"],
     )
+    # Every clip was recorded at this gain, so the board must listen at it too.
+    recording = yaml.safe_load((CONFIGS / "h2_recording.yaml").read_text(encoding="utf-8"))
+    assert gmm["ANDON_MIC_GAIN_SHIFT"] == recording["audio"]["gain_shift"] == 4

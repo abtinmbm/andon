@@ -1,16 +1,25 @@
-// Andon firmware: the andon light, the reset button and the fan's kill switch.
+// Andon firmware: the detector watches the fan by ear and stops it on red (jidoka).
 //
-// H0 added the light and the button, H1 the fan and H2 the microphone. The button steps the light green ->
-// yellow -> red -> green (until the detector drives it in H6). Red cuts the fan, and only the
-// button (red -> green) starts it again. Serial commands, one per line:
-//   fan on | fan off | fan speed <0-100> | status | rec start <gain 0-8> | rec stop
+// H0 added the light and the button, H1 the fan, H2 the microphone, H6 the detector
+// (detector.h): mic -> log-mel -> the watched fan's GMM -> the andon light. Red cuts the fan
+// and only the button (red -> green) clears it; a fan that was running then restarts. The
+// button does nothing on green or yellow. Serial commands, one per line:
+//   fan on | fan off | fan speed <0-100> | status | rec start <gain 0-8> | rec stop |
+//   watch <machine id> | watch none | calibrate
+// "watch" picks the fan's model (and clears the limits); until it is given the fan runs
+// unwatched. The limits are fitted on the first 10 minutes the watched fan runs after its
+// hold-off, kept in RAM, and fitted again after "calibrate", "watch" or a reboot.
 // Every command is answered with one "ack" line carrying the Pico's timer (microseconds) when
 // the command arrived, when the PWM was changed and when the gate pin was read back at its
-// new level, so the time to cut the fan can be measured from the log (andon.fan_latency).
-// Starting from stopped at a part speed runs a 1 s full-speed kick first (see fan.h). The fan
-// is off at boot: a reset or power blip never restarts the machine by itself. "rec start"
-// streams the microphone to the PC as binary frames (recorder.h, mic_stream.h) until
-// "rec stop"; andon/record.py turns them into WAV files.
+// new level, so the time from a command to the fan stopping can be measured on the board's
+// own clock (andon.fan_latency, andon.jidoka). Every scored window is one "score" line; a red
+// is a "trip" line, then the "fan update" that cut the fan. Starting from stopped at a part
+// speed runs a 1 s full-speed kick first (see fan.h). The fan is off at boot.
+//
+// Safety: the light and the fan are set before anything is printed, and nothing printed
+// ever waits on the PC (say.h). A hardware watchdog reboots the board if a pass of the loop
+// hangs for WATCHDOG_MS; the gate's pull-down and the PWM's 0 % at boot keep the fan off, and
+// the board comes back red (trip=watchdog), so someone has to look before it runs again.
 //
 // Wiring (Pico 2 physical pin in brackets):
 //   GP10 [14] -> 220 ohm -> green LED  -> GND [13]
@@ -26,20 +35,25 @@
 //              3V3(OUT) [36], GND to GND [38], SEL to GND (left channel). See mic.h.
 //   GP25 is the onboard LED on the Pico 2 (no wiring).
 #include <stdio.h>
+#include <string.h>
 
 #include "hardware/clocks.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
+#include "hardware/watchdog.h"
 #include "pico/stdlib.h"
 
 #include "andon_light.h"
 #include "andon_version.h"
 #include "button.h"
 #include "command.h"
+#include "detector.h"
 #include "fan.h"
+#include "gmm_params.h"
 #include "mic.h"
 #include "mic_stream.h"
 #include "recorder.h"
+#include "say.h"
 
 #define PIN_GREEN 10
 #define PIN_YELLOW 11
@@ -54,9 +68,13 @@
 // level at the end of its period (40 us at 25 kHz), so this is generous.
 #define READBACK_TIMEOUT_US 1000u
 #define PWM_PERIOD_US (1000000u / FAN_PWM_HZ)
+// The slowest pass is a frame plus a score, about 9 ms; a whole second means a hang.
+#define WATCHDOG_MS 1000u
 
 static const uint LIGHT_PINS[] = {PIN_GREEN, PIN_YELLOW, PIN_RED};
 static uint32_t fan_pwm_wrap;
+static detector_t det;
+static uint32_t mic_words[DETECTOR_MAX_WORDS];
 
 static void init_pins(void) {
     gpio_init(PICO_DEFAULT_LED_PIN);
@@ -128,13 +146,18 @@ static fan_drive_t drive_fan(uint8_t duty_pct) {
     return d;
 }
 
-static void print_drive(const fan_drive_t *d, andon_light_t light) {
-    printf("t_set_us=%llu t_pin_us=%lld pin=%d duty=%u light=%s", (unsigned long long)d->t_set_us,
-           (long long)d->t_pin_us, d->pin, d->duty_pct, andon_light_name(light));
+static const char *watched_id(void) { return det.fan >= 0 ? andon_gmm_fan_ids[det.fan] : "none"; }
+
+// The fields every ack and fan update ends with.
+static void say_drive(const char *head, const fan_drive_t *d, andon_light_t light,
+                      const char *tail) {
+    say("%st_set_us=%llu t_pin_us=%lld pin=%d duty=%u light=%s%s\n", head,
+        (unsigned long long)d->t_set_us, (long long)d->t_pin_us, d->pin, d->duty_pct,
+        andon_light_name(light), tail);
 }
 
 // Work out the duty the fan should have now and drive it if it changed. Called before
-// anything is printed, so a slow USB print can never delay cutting the fan.
+// anything is printed, so printing can never delay cutting the fan.
 static bool update_fan(const fan_t *fan, fan_output_t *out, andon_light_t light,
                        uint32_t now_ms, uint8_t *driven_pct, fan_drive_t *d) {
     uint8_t duty = fan_output_update(out, fan_duty_pct(fan, light), now_ms);
@@ -146,38 +169,67 @@ static bool update_fan(const fan_t *fan, fan_output_t *out, andon_light_t light,
     return true;
 }
 
-static void print_recorder(void) {
+static void say_recorder(void) {
     const recorder_stats_t *r = recorder_stats();
-    printf("rec streaming=%d gain=%u frames_sent=%lu frames_dropped=%lu overruns=%lu "
-           "frames_clipped=%lu\n",
-           r->streaming, r->gain_shift, (unsigned long)r->frames_sent,
-           (unsigned long)r->frames_dropped, (unsigned long)r->overruns,
-           (unsigned long)r->frames_clipped);
+    say("rec streaming=%d gain=%u frames_sent=%lu frames_dropped=%lu overruns=%lu "
+        "frames_clipped=%lu\n",
+        r->streaming, r->gain_shift, (unsigned long)r->frames_sent,
+        (unsigned long)r->frames_dropped, (unsigned long)r->overruns,
+        (unsigned long)r->frames_clipped);
 }
 
-static fan_result_t run_command(fan_t *fan, command_t cmd, andon_light_t light) {
+static void say_detector(void) {
+    say("detector watch=%s phase=%s light=%s trip=%s windows=%lu calib=%d/%d restarts=%lu "
+        "say_dropped=%lu\n",
+        watched_id(), detector_phase_name(det.phase), andon_light_name(detector_light(&det)),
+        detector_trip_name(det.trip), (unsigned long)det.windows, det.calib.n,
+        det.cfg.calib_windows, (unsigned long)det.restarts, (unsigned long)say_dropped());
+}
+
+// "watch <id>": the fan's index in the exported models, or "none". False if unknown.
+static bool watch(const char *name, uint64_t now_us) {
+    if (strcmp(name, "none") == 0) {
+        detector_watch(&det, NULL, 0, now_us);
+        return true;
+    }
+    for (int i = 0; i < andon_gmm_n_fans; i++) {
+        if (strcmp(name, andon_gmm_fan_ids[i]) == 0) {
+            detector_watch(&det, &andon_gmm[i], i, now_us);
+            return true;
+        }
+    }
+    return false;
+}
+
+static const char *run_command(fan_t *fan, command_t cmd, andon_light_t light, uint64_t now_us) {
     switch (cmd.kind) {
     case CMD_FAN_ON:
-        return fan_turn_on(fan, light);
+        return fan_result_name(fan_turn_on(fan, light));
     case CMD_FAN_OFF:
         fan_turn_off(fan);
-        return FAN_OK;
+        return "ok";
     case CMD_FAN_SPEED:
-        return fan_set_speed(fan, cmd.arg);
+        return fan_result_name(fan_set_speed(fan, cmd.arg));
     case CMD_REC_START:
         recorder_start((unsigned)cmd.arg);
-        return FAN_OK;
+        return "ok";
     case CMD_REC_STOP:
         recorder_stop();
-        return FAN_OK;
+        return "ok";
+    case CMD_WATCH:
+        return watch(cmd.name, now_us) ? "ok" : "unknown_fan";
+    case CMD_CALIBRATE:
+        if (det.fan < 0) return "no_fan";
+        detector_recalibrate(&det, now_us);
+        return "ok";
     default:
-        return FAN_OK;  // status, and invalid lines (reported by the caller)
+        return "ok";  // status, and invalid lines (reported by the caller)
     }
 }
 
 // Read every character waiting on USB serial; handle each complete line.
 static void poll_serial(command_reader_t *reader, fan_t *fan, fan_output_t *out,
-                        andon_light_t light, uint8_t *driven_pct) {
+                        uint8_t *driven_pct) {
     int c;
     while ((c = getchar_timeout_us(0)) != PICO_ERROR_TIMEOUT) {
         if (!command_reader_feed(reader, (char)c)) {
@@ -186,41 +238,88 @@ static void poll_serial(command_reader_t *reader, fan_t *fan, fan_output_t *out,
         uint64_t t_rx_us = time_us_64();
         command_t cmd = command_parse(reader->line);
         if (cmd.kind == CMD_INVALID) {
-            printf("error: unknown command \"%s\" (fan on | fan off | fan speed <0-100> | "
-                   "status | rec start <gain 0-8> | rec stop)\n",
-                   reader->line);
+            say("error: unknown command \"%s\" (fan on | fan off | fan speed <0-100> | status | "
+                "rec start <gain 0-8> | rec stop | watch <id> | watch none | calibrate)\n",
+                reader->line);
             continue;
         }
-        fan_result_t result = run_command(fan, cmd, light);
+        andon_light_t light = detector_light(&det);
+        const char *result = run_command(fan, cmd, light, t_rx_us);
         // Always drive and read back, even when nothing changed, so every ack is a
         // measurement of the pin's current level.
         uint32_t now_ms = to_ms_since_boot(get_absolute_time());
         *driven_pct = fan_output_update(out, fan_duty_pct(fan, light), now_ms);
         fan_drive_t d = drive_fan(*driven_pct);
+        detector_set_running(&det, *driven_pct > 0, time_us_64());
         if (cmd.kind == CMD_STATUS) {
-            printf("build=%s\n", ANDON_BUILD);
+            say("build=%s model=%s\n", ANDON_BUILD, andon_gmm_model_source);
         }
-        printf("ack cmd=\"%s\" result=%s t_rx_us=%llu ", reader->line, fan_result_name(result),
-               (unsigned long long)t_rx_us);
-        print_drive(&d, light);
-        printf(" speed=%u want_on=%d kick=%d\n", fan->speed_pct, fan->want_on, out->kicking);
+        char head[96];
+        snprintf(head, sizeof head, "ack cmd=\"%s\" result=%s t_rx_us=%llu ", reader->line,
+                 result, (unsigned long long)t_rx_us);
+        char tail[96];
+        snprintf(tail, sizeof tail, " speed=%u want_on=%d kick=%d watch=%s phase=%s",
+                 fan->speed_pct, fan->want_on, out->kicking, watched_id(),
+                 detector_phase_name(det.phase));
+        say_drive(head, &d, light, tail);
+        if (cmd.kind == CMD_STATUS) {
+            say_detector();
+        }
         if (cmd.kind == CMD_STATUS || cmd.kind == CMD_REC_START || cmd.kind == CMD_REC_STOP) {
-            print_recorder();
+            say_recorder();
         }
-        if (result == FAN_REFUSED_RED) {
-            printf("  the light is red: press the button to reset; the fan restarts if it was "
-                   "running\n");
+        if (strcmp(result, "refused_red") == 0) {
+            say("  the light is red: press the button to reset; the fan restarts if it was "
+                "running\n");
         }
     }
 }
 
+// Read what the mic delivered since the last pass and give it to the recorder and the
+// detector. Returns the detector's DET_EV_* bits.
+static unsigned listen(uint64_t now_us) {
+    bool overrun = false;
+    uint32_t n = mic_read(mic_words, DETECTOR_MAX_WORDS, &overrun);
+    recorder_feed(mic_words, n, overrun);
+    unsigned ev = detector_feed(&det, mic_words, n, overrun, now_us);
+    return ev | detector_tick(&det, now_us);
+}
+
+// Printed after the fan has been set, so a print never delays a stop.
+static void report(unsigned ev, uint64_t now_us) {
+    if (ev & DET_EV_WINDOW) {
+        say("score t_us=%llu n=%lu fan=%s phase=%s s=%.4f light=%s\n",
+            (unsigned long long)now_us, (unsigned long)det.windows, watched_id(),
+            detector_phase_name(det.phase), (double)det.last_score,
+            andon_light_name(detector_light(&det)));
+    }
+    if (ev & DET_EV_CALIBRATED) {
+        say("limits t_us=%llu fan=%s n=%d center=%.4f sigma=%.4f warn=%.4f control=%.4f\n",
+            (unsigned long long)now_us, watched_id(), det.calib.n, det.limits.center,
+            det.limits.sigma, det.limits.warn, det.limits.control);
+    }
+    if (ev & DET_EV_TRIP) {
+        say("trip t_us=%llu reason=%s fan=%s n=%lu s=%.4f\n", (unsigned long long)now_us,
+            detector_trip_name(det.trip), watched_id(), (unsigned long)det.windows,
+            (double)det.last_score);
+    }
+}
+
 int main(void) {
+    // A reboot by the watchdog means the loop hung: come back red, with the fan off.
+    const bool watchdog_reboot = watchdog_enable_caused_reboot();
     stdio_init_all();
     init_pins();
     init_fan_pwm();
+    mic_init();
     recorder_init();
+    detector_config_t cfg;
+    andon_detector_config(&cfg);
+    detector_init(&det, &cfg);
+    if (watchdog_reboot) {
+        detector_trip(&det, DET_TRIP_WATCHDOG);
+    }
 
-    andon_light_t light = ANDON_GREEN;
     fan_t fan;
     fan_init(&fan);
     fan_output_t fan_out;
@@ -229,45 +328,61 @@ int main(void) {
     button_init(&button, button_is_down(), to_ms_since_boot(get_absolute_time()));
     command_reader_t reader;
     command_reader_init(&reader);
-    show_light(light);
+    andon_light_t shown = detector_light(&det);
+    show_light(shown);
     uint8_t duty_pct = 0;  // the PWM starts at 0 % and the fan is off at boot
-    printf("andon h2 build=%s: light=%s fan duty=%u pwm=%lu Hz wrap=%lu\n", ANDON_BUILD,
-           andon_light_name(light), duty_pct, (unsigned long)FAN_PWM_HZ,
-           (unsigned long)fan_pwm_wrap);
-    printf("mic i2s rate=%lu Hz bclk=GP%u ws=GP%u dout=GP%u ring=%lu B frame=%lu B\n",
-           (unsigned long)MIC_SAMPLE_RATE_HZ, MIC_PIN_BCLK, MIC_PIN_BCLK + 1u, MIC_PIN_DOUT,
-           (unsigned long)mic_ring_bytes(), (unsigned long)MIC_FRAME_BYTES);
+    watchdog_enable(WATCHDOG_MS, true);  // true: paused while a debugger holds the cores
+    say("andon h6 build=%s: light=%s trip=%s fan duty=%u pwm=%lu Hz wrap=%lu\n", ANDON_BUILD,
+        andon_light_name(shown), detector_trip_name(det.trip), duty_pct,
+        (unsigned long)FAN_PWM_HZ, (unsigned long)fan_pwm_wrap);
+    say("mic i2s rate=%lu Hz bclk=GP%u ws=GP%u dout=GP%u ring=%lu B frame=%lu B gain=%u\n",
+        (unsigned long)MIC_SAMPLE_RATE_HZ, MIC_PIN_BCLK, MIC_PIN_BCLK + 1u, MIC_PIN_DOUT,
+        (unsigned long)mic_ring_bytes(), (unsigned long)MIC_FRAME_BYTES, cfg.gain_shift);
+    say("detector ram=%lu B logmel ram=%lu B holdoff=%lu samples calib=%d windows model=%s\n",
+        (unsigned long)sizeof det, (unsigned long)logmel_ram_bytes(),
+        (unsigned long)cfg.holdoff_samples, cfg.calib_windows, andon_gmm_model_source);
     uint32_t next_status_ms = STATUS_MS;
 
     while (true) {
+        watchdog_update();
+        uint64_t now_us = time_us_64();
         uint32_t now_ms = to_ms_since_boot(get_absolute_time());
         heartbeat(now_ms);
-        // Safety first: the light and the fan are set before anything is printed, because a
-        // USB print can block for a while when the PC holds the port open without reading.
-        bool light_changed = false;
-        if (button_pressed(&button, button_is_down(), now_ms)) {
-            light = andon_light_next(light);
-            show_light(light);
-            light_changed = true;
+        // The button only clears red; a running fan is restarted by update_fan below.
+        bool reset = button_pressed(&button, button_is_down(), now_ms) &&
+                     detector_light(&det) == ANDON_RED;
+        if (reset) {
+            detector_reset_light(&det);
         }
-        // Red cuts the fan, reset to green restarts it, and a kick-start drops to the set
-        // speed here once FAN_KICK_MS is up.
+        unsigned ev = listen(now_us);
+        // Safety first: the light and the fan are set before anything is printed.
+        andon_light_t light = detector_light(&det);
+        bool light_changed = light != shown;
+        if (light_changed) {
+            show_light(light);
+            shown = light;
+        }
         fan_drive_t d;
         bool fan_changed = update_fan(&fan, &fan_out, light, now_ms, &duty_pct, &d);
+        detector_set_running(&det, duty_pct > 0, now_us);
+
+        report(ev, now_us);
         if (light_changed) {
-            printf("t=%lu ms light=%s\n", (unsigned long)now_ms, andon_light_name(light));
+            say("light t_us=%llu light=%s trip=%s reset=%d\n", (unsigned long long)now_us,
+                andon_light_name(light), detector_trip_name(det.trip), reset);
         }
         if (fan_changed) {
-            printf("fan update ");
-            print_drive(&d, light);
-            printf(" kick=%d\n", fan_out.kicking);
+            char tail[48];
+            snprintf(tail, sizeof tail, " kick=%d trip=%s", fan_out.kicking,
+                     detector_trip_name(det.trip));
+            say_drive("fan update ", &d, light, tail);
         }
-        recorder_poll();
-        poll_serial(&reader, &fan, &fan_out, light, &duty_pct);
+        poll_serial(&reader, &fan, &fan_out, &duty_pct);
         // Signed difference, so the check survives the 32-bit ms counter wrapping (~49.7 days).
         if ((int32_t)(now_ms - next_status_ms) >= 0) {
-            printf("t=%lu ms alive build=%s light=%s fan duty=%u\n", (unsigned long)now_ms,
-                   ANDON_BUILD, andon_light_name(light), duty_pct);
+            say("t=%lu ms alive build=%s light=%s fan duty=%u watch=%s phase=%s\n",
+                (unsigned long)now_ms, ANDON_BUILD, andon_light_name(light), duty_pct,
+                watched_id(), detector_phase_name(det.phase));
             next_status_ms += STATUS_MS;
         }
         sleep_ms(1);
