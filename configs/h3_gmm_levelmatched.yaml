@@ -1,0 +1,45 @@
+# Loudness check (2026-11-19, DECISIONS.md): h3_gmm, trained exactly as before, scoring test
+# windows played back at the fan's normal volume. Each test window's mean spectrum is shifted
+# so its level equals the mean level of its fan's limit clips, which leaves only the shape of
+# the spectrum and makes the level meter blind. A diagnostic on dev only, not a candidate:
+# it is never marked final and never scored on eval.
+phase: H3
+
+data:
+  root: data/realfan
+  recording_config: configs/h2_recording.yaml
+  limit_clips: 60   # the first 10 min of each main normal take
+
+features:           # identical to the Stage 1 front end
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+window:             # every model scores the same windows; a clip's score is their mean
+  frames: 64        # 2.05 s
+  hop: 32           # 1.02 s
+
+limits:             # phase5_andon
+  log_scale: false
+  warn_sigma: 2.0
+  control_sigma: 3.0
+
+light:              # phase5_andon
+  warn_on: 2
+  warn_off: 3
+  red_hold: 3
+
+stream:             # phase5_andon
+  warmup_clips: 2   # normal clips played before each fault take (the last of the main take)
+
+model:
+  # Fitted on the mean log-mel spectrum of each training window; scores a window by its
+  # negative log-likelihood under its fan's mixture.
+  type: gmm
+  fit_per: machine_id
+  n_components: 4
+  covariance_type: full
+  reg_covar: 0.01
+  level_matched: true  # test windows shifted to the fan's limit-clip level (andon.h3.match_levels)

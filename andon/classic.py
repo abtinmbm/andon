@@ -27,7 +27,7 @@ from andon.data.dataset import (
     eval_test_clips,
     train_clips,
 )
-from andon.data.features import clip_means, load_or_extract
+from andon.data.features import clip_levels, clip_means, load_or_extract
 from andon.evaluate import log_scores
 from andon.experiment import RESULTS_LOG, Config, is_logged, load_config, require_final, set_seed
 from andon.models.classic import fit_and_score
@@ -61,10 +61,12 @@ def run(
             continue
         train = train_of(cfg.data_root, machine_type)
         test = test_of(cfg.data_root, machine_type)
-        x_train = clip_means(
+        # The level meter sees one number per clip; every other detector the mean spectrum.
+        vector = clip_levels if cfg.raw["model"]["type"] == "level" else clip_means
+        x_train = vector(
             load_or_extract(train, cfg.logmel, cache_dir, f"{machine_type}_{train_suffix}")
         )
-        x_test = clip_means(
+        x_test = vector(
             load_or_extract(test, cfg.logmel, cache_dir, f"{machine_type}_{test_suffix}")
         )
         for seed in todo:

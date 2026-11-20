@@ -242,6 +242,49 @@ def test_centres_use_the_own_take_in_training_and_the_limit_clips_at_test():
     assert h3.centres(clips, feats)[:, 0].tolist() == [1.0, 2.0, 5.0, 5.0, 5.0, 5.0]
 
 
+def test_level_matching_leaves_only_the_shape_and_keeps_training_windows():
+    clips = [
+        _fan_clip("id_00", "train", "a"),
+        _fan_clip("id_00", "limits", "m"),
+        _fan_clip("id_00", "normal", "m", order=1),
+        _fan_clip("id_00", "fault", "f", "underspeed"),
+    ]
+    rng = np.random.default_rng(0)
+    normal = rng.normal(-40, 4, (8, 5)).astype(np.float32)
+    # The fault window is the normal one played 9 dB quieter: a pure change of volume.
+    frames = np.concatenate([normal + 3, normal, normal, normal - 9]).astype(np.float32)
+    feats = SplitFeatures(frames=frames, offsets=np.arange(0, 33, 8, dtype=np.int64))
+    starts, owner = h3.windows(feats, 8, 4)
+    x = h3.window_means(frames, starts, 8)
+    level = h3.window_levels(frames, starts, 8)
+    matched = h3.match_levels(x, level, owner, clips)
+    np.testing.assert_array_equal(matched[owner == 0], x[owner == 0])  # training as recorded
+    np.testing.assert_allclose(matched[owner == 3], matched[owner == 2], atol=1e-4)
+    # Every test window now has the limit clips' level, so a level meter is blind to it.
+    frames_matched = np.concatenate(
+        [frames[o * 8 : o * 8 + 8] + (matched[k] - x[k])[0] for k, o in enumerate(owner)]
+    )
+    relevel = h3.window_levels(frames_matched, np.arange(0, 8 * len(owner), 8), 8)
+    np.testing.assert_allclose(relevel[owner != 0], level[owner == 1].mean(), atol=1e-4)
+
+
+def test_the_level_matched_gmm_still_finds_a_fault_that_changes_the_shape(synthetic, tmp_path):
+    _, _, rows, _ = _run("h3_gmm_levelmatched", synthetic, tmp_path)
+    assert len(rows) == 2 * 2 * 3
+    obstruction = [r for r in rows if h3.parse_notes(r["notes"])["fault"] == "obstruction"]
+    assert all(float(r["auc"]) > 0.9 for r in obstruction)  # an added tone, not just louder
+
+
+def test_the_level_matched_config_is_h3_gmm_plus_the_matching_and_never_final():
+    raw = load_config(ROOT / "configs" / "h3_gmm_levelmatched.yaml").raw
+    base = load_config(ROOT / "configs" / "h3_gmm.yaml").raw
+    assert raw.get("final") is not True
+    assert raw["model"] == {**base["model"], "level_matched": True}
+    assert {k: v for k, v in raw.items() if k != "model"} == {
+        k: v for k, v in base.items() if k not in ("model", "final")
+    }
+
+
 def _row(fan, fault, seed, auc, flagged="0", fold="d1>d2"):
     notes = f"fold={fold} fault={fault} flagged={flagged}"
     return {"machine_type": fan, "seed": str(seed), "auc": str(auc), "notes": notes}

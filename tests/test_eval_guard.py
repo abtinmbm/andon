@@ -78,7 +78,8 @@ def test_quantize_refuses_eval_for_a_config_not_marked_final(tmp_path):
 
 def test_h3_refuses_the_real_fan_eval_session_for_a_config_not_marked_final():
     recording = {"sessions": {"dev": ["d1", "d2"], "eval": ["d3"]}}
-    for name in ("h3_gmm_centred", "h3_idcnn_mixup"):  # the H3 configs not chosen
+    # The H3 configs not chosen, and the dev-only loudness check.
+    for name in ("h3_gmm_centred", "h3_idcnn_mixup", "h3_gmm_levelmatched"):
         cfg = load_config(CONFIGS / f"{name}.yaml")
         fold = h3.folds(recording, "eval")[0]
         with pytest.raises(ValueError, match="final"):

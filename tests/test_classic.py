@@ -8,7 +8,7 @@ import yaml
 from test_pipeline import make_tree, noise_wav
 
 from andon.classic import run
-from andon.data.features import SplitFeatures, clip_means
+from andon.data.features import SplitFeatures, clip_levels, clip_means
 from andon.experiment import load_config, read_results
 from andon.models.classic import build_detector, fit_and_score
 
@@ -46,6 +46,26 @@ def test_clip_means_is_the_mean_of_each_clips_frames():
     assert means.shape == (3, 4) and means.dtype == np.float64
     for i, c in enumerate(clips):
         np.testing.assert_allclose(means[i], c.astype(np.float64).mean(axis=0))
+
+
+def test_clip_levels_are_the_mean_mel_power_of_each_clip_in_db():
+    rng = np.random.default_rng(0)
+    clips = [rng.normal(-40, 6, (n, 4)).astype(np.float32) for n in (7, 1, 9)]
+    feats = SplitFeatures(np.concatenate(clips), np.r_[0, np.cumsum([7, 1, 9])])
+    levels = clip_levels(feats)
+    assert levels.shape == (3, 1)
+    for i, c in enumerate(clips):
+        direct = 10 * np.log10((10 ** (c.astype(np.float64) / 10)).mean())
+        assert levels[i, 0] == pytest.approx(direct)
+    # A change of volume moves every band by the same dB, and the level by exactly that.
+    louder = SplitFeatures(feats.frames + np.float32(6.0), feats.offsets)
+    np.testing.assert_allclose(clip_levels(louder), levels + 6.0, atol=1e-4)
+
+
+def test_the_level_meter_scores_the_distance_from_the_normal_level_both_ways():
+    meter = build_detector({"type": "level", "fit_per": "machine_id"}, 0)
+    meter.fit(np.array([[-30.0], [-32.0], [-31.0]]))
+    np.testing.assert_allclose(meter.score(np.array([[-31.0], [-25.0], [-37.0]])), [0, 6, 6])
 
 
 def test_clip_means_rejects_an_empty_clip():
@@ -118,10 +138,10 @@ def test_fit_per_machine_id_refuses_a_test_id_with_no_training_clips():
 # --- configs and the runner --------------------------------------------------------------
 
 
-def test_there_are_six_phase2_configs_sharing_phase1_features():
+def test_there_are_seven_phase2_configs_sharing_phase1_features():
     phase1 = yaml.safe_load((CONFIGS[0].parent / "phase1_baseline.yaml").read_text())
     expected = {k: v for k, v in phase1["features"].items() if k != "frames"}
-    assert len(CONFIGS) == 6
+    assert len(CONFIGS) == 7  # six detectors and the level meter (a reference)
     for path in CONFIGS:
         cfg = load_config(path)
         assert cfg.phase == 2 and cfg.raw["features"] == expected  # so the cache is reused

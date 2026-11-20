@@ -110,6 +110,17 @@ def clip_means(feats: SplitFeatures) -> np.ndarray:
     return sums / lengths[:, None]
 
 
+def clip_levels(feats: SplitFeatures) -> np.ndarray:
+    """One level per clip in dB, shape ``(n_clips, 1)``: the mean mel power over its frames
+    and bands, the same measure as the real-fan level meter (``andon.h3.window_levels``)."""
+    lengths = np.diff(feats.offsets)
+    if (lengths < 1).any():
+        raise ValueError("a clip has no frames")
+    power = (10.0 ** (feats.frames.astype(np.float64) / 10.0)).mean(axis=1)
+    sums = np.add.reduceat(power, feats.offsets[:-1])
+    return (10.0 * np.log10(sums / lengths))[:, None]
+
+
 def window_starts(offsets: np.ndarray, n_context: int) -> np.ndarray:
     """First-frame index of every ``n_context``-frame window that stays inside one clip.
 

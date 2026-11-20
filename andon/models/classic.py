@@ -8,6 +8,7 @@ means more anomalous, the same convention as the autoencoder's reconstruction er
   sample covariance is noisy in its smallest directions, which the distance weights most.
 - GMM: negative log-likelihood under a Gaussian mixture.
 - Isolation forest: the negated ``score_samples``, so short isolation paths score high.
+- Level meter: a loudness reference, not a contender; it sees one level per clip instead.
 
 All three are small enough to port to C later as fallbacks for the microcontroller.
 """
@@ -73,9 +74,24 @@ class IForest:
         return -self._forest.score_samples(x)
 
 
+class LevelMeter:
+    """A sound-level meter, the loudness reference: the distance in dB of a clip's level
+    from the mean level of the normal clips, in either direction. Its input is one level
+    per clip (``andon.data.features.clip_levels``), shape ``(n, 1)``."""
+
+    def fit(self, x: np.ndarray) -> LevelMeter:
+        self._ref = float(np.asarray(x)[:, 0].mean())
+        return self
+
+    def score(self, x: np.ndarray) -> np.ndarray:
+        return np.abs(np.asarray(x, dtype=np.float64)[:, 0] - self._ref)
+
+
 def build_detector(model_cfg: dict[str, Any], seed: int) -> Detector:
     """A fresh, unfitted detector from the config's ``model`` section."""
     kind = model_cfg["type"]
+    if kind == "level":
+        return LevelMeter()
     if kind == "mahalanobis":
         return Mahalanobis()
     if kind == "gmm":

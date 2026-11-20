@@ -1,0 +1,22 @@
+# Loudness reference (2026-11-19, DECISIONS.md): a sound-level meter per machine ID. A clip's
+# score is how far its level (mean mel power over frames and bands, in dB) is from the mean
+# level of that ID's normal training clips, in either direction, as the real-fan meter
+# (h3_level) does. Dev test only: a reference beside the Phase 2 and 3 models, never final.
+# No training and no randomness; run with seeds 0 1 2 like the other deterministic detector
+# (Mahalanobis) so the comparison tables line up, which gives a std of 0.00.
+phase: 2
+
+data:
+  root: data
+  machine_types: [ToyCar, ToyConveyor, fan, pump, slider, valve]
+
+features:  # identical to phase1_baseline, so its feature cache is reused
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+model:
+  type: level
+  fit_per: machine_id
