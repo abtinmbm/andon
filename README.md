@@ -15,7 +15,7 @@
 | --- | --- |
 | **Detects faulty sound** | **92.13 ± 0.16 %** AUC over six machine types, against 79.70 ± 0.39 % for the DCASE 2020 autoencoder baseline |
 | **Runs as a live andon light** | catches 65.57 ± 1.02 % of faults, turns red 10.57 ± 0.24 s after a fault starts, 5.53 ± 1.79 false alarms per hour |
-| **Fits a microcontroller** | 98.7 KB as an int8 model, an estimated 3.27 ms of compute per 32 ms of audio, AUC change −0.04 ± 0.02 points |
+| **Fits a microcontroller** | 98.7 KB as an int8 model, AUC change −0.04 ± 0.02 points; measured on the Pico 2, 10.82 ms of compute per 32 ms of audio, bit-exact with Python |
 | **Reproducible** | two commands re-download the data and checkpoints and re-score the headline [to four decimals](#reproduce-the-headline-number) |
 
 **Stage 1** (done) builds and evaluates the detector on the public [DCASE 2020 Task 2](https://dcase.community/challenge2020/task-unsupervised-detection-of-anomalous-sounds) factory-sound benchmark and plays it back as a live andon light. **Stage 2** (in progress) runs the same pipeline on a Raspberry Pi Pico 2 that cuts power to a real fan when it hears a fault, the lean-manufacturing idea of *jidoka*: stop the line the moment something is wrong. Full plan: [PLAN.md](PLAN.md).
@@ -99,7 +99,7 @@ The compute figure is an estimate. Measured on the Pico 2, the C port gives the 
 <details>
 <summary>How the int8 model was made and checked</summary>
 
-The int8 model is the trained float model converted without retraining, by a NumPy reference implementation (`andon/quant.py`). On eval it changes AUC by −0.04 ± 0.02 points: a small, consistent drop, smaller than the spread between seeds. Compute is estimated from the count of multiply-adds at 0.5 per clock cycle on the Pico 2's 150 MHz Cortex-M33; a full window score takes 98.32 ms and runs once a second, which is where the per-frame average comes from. Stage 2 will measure it on the device.
+The int8 model is the trained float model converted without retraining, by a NumPy reference implementation (`andon/quant.py`). On eval it changes AUC by −0.04 ± 0.02 points: a small, consistent drop, smaller than the spread between seeds. Compute is estimated from the count of multiply-adds at 0.5 per clock cycle on the Pico 2's 150 MHz Cortex-M33; a full window score takes 98.32 ms and runs once a second, which is where the per-frame average comes from. The board's measurement is above.
 
 `andon.export_c` writes the int8 model as C headers, with test vectors the C version must match bit for bit up to the last layer's integer sums (the float logits and scores within a small tolerance). CI runs the export on every push with a seeded synthetic model of the same shape.
 
@@ -129,12 +129,12 @@ Three real 5 V fans (`id_00`, a Sunon; `id_01` and `id_02`, two identical ANVISI
 | Fault takes that turned the light red | 6 of 6 | 6 of 6 |
 | Seconds to red, from the first fault clip played after normal running | 4.10 ± 0.00 | 4.10 |
 
-**A plain sound-level meter catches these two faults as well as the model does.** Underspeed makes a fan quieter and the card makes it louder, both by much more than anything in normal running, so on this data the model adds nothing over a level meter. That is reported as it came out. Faults that don't change the loudness are the harder test. 4.10 s is the light's own fastest red (three windows in a row over the limit), so the time to red measures the light's settings, not the model. It is timed from a splice of normal and fault recordings, not from a real fault starting: the first 30 s of underspeed (the fan still slowing) are not used, and the card is fitted with the fan off. The real switch-to-stop time is measured on the board below. Normal running in `d3` is about an hour over the three fans, so a single false red would read as about one per hour.
+**A plain sound-level meter catches these two faults as well as the model does.** Underspeed makes a fan quieter and the card makes it louder, both by much more than anything in normal running, so on `d3` the meter scores as well as the model, and after a remount it raises fewer false reds. That is reported as it came out. The dev check below shows the model also hears the shape of the sound, not only its loudness. 4.10 s is the light's own fastest red (three windows in a row over the limit), so the time to red measures the light's settings, not the model. It is timed from a splice of normal and fault recordings, not from a real fault starting: the first 30 s of underspeed (the fan still slowing) are not used, and the card is fitted with the fan off. The real switch-to-stop time is measured on the board below. Normal running in `d3` is about an hour over the three fans, so a single false red would read as about one per hour.
 
 **Is the model only a loudness meter? (dev only.)** Two checks, neither touching `d3`:
 
 - *Same volume.* Every test window is shifted to the fan's normal level before scoring, as if played back at the fan's normal volume. The features are in dB, so this removes the volume exactly and leaves only the shape of the spectrum, and the level meter can no longer tell anything apart. The same mixture, trained as before, still scores 100.00 ± 0.00 on every fan-and-fault cell of both dev folds (`h3_gmm_levelmatched`, seeds 0-2). So the faults can be heard without their loudness, and the model hears them that way. This does not show it would catch a fault that is quiet in real life; that is the next test (H7).
-- *The benchmark.* The same kind of meter, one per machine ID, on the DCASE dev set (`phase2_level_id`): 63.34 AUC on average, against 83.25 ± 0.22 for the per-ID mixture and 86.64 ± 0.57 for the CNN. It is near chance on toy cars (50.98), toy conveyors (48.66) and valves (54.28), and does better on fans (77.05), pumps (73.74) and sliders (75.34), where some faults do change the level.
+- *The benchmark.* The same kind of meter, one per machine ID, on the DCASE dev set (`phase2_level_id`): 63.34 ± 0.00 % AUC on average (it has no randomness), against 83.25 ± 0.22 % for the per-ID mixture and 86.64 ± 0.57 % for the CNN. It is near chance on toy cars (50.98 %), toy conveyors (48.66 %) and valves (54.28 %), and does better on fans (77.05 %), pumps (73.74 %) and sliders (75.34 %), likely because some of their faults change the level (not tested).
 
 Tables: [real fans](results/level_check_fans.md), [benchmark](results/level_check_dcase.md).
 
@@ -150,7 +150,7 @@ The numbers above are only worth something if the test was fair, so the project 
 
 - **Train on normal audio only.** The code fails loudly if an anomalous clip reaches a training set.
 - **Choose on dev, report on eval.** Every model and tuning choice was made on the development test set. The evaluation set (other machines of the same types, whose normal training clips the models learn from, as in DCASE 2020) was scored once per final model and reported as it came out. Every scoring command refuses the evaluation set unless the config is marked `final: true`.
-- **Three seeds, always.** Every figure is a mean ± sample std over seeds 0, 1, 2, never a single lucky run.
+- **Three seeds, always.** Every trained model's figure is a mean ± sample std over seeds 0, 1, 2, never a single lucky run. The level meters have no randomness and the board trials are measured runs; both are labelled where they appear.
 - **Baseline first.** The DCASE 2020 autoencoder baseline was reproduced (73.80 ± 0.14 dev AUC, published 73.51) before anything was changed.
 - **Every number is traceable.** Each run is a YAML config in [configs/](configs/) and one row per machine type and seed in [results/results_log.csv](results/results_log.csv). The tables are generated from that log, and a test fails if the README quotes a figure no generated table holds. [DECISIONS.md](DECISIONS.md) records what was tried and why.
 

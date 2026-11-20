@@ -34,7 +34,7 @@ On eval, per type, AUC runs from 80.38 ± 2.00 (ToyConveyor) to 98.25 ± 0.40 (s
 
 ## Intended use
 
-A research baseline and the reference model for the Stage 2 device, which monitors one known machine. It is not validated for stopping real equipment: Stage 2 adds a separate measurement on a real fan.
+A research baseline and the reference model for the Stage 2 device, which monitors one known machine. It is not validated for stopping real equipment. The Stage 2 device runs a per-fan Gaussian mixture instead, measured separately on real fans (see the README).
 
 ## Known limits
 
@@ -44,8 +44,9 @@ A research baseline and the reference model for the Stage 2 device, which monito
 - **How the simulator counts.** A false alarm that happens to fall inside a fault counts as a catch, so the caught rate includes a few chance reds; at the logged false-alarm rates this is small next to the seed spread, but it was not measured. The limits are fitted on normal clips that alternate by file name with the normal clips the light is judged on, so the two halves come from the same recording conditions; on a real line, where conditions drift after the limits are set, false alarms would likely be more frequent.
 - **False alarm rates rest on little audio.** For fan, pump, slider and valve each rate comes from 0.42 to 0.56 h of normal audio per type, so one false alarm moves it by about 2 per hour. Pump's eval rate is 14.38 ± 7.19 per hour.
 - **Eval above dev.** Eval AUC is higher than dev AUC (92.13 against 86.64). This was not investigated: the two sets have different machine IDs, so they are not directly comparable.
-- **Recording conditions.** Lab recordings of toys and single industrial machines with noise mixed in; there are no results yet on a real line, a different microphone, or a machine that drifts as it wears.
-- **Int8 input range comes from normal audio.** A fault much louder than any normal recording clips at the int8 input, and the int8 model then scores it lower than the float model would. On the DCASE sets at most 0.003 % of input values clipped (anomalous pump clips on eval), but a real machine's faults may be louder; Stage 2 checks the share of clipped inputs on the real fan.
+- **Recording conditions.** Lab recordings of toys and single industrial machines with noise mixed in; there are no results on a real line or a machine that drifts as it wears.
+- **It failed on the real fans.** Retrained on three real fans recorded through the Stage 2 microphone (`h3_idcnn_mixup`, dev), it scored 0.00 ± 0.00 AUC on two of the six fan-and-fault cells, `id_00` underspeed and `id_02` obstruction, so a per-fan Gaussian mixture replaced it there ([results/h3_dev.md](../results/h3_dev.md)).
+- **Int8 input range comes from normal audio.** A fault much louder than any normal recording clips at the int8 input, and the int8 model then scores it lower than the float model would. On the DCASE sets at most 0.003 % of input values clipped (anomalous pump clips on eval), but a real machine's faults may be louder. On the real fans, at most 0.31 ± 0.00 % of underspeed inputs fell outside the training range ([results/h3_dev.md](../results/h3_dev.md)), so clipping is unlikely to explain the failures above (inferred, not tested).
 - **Slower than estimated on the board.** The 3.27 ms per frame was an estimate that assumed the window's cost is spread over the 32 frames between windows. On the Pico 2 the C port gives the same integers and scores as Python, and one window takes 299.68 ms against the estimated 98.32 ms, so with the log-mel front end on the same core the total is 10.82 ms per 32 ms frame: under the 20 ms budget, but 3.0 times the estimate ([results/h5_bench_pico2.md](../results/h5_bench_pico2.md)). A score takes about 300 ms, so the firmware must not let anything time-critical, such as cutting the fan, wait behind one.
 
 ## Licence

@@ -1,4 +1,4 @@
-# Loudness check (2026-11-19, DECISIONS.md): h3_gmm, trained exactly as before, scoring test
+# Loudness check (2026-11-20, DECISIONS.md): h3_gmm, trained exactly as before, scoring test
 # windows played back at the fan's normal volume. Each test window's mean spectrum is shifted
 # so its level equals the mean level of its fan's limit clips, which leaves only the shape of
 # the spectrum and makes the level meter blind. A diagnostic on dev only, not a candidate:

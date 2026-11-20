@@ -1,4 +1,4 @@
-# Phase H6: jidoka on the board. One trial per fan (PM, 2026-11-19; H7 runs 10 per fault):
+# Phase H6: jidoka on the board. One trial per fan (2026-11-19; H7 runs 10 per fault):
 # the board watches the fan with h3_gmm, calibrates on its first 10 min of normal running,
 # then the fan runs watched for normal_seconds, is switched to the underspeed duty by a
 # serial command, and must stop by itself. The time from the switch to the stop is taken

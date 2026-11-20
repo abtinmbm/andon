@@ -19,7 +19,7 @@ audio:
 
 recording:
   settle_seconds: 5         # after "fan on", before the first sample: spin-up is not normal running
-  speed_pct: 100            # normal running (PM decision, 2026-11-07)
+  speed_pct: 100            # normal running (decided 2026-11-07)
   # The underspeed fault: only the PWM duty changes (25 kHz, above hearing and the mic's band).
   # Fixed from the dpilot session on id_01 (DECISIONS 2026-11-16): 85 % is the smallest of
   # 85/70/55 and still changes every band steadily (2-4 kHz: -8.8 dB, -8.9 to -8.6 per clip).

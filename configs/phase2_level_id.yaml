@@ -1,4 +1,4 @@
-# Loudness reference (2026-11-19, DECISIONS.md): a sound-level meter per machine ID. A clip's
+# Loudness reference (2026-11-20, DECISIONS.md): a sound-level meter per machine ID. A clip's
 # score is how far its level (mean mel power over frames and bands, in dB) is from the mean
 # level of that ID's normal training clips, in either direction, as the real-fan meter
 # (h3_level) does. Dev test only: a reference beside the Phase 2 and 3 models, never final.
