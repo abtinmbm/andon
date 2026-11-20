@@ -113,6 +113,12 @@ EVAL_TABLES = {
     ),
     "h3_dev.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"], ["dev_test"]),
     "h3_eval.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"], ["eval"]),
+    "level_check_fans.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_levelmatched"], ["dev_test"]),
+    "level_check_dcase.md": (
+        "evaluate",
+        ["phase2_level_id", "phase1_baseline", "phase2_gmm_id", "phase3_idcnn_mixup"],
+        ["dev_test"],
+    ),
 }
 
 
