@@ -1,0 +1,23 @@
+# Phase H7: false stops on the board. The fan runs at its normal speed, watched, with nothing
+# changed, and every stop is counted over `minutes` of watched running (2026-11-22). The board
+# watches with h3_gmm and fits its limits on the device (10 min, as in H6); a series run right
+# after keeps the same limits. Room as in H2: the dorm, window and door closed, no other
+# machines on purpose. Nothing is tuned on it: the model, the limits rule, the light and the
+# 5 s hold-off are H3's and H6's.
+phase: H7
+final: true  # a live measurement of the final model, logged once; nothing is chosen from it
+
+model_config: configs/h3_gmm.yaml  # exported with --seed 0 (andon.export_gmm) and flashed
+seed: 0
+model:
+  type: gmm
+
+data:
+  recording_config: configs/h2_recording.yaml  # the normal speed and the settle time
+
+calib_timeout_seconds: 720  # hold-off 5 s + 584 windows (600 s of audio) + margin
+wait_minutes: 30            # for the button after a stop
+
+soak:
+  minutes: 60               # of watched running (PLAN.md, H7)
+  max_wall_minutes: 150     # gives up if stops leave the fan off too long

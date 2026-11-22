@@ -1,0 +1,27 @@
+# Phase H7: H7's unseen fault on the board, all on one calibration (2026-11-22). The tape
+# (h2_recording.yaml, unseen_faults) is fitted once with the fan off and left on: re-taping a
+# blade changes the fault, which is why imbalance was retired in d1. Each trial is a restart
+# with the tape on ('fan on'), with no normal stretch: a restart of the normal fan is how every
+# underspeed and obstruction trial starts. Timed from 'fan on' (hold-off and kick inside).
+# The model, the limits rule, the light and the 5 s hold-off are H3's and H6's; nothing is
+# tuned here.
+phase: H7
+final: true  # a live measurement of the final model, logged once; nothing is chosen from it
+
+model_config: configs/h3_gmm.yaml  # exported with --seed 0 (andon.export_gmm) and flashed
+seed: 0
+model:
+  type: gmm
+
+data:
+  recording_config: configs/h2_recording.yaml  # the fault, its duty and the settle time
+
+calib_timeout_seconds: 720  # only if the board has no limits for the fan yet
+wait_minutes: 30            # for the button and for fitting the fault
+
+series:
+  fault: imbalance_large
+  start: fit_once
+  trials: 10                # PLAN.md, H7
+  normal_seconds: 30      # watched normal running before the fault (not for fit_once)
+  stop_timeout_seconds: 60  # H6's slowest stop was 11.661 s (id_00)

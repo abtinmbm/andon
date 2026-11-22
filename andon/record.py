@@ -67,6 +67,7 @@ MANIFEST_FIELDS = [
     "recorded_utc",
 ]
 _BUILD = re.compile(r"build=([^\s:]+)")
+_WATCH = re.compile(r" watch=(\S+)")  # in the H6 firmware's acks
 _CLIP_NAME = re.compile(r"^(normal|anomaly)_(id_\d{2})_(\d{8})\.wav$")
 
 
@@ -212,8 +213,13 @@ def check_take(take: Take, cfg: dict) -> None:
         raise ValueError(f"unknown session {take.session!r}; the config lists {sessions}")
     if take.fan_id not in cfg["fans"]:
         raise ValueError(f"unknown fan {take.fan_id!r}; the config lists {list(cfg['fans'])}")
-    if take.fault != "none" and take.fault not in cfg["faults"]:
-        raise ValueError(f"unknown fault {take.fault!r}; the config lists {list(cfg['faults'])}")
+    known = list(cfg["faults"]) + [
+        name
+        for name, spec in (cfg.get("unseen_faults") or {}).items()
+        if take.session in spec["sessions"]
+    ]
+    if take.fault != "none" and take.fault not in known:
+        raise ValueError(f"unknown fault {take.fault!r} in {take.session}; known: {known}")
 
 
 def take_speed(take: Take, cfg: dict) -> int:
@@ -281,17 +287,26 @@ def _command(port, cmd: str, log: list[str], parser: StreamParser, timeout_s: fl
 
 
 def record_take(
-    port, take: Take, cfg: dict, log: list[str], fan: bool = True
+    port, take: Take, cfg: dict, log: list[str], fan: bool = True, unwatch: bool = False
 ) -> tuple[list[np.ndarray], dict]:
     """Run one take on the board; return the clips and the stream statistics. With
-    fan=False the fan stays off (the tone check)."""
+    fan=False the fan stays off (the tone check). From the H6 firmware on, the board's
+    detector stops a fan that sounds wrong, so a take refuses to start while a fan is
+    watched; unwatch=True sends ``watch none`` first (which drops the board's limits)."""
     rate = cfg["audio"]["sample_rate"]
     clip_samples = int(cfg["audio"]["clip_seconds"] * rate)
     if clip_samples % FRAME_SAMPLES:
         raise ValueError("clip_seconds must be a whole number of 256-sample frames")
     parser = StreamParser()
     port.reset_input_buffer()
-    _command(port, "status", log, parser)
+    watched = _WATCH.search(_command(port, "status", log, parser))
+    if watched and watched[1] != "none":
+        if not unwatch:
+            raise RuntimeError(
+                f"the board is watching {watched[1]}, so it would stop the fan during the "
+                "take: rerun with --unwatch (sends 'watch none' and drops the board's limits)"
+            )
+        _command(port, "watch none", log, parser)
     _command(port, f"fan speed {take_speed(take, cfg)}", log, parser)
     if fan:
         _command(port, "fan on", log, parser)
@@ -331,13 +346,13 @@ def record_take(
     return clips[:need], stats
 
 
-def run_take(port, take: Take, cfg: dict) -> None:
+def run_take(port, take: Take, cfg: dict, unwatch: bool = False) -> None:
     check_take(take, cfg)
     log: list[str] = []
     started = datetime.now(UTC)
     take_id = f"{take.session}-{take.fan_id}-{take.fault}-{started:%Y%m%dT%H%M%SZ}"
     print(f"{take_id}: {take.seconds / 60:g} min ...", flush=True)
-    clips, stats = record_take(port, take, cfg, log)
+    clips, stats = record_take(port, take, cfg, log, unwatch=unwatch)
     build = next((m[1] for line in log if (m := _BUILD.search(line))), "unknown")
     paths = save_take(take, clips, cfg, build, take_id, started.isoformat(timespec="seconds"))
     logs = Path(cfg["data"]["root"]) / take.session / "logs"
@@ -390,6 +405,11 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--speed", type=int, help="'other' sessions only: try another underspeed duty (1-99)"
     )
+    parser.add_argument(
+        "--unwatch",
+        action="store_true",
+        help="single take only: send 'watch none' first if the board is watching a fan",
+    )
     args = parser.parse_args(argv)
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     if args.gain is not None:
@@ -418,7 +438,8 @@ def main(argv: list[str] | None = None) -> None:
             return
         if (args.condition == "anomaly") == (args.fault == "none") or args.minutes is None:
             parser.error("a single take needs --minutes, and --fault exactly for anomaly")
-        run_take(port, Take(args.session, args.fan, args.fault, args.minutes * 60), cfg)
+        take = Take(args.session, args.fan, args.fault, args.minutes * 60)
+        run_take(port, take, cfg, unwatch=args.unwatch)
 
 
 if __name__ == "__main__":

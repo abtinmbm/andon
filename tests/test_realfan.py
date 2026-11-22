@@ -134,6 +134,16 @@ def test_a_retired_fault_is_accepted_only_in_its_listed_sessions(cfg):
     assert "s1/anomaly_id_00_00000000.wav: unknown fault rattle" in problems[0]
 
 
+def test_an_unseen_fault_is_accepted_only_in_its_listed_sessions(cfg):
+    cfg["sessions"]["unseen"] = ["u1"]
+    take(cfg, "u1", "id_00", "wobble", 1)
+    take(cfg, "s1", "id_00", "wobble", 1, seed=5)
+    cfg["unseen_faults"] = {"wobble": {"how": "tape", "sessions": ["u1"]}}
+    problems = realfan.check(cfg)[1]
+    assert len(problems) == 1
+    assert "s1/anomaly_id_00_00000000.wav: unknown fault wobble" in problems[0]
+
+
 def test_an_excluded_clip_is_listed_with_its_reason_and_left_out_of_the_tables(cfg, tmp_path):
     take(cfg, "s1", "id_00", "none", 3)
     root = tmp_path / "realfan"

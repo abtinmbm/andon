@@ -166,6 +166,14 @@ def test_bad_labels_are_refused(cfg, take):
         record.check_take(take, cfg)
 
 
+def test_an_unseen_fault_is_accepted_only_in_its_sessions(cfg):
+    cfg["sessions"]["unseen"] = ["u1"]
+    cfg["unseen_faults"] = {"wobble": {"how": "tape", "sessions": ["u1"]}}
+    record.check_take(record.Take("u1", "id_00", "wobble", 10), cfg)
+    with pytest.raises(ValueError, match="unknown fault"):
+        record.check_take(record.Take("s1", "id_00", "wobble", 10), cfg)
+
+
 def test_the_real_config_is_consistent():
     import yaml
 
@@ -182,6 +190,11 @@ def test_the_real_config_is_consistent():
     sessions = {s for group in groups.values() for s in group}
     for spec in cfg["retired_faults"].values():
         assert set(spec["sessions"]) <= sessions
+    # H7's unseen fault is recorded only in the unseen sessions, which no fold trains on.
+    assert set(cfg["unseen_faults"]) == {"imbalance_large"}
+    for spec in cfg["unseen_faults"].values():
+        assert set(spec["sessions"]) <= set(groups["unseen"])
+    assert not set(groups["unseen"]) & (set(groups["dev"]) | set(groups["eval"]))
     # Each exclusion names one clip of a known session and says why.
     for name, why in cfg["excluded_clips"].items():
         assert name.split("/")[0] in sessions and name.endswith(".wav") and why
@@ -195,7 +208,8 @@ def test_the_real_config_is_consistent():
 class FakeBoard:
     """Answers commands like andon.uf2 and streams frames between rec start and rec stop."""
 
-    def __init__(self, drop: set[int] | None = None):
+    def __init__(self, drop: set[int] | None = None, watch: str | None = None):
+        self.watch = watch  # None: an H2 build, whose acks have no watch field
         self.sent: list[str] = []
         self.out = bytearray()
         self.streaming = False
@@ -212,8 +226,11 @@ class FakeBoard:
                 self.streaming, self.seq = True, 0
             elif cmd == "rec stop":
                 self.streaming = False
+            elif cmd == "watch none":
+                self.watch = "none"
             build = "build=abc1234\n" if cmd == "status" else ""
-            self.out += f'{build}ack cmd="{cmd}" result=ok t_rx_us=1\n'.encode()
+            watch = "" if self.watch is None else f" watch={self.watch}"
+            self.out += f'{build}ack cmd="{cmd}" result=ok t_rx_us=1{watch}\n'.encode()
 
     def read(self, n: int) -> bytes:
         if self.streaming and len(self.out) < n:
@@ -238,6 +255,22 @@ def test_a_take_runs_the_fan_records_whole_clips_and_stops_the_fan(cfg):
     assert np.array_equal(clips[1], np.concatenate([ramp(s) for s in range(6, 10)]))
     assert stats["gaps"] == 1 and stats["frames_missing"] == 1 and stats["corrupt"] == 0
     assert any("build=abc1234" in line for line in log)
+
+
+def test_a_take_refuses_to_start_while_the_board_watches_a_fan(cfg):
+    # The H6 detector would stop the fan part-way through the take.
+    cfg["audio"]["clip_seconds"] = 0.064
+    take = record.Take("s1", "id_00", "none", 0.064)
+    board = FakeBoard(watch="id_00")
+    with pytest.raises(RuntimeError, match="--unwatch"):
+        record.record_take(board, take, cfg, [])
+    assert "fan on" not in board.sent
+    board = FakeBoard(watch="id_00")
+    clips, _ = record.record_take(board, take, cfg, [], unwatch=True)
+    assert board.sent[:3] == ["status", "watch none", "fan speed 100"] and len(clips) == 1
+    board = FakeBoard(watch="none")  # nothing watched: no extra command
+    record.record_take(board, take, cfg, [])
+    assert board.sent[:2] == ["status", "fan speed 100"]
 
 
 def test_an_underspeed_take_runs_the_fan_slower_and_logs_its_speed(cfg, tmp_path):
@@ -276,7 +309,7 @@ def test_a_trial_speed_in_an_other_session_runs_the_fan_at_that_duty(monkeypatch
     serial = pytest.importorskip("serial")
     monkeypatch.setattr(serial, "Serial", lambda *a, **k: contextlib.nullcontext("port"))
     runs = []
-    monkeypatch.setattr(record, "run_take", lambda port, take, cfg: runs.append((take, cfg)))
+    monkeypatch.setattr(record, "run_take", lambda port, take, cfg, **k: runs.append((take, cfg)))
     record.main(
         ["--port", "COM99", "--session", "dpilot", "--fan", "id_00", "--condition", "anomaly"]
         + ["--fault", "underspeed", "--minutes", "1", "--speed", "70"]

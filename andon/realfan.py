@@ -138,11 +138,12 @@ def check(cfg: dict, listen: int = 0, seed: int = 0) -> tuple[str, list[str]]:
             problems.append(f"{name}: unknown fan {row['fan_id']}")
         if (row["condition"] == "normal") != (row["fault"] == "none"):
             problems.append(f"{name}: condition {row['condition']} with fault {row['fault']}")
-        # A dropped fault stays readable in the sessions it was recorded in, never elsewhere.
+        # A retired fault, or H7's unseen fault, is readable only in the sessions listed for it.
         known = set(cfg["faults"])
         known |= {
             name
-            for name, spec in cfg.get("retired_faults", {}).items()
+            for group in ("retired_faults", "unseen_faults")
+            for name, spec in (cfg.get(group) or {}).items()
             if row["session"] in spec["sessions"]
         }
         if row["fault"] != "none" and row["fault"] not in known:

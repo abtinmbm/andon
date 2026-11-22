@@ -34,6 +34,8 @@ sessions:                   # d1-d3 are all recorded in the dorm room (DECISIONS
   other: [pilot, s1, dpilot]  # pilot and s1 at home (the level check, a session in another
                             # room), dpilot in the dorm (choosing the underspeed duty);
                             # never used for training or scoring
+  unseen: [d4]              # H7, dorm: a fault no model was chosen on, scored once by the
+                            # final model against its own control take; never used for training
 
 fans:                       # machine IDs; the two ANVISION fans are marked A and B on the frame
   id_00: Sunon MF40100V2
@@ -43,6 +45,11 @@ fans:                       # machine IDs; the two ANVISION fans are marked A an
 faults:                     # name: what is done to the fan (all with the fan off first)
   underspeed: nothing to change on the fan; the recorder runs it at the underspeed duty
   obstruction: a 4 x 1.3 cm index-card strip taped flat on the frame over the bottom third of the intake side
+
+unseen_faults:              # H7 only: recorded in these sessions, never trained or chosen on
+  imbalance_large:
+    how: a 12/6 x 6 mm trapezoid of electrical tape on one blade of id_00 (d1's larger piece), fitted with the fan off
+    sessions: [d4]
 
 retired_faults:             # dropped; their clips stay on disk, readable only in these sessions
   rattle:

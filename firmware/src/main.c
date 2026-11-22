@@ -186,6 +186,14 @@ static void say_detector(void) {
         det.cfg.calib_windows, (unsigned long)det.restarts, (unsigned long)say_dropped());
 }
 
+// The limits in RAM. Also printed after "status", so a tool started after the calibration
+// (H7's trial series) still has the limits it is judged against in its own capture.
+static void say_limits(uint64_t now_us) {
+    say("limits t_us=%llu fan=%s n=%d center=%.4f sigma=%.4f warn=%.4f control=%.4f\n",
+        (unsigned long long)now_us, watched_id(), det.calib.n, det.limits.center,
+        det.limits.sigma, det.limits.warn, det.limits.control);
+}
+
 // "watch <id>": the fan's index in the exported models, or "none". False if unknown.
 static bool watch(const char *name, uint64_t now_us) {
     if (strcmp(name, "none") == 0) {
@@ -264,6 +272,9 @@ static void poll_serial(command_reader_t *reader, fan_t *fan, fan_output_t *out,
         say_drive(head, &d, light, tail);
         if (cmd.kind == CMD_STATUS) {
             say_detector();
+            if (det.have_limits) {
+                say_limits(t_rx_us);
+            }
         }
         if (cmd.kind == CMD_STATUS || cmd.kind == CMD_REC_START || cmd.kind == CMD_REC_STOP) {
             say_recorder();
@@ -294,9 +305,7 @@ static void report(unsigned ev, uint64_t now_us) {
             andon_light_name(detector_light(&det)));
     }
     if (ev & DET_EV_CALIBRATED) {
-        say("limits t_us=%llu fan=%s n=%d center=%.4f sigma=%.4f warn=%.4f control=%.4f\n",
-            (unsigned long long)now_us, watched_id(), det.calib.n, det.limits.center,
-            det.limits.sigma, det.limits.warn, det.limits.control);
+        say_limits(now_us);
     }
     if (ev & DET_EV_TRIP) {
         say("trip t_us=%llu reason=%s fan=%s n=%lu s=%.4f\n", (unsigned long long)now_us,
