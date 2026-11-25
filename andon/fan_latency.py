@@ -216,19 +216,23 @@ def run(port_name: str, trials: int, spin_s: float, stop_s: float, speed: int = 
             raise RuntimeError("the light is red: press the button to reset it, then rerun")
         _send(port, "fan off", log)  # start every trial from stopped
         time.sleep(stop_s)
-        _send(port, f"fan speed {speed}", log)
-        for i in range(trials):
-            on = _send(port, "fan on", log)
-            time.sleep(spin_s)
-            off = _send(port, "fan off", log)
-            print(
-                f"trial {i + 1}/{trials}: off acked in {off.pc_rtt_us / 1000:.2f} ms "
-                f"(Pico rx to pin {off.board_us} us, pin={off.pin}); on {on.result}"
-                + (" (kick)" if on.kick == 1 else ""),
-                flush=True,
-            )
-            time.sleep(stop_s)
-        _send(port, "fan speed 100", log)
+        try:
+            _send(port, f"fan speed {speed}", log)
+            for i in range(trials):
+                on = _send(port, "fan on", log)
+                time.sleep(spin_s)
+                off = _send(port, "fan off", log)
+                print(
+                    f"trial {i + 1}/{trials}: off acked in {off.pc_rtt_us / 1000:.2f} ms "
+                    f"(Pico rx to pin {off.board_us} us, pin={off.pin}); on {on.result}"
+                    + (" (kick)" if on.kick == 1 else ""),
+                    flush=True,
+                )
+                time.sleep(stop_s)
+            _send(port, "fan speed 100", log)
+        finally:
+            # Also on a lost ack or Ctrl+C: never leave the fan running.
+            port.write(b"fan off\n")
     details = f"speed {speed}%, {trials} trials, spin {spin_s} s, stop {stop_s} s"
     return "\n".join([_header(port_name, details, _build(log)), *log]) + "\n"
 

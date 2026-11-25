@@ -208,7 +208,7 @@ def settings(name: str, **over) -> h7.Settings:
 
 
 def assert_ends_asked_off(board: Board) -> None:
-    assert board.sent[-3:] == ["fan speed 100", "fan off", "status"]
+    assert board.sent[-3:] == ["fan off", "fan speed 100", "status"]
 
 
 def test_settings_come_from_the_configs():
@@ -471,3 +471,64 @@ def test_the_h7_configs_are_final_and_watch_with_the_boards_model():
         raw = load_config(p).raw
         assert raw["final"] is True and raw["phase"] == "H7" and raw["seed"] == 0
         assert raw["model_config"] == "configs/h3_gmm.yaml"
+
+
+def test_a_fit_once_series_counts_windows_to_red_per_trial():
+    # Each trial trips on its third high window. The board's window count runs on across
+    # trials, so each trial counts from the status line that opens it, not from zero.
+    board = Board()
+    x = h7.parse_series(series("h7_imbalance_large", board), settings("h7_imbalance_large"))
+    assert [t.windows_to_red for t in x.trials] == [3, 3, 3]
+
+
+class LostAckBoard(Board):
+    """Applies every command but loses the acks of the commands in ``lost``."""
+
+    def __init__(self, lost: set[str], **kw) -> None:
+        super().__init__(**kw)
+        self.lost = lost
+
+    def write(self, data: bytes) -> None:
+        before = len(self.out)
+        super().write(data)
+        if data.decode().strip() in self.lost:
+            del self.out[before:]
+
+
+@pytest.mark.parametrize(
+    ("lost", "confirmed"),
+    [({"fan speed 100"}, True), ({"fan off"}, True), ({"fan off", "fan speed 100"}, False)],
+)
+def test_cleanup_sends_fan_off_whatever_acks_are_lost(lost, confirmed):
+    board = LostAckBoard(lost, limits_for="id_00")
+    board.want_on = True
+    out = io.StringIO()
+    cap = h7.Capture(out, board.clock)
+    assert h7._finish(board, cap, settings("h7_soak")) is confirmed
+    assert board.sent[:2] == ["fan off", "fan speed 100"] and not board.running
+    assert ("unplug it before touching it" in out.getvalue()) is not confirmed
+
+
+def test_a_series_asks_to_remove_the_fault_only_once_the_fan_is_confirmed_off(monkeypatch):
+    board = LostAckBoard(set())
+    real_finish = h7._finish
+
+    def finish(port, cap, s):
+        board.lost = {"fan off", "fan speed 100"}  # only the closing acks are lost
+        return real_finish(port, cap, s)
+
+    monkeypatch.setattr(h7, "_finish", finish)
+    text = series("h7_imbalance_large", board)
+    assert "series done: remove" not in text
+    assert "unplug it before touching it" in text
+
+
+@pytest.mark.parametrize("kind", ["soak", "series"])
+def test_a_run_never_overwrites_a_capture(kind, tmp_path):
+    out = tmp_path / "capture.txt"
+    out.write_text("an earlier capture\n", encoding="utf-8")
+    config = CONFIGS / ("h7_soak.yaml" if kind == "soak" else "h7_underspeed.yaml")
+    args = [kind, "--config", str(config), "--port", "COM_NONE", "--fan", "id_00"]
+    with pytest.raises(SystemExit):
+        h7.main([*args, "--out", str(out)])
+    assert out.read_text(encoding="utf-8") == "an earlier capture\n"

@@ -67,3 +67,13 @@ def test_rejects_single_class_and_bad_input():
         auc([0, 1], [0.1, 0.2, 0.3])
     with pytest.raises(ValueError, match="max_fpr"):
         pauc([0, 1], [0.1, 0.2], max_fpr=0.0)
+
+
+def test_rejects_scores_that_are_not_finite():
+    # All NaN, positives first: without the check every NaN is its own threshold and the
+    # input order alone earns a perfect 1.0.
+    nan = float("nan")
+    with pytest.raises(ValueError, match="6 of 6 scores are not finite"):
+        auc([1, 1, 1, 0, 0, 0], [nan] * 6)
+    with pytest.raises(ValueError, match="1 of 3 scores are not finite"):
+        pauc([1, 0, 0], [float("inf"), 0.1, 0.2])

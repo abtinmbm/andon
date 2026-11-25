@@ -27,6 +27,10 @@ def roc_curve(y_true: np.ndarray, y_score: np.ndarray) -> tuple[np.ndarray, np.n
     y_score = np.asarray(y_score, dtype=np.float64).ravel()
     if y_true.shape != y_score.shape:
         raise ValueError(f"shape mismatch: {y_true.shape} labels vs {y_score.shape} scores")
+    # NaN never compares equal, so each one would form its own threshold and an all-NaN
+    # vector would keep the input order: positives first scores a perfect 1.0.
+    if bad := int((~np.isfinite(y_score)).sum()):
+        raise ValueError(f"{bad} of {y_score.size} scores are not finite")
     n_pos = int(y_true.sum())
     n_neg = y_true.size - n_pos
     if n_pos == 0 or n_neg == 0:

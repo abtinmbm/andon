@@ -5,6 +5,7 @@ parser in awkward pieces, and assembled into clips and WAV files."""
 import binascii
 import contextlib
 import csv
+import functools
 import struct
 from pathlib import Path
 
@@ -360,3 +361,25 @@ def test_a_text_line_is_complete_without_waiting_for_more_data():
     f = frame_bytes(0, ramp(0))
     assert list(p.feed(b"x\nAM")) == ["x"]
     assert [i.seq for i in p.feed(f[2:]) if isinstance(i, record.Frame)] == [0]
+
+
+class LostAckBoard(FakeBoard):
+    """Applies every command but loses the ack of one, as a dropped serial line would."""
+
+    def __init__(self, lost: str):
+        super().__init__()
+        self.lost = lost
+
+    def write(self, data: bytes):
+        before = len(self.out)
+        super().write(data)
+        if data.decode().strip() == self.lost:
+            del self.out[before:]
+
+
+def test_a_lost_fan_on_ack_still_stops_the_fan(cfg, monkeypatch):
+    monkeypatch.setattr(record, "_command", functools.partial(record._command, timeout_s=0.05))
+    board = LostAckBoard("fan on")
+    with pytest.raises(TimeoutError, match="fan on"):
+        record.record_take(board, record.Take("s1", "id_00", "none", 0.128), cfg, [])
+    assert board.sent[-2:] == ["rec stop", "fan off"]

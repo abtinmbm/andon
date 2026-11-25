@@ -145,7 +145,7 @@ def assert_ends_asked_off(text: str) -> None:
     """The last commands leave the fan off at the normal speed, so the button that clears
     red does not start it again."""
     sent = [line.split("sent: ")[1] for line in text.splitlines() if "sent: " in line]
-    assert sent[-3:] == ["fan speed 100", "fan off", "status"]
+    assert sent[-3:] == ["fan off", "fan speed 100", "status"]
 
 
 def test_a_false_stop_before_the_switch_fails_and_ends_the_trial():
@@ -303,3 +303,12 @@ def test_committed_captures_pass_and_the_table_is_current(tmp_path, monkeypatch)
     for t in trials:
         assert f"switch_to_stop_s={t.switch_to_stop_s:.3f} " in rows[t.fan]["notes"]
         assert rows[t.fan]["git_commit"] == t.build
+
+
+def test_run_never_overwrites_a_capture(tmp_path):
+    out = tmp_path / "h6_id_01.txt"
+    out.write_text("an earlier capture\n", encoding="utf-8")
+    args = ["run", "--config", str(CONFIGS / "h6_jidoka.yaml"), "--port", "COM_NONE"]
+    with pytest.raises(SystemExit):
+        jidoka.main([*args, "--fan", "id_01", "--out", str(out)])
+    assert out.read_text(encoding="utf-8") == "an earlier capture\n"

@@ -207,7 +207,7 @@ It adds nothing to the results log: the evaluation set is scored once per model,
 <summary>Every command, from download to dashboard</summary>
 
 ```
-uv sync                                                 # Python 3.12 and dependencies
+uv sync --all-groups                                    # Python 3.12 and every dependency group
 uv run pytest -q                                        # tests (synthetic data, under a minute)
 uv run python -m andon.data.download all                # development set, all six types (8.1 GB)
 uv run python -m andon.data.download all --dataset eval_data   # additional training set, evaluation set, labels
@@ -228,7 +228,6 @@ uv run python -m andon.fan_latency --port COM6 --trials 20 --out results/h1_fan_
 uv run python -m andon.fan_latency results/h1_fan_latency.txt --out results/h1_fan_latency.md   # its table
 
 uv run python -m andon.simulate --seed 0 1 2 --split dev_test       # andon light on streamed audio
-uv sync --all-groups                                                # adds the dashboard packages
 uv run --group dashboard streamlit run dashboard/app.py             # live dashboard, plays the audio being scored
 uv run --group dashboard python -m andon.demo --gif docs/andon_demo.gif
 uv run --group dashboard python -m andon.chart --out docs/eval_auc.png   # the AUC chart above

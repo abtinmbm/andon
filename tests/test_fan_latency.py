@@ -171,7 +171,7 @@ def test_run_against_a_fake_board(monkeypatch, tmp_path):
     main(["--port", "COM9", "--trials", "3", "--out", str(out)])
     (pico,) = made
     setup = ["status", "fan off", "fan speed 100"]
-    assert pico.written == setup + ["fan on", "fan off"] * 3 + ["fan speed 100"]
+    assert pico.written == setup + ["fan on", "fan off"] * 3 + ["fan speed 100", "fan off"]
     text = out.read_text(encoding="utf-8")
     assert text.startswith("# andon.fan_latency")
     assert "firmware abc1234, speed 100%, 3 trials" in text.splitlines()[0]
@@ -263,3 +263,29 @@ def test_committed_tables_are_generated_from_the_committed_logs(tmp_path, name, 
     assert regenerated.replace(log.as_posix(), f"results/{name}.txt") == committed
     assert f"PASS: {offs} `fan off` commands, {offs} of them right after a start" in committed
     assert f"({kicked} during a kick-start)" in committed
+
+
+class LostAckPico(FakePico):
+    """Applies every command but loses the ack of the first ``fan on``."""
+
+    def write(self, data: bytes):
+        before = len(self.lines)
+        super().write(data)
+        if data.decode().strip() == "fan on" and self.written.count("fan on") == 1:
+            del self.lines[before:]
+
+
+def test_a_lost_ack_mid_run_still_stops_the_fan(monkeypatch, tmp_path):
+    made: list[FakePico] = []
+
+    def make(*args, **kw):
+        made.append(LostAckPico())
+        return made[-1]
+
+    monkeypatch.setitem(sys.modules, "serial", types.SimpleNamespace(Serial=make))
+    monkeypatch.setattr(fan_latency.time, "sleep", lambda s: None)
+    real_send = fan_latency._send
+    monkeypatch.setattr(fan_latency, "_send", lambda p, c, log: real_send(p, c, log, 0.05))
+    with pytest.raises(TimeoutError, match="fan on"):
+        main(["--port", "COM9", "--trials", "3", "--out", str(tmp_path / "log.txt")])
+    assert made[0].written[-1] == "fan off"

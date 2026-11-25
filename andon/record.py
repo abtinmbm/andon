@@ -308,10 +308,10 @@ def record_take(
             )
         _command(port, "watch none", log, parser)
     _command(port, f"fan speed {take_speed(take, cfg)}", log, parser)
-    if fan:
-        _command(port, "fan on", log, parser)
     try:
+        # Inside the try: the board may start the fan even if its ack is lost.
         if fan:
+            _command(port, "fan on", log, parser)
             time.sleep(cfg["recording"]["settle_seconds"])
         _command(port, f"rec start {cfg['audio']['gain_shift']}", log, parser)
         assembler = ClipAssembler(clip_samples)

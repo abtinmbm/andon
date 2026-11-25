@@ -76,6 +76,7 @@ from andon.jidoka import (
     _expand,
     _read,
     _send,
+    _shut_down,
     _wait_for,
 )
 
@@ -222,12 +223,15 @@ def _ensure_limits(port, cap: Capture, fan: str, s: Settings, recalibrate: bool)
         raise TrialError("no limits: " + ("a stop came first" if m else "timed out"))
 
 
-def _finish(port, cap: Capture, s: Settings) -> None:
-    # However it ended, leave the fan asked off at the normal speed, so the button that
-    # clears red does not start it again, and capture the closing stream counts.
-    _send(port, cap, f"fan speed {s.normal_pct}")
-    _send(port, cap, "fan off")
-    _status(port, cap)
+def _finish(port, cap: Capture, s: Settings) -> bool:
+    """However it ended: the fan off (see ``_shut_down``), then the closing stream counts.
+    True if the board confirmed the fan is off."""
+    off = _shut_down(port, cap, s.normal_pct)
+    try:
+        _status(port, cap)
+    except TrialError as e:
+        cap.note(f"cleanup: {e}")
+    return off
 
 
 def _header(cap: Capture, kind: str, cfg: Config, fan: str, s: Settings) -> None:
@@ -323,10 +327,11 @@ def run_series(
         for k in range(1, s.trials + 1):
             cap.note(f"trial {k} of {s.trials}")
             _one_trial(port, cap, ask, s, first=k == 1)
-        if s.start != "switch":
-            cap.note(f"series done: remove the {s.fault} with the fan off")
     finally:
-        _finish(port, cap, s)
+        off = _finish(port, cap, s)
+    # Only once the board has confirmed the fan is off is anyone asked to reach into it.
+    if s.start != "switch" and off:
+        cap.note(f"series done: remove the {s.fault} with the fan off")
     return cap.lines
 
 
@@ -517,10 +522,14 @@ def _parse_trial(lines: list[str], k: int, s: Settings, series: Series) -> Serie
         series.limits.control,
     )
     stage = "before"  # before -> starting (next ack) -> started -> stopped or timed out
+    # The board's window count when the fault starts. A fit-once trial prints no score line
+    # before its start, so the status line that opens each trial sets it first.
     last_n = n_at_start = 0
     for line in lines:
         if _FAULT_MARK.match(line):
             stage = "starting"
+        elif (m := _DETECTOR.match(line)) and stage == "before":
+            last_n = int(m[5])
         elif _NO_STOP_MARK.match(line) and stage == "started":
             stage = "timed out"  # the tool's own closing commands follow
         elif m := _ACK.match(line):
@@ -783,12 +792,15 @@ def main(argv: list[str] | None = None) -> None:
     cfg = load_config(args.config)
     if args.seed != int(cfg.raw["seed"]):
         parser.error(f"the board's model was exported with seed {cfg.raw['seed']}")
+    if args.out.exists():
+        parser.error(f"{args.out} exists: a capture is never overwritten, pick a new name")
     import serial  # only needed with a board attached
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    # The port opens first, so a busy or mistyped port leaves no empty capture behind.
     with (
-        args.out.open("w", encoding="utf-8", newline="\n") as out,
         serial.Serial(args.port, 115200, timeout=0.2) as port,
+        args.out.open("x", encoding="utf-8", newline="\n") as out,
     ):
         if args.cmd == "soak":
             lines = run_soak(cfg, port, args.fan, out, args.recalibrate)

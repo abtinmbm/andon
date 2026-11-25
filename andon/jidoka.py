@@ -151,6 +151,22 @@ def _wait_for(port, cap: Capture, pattern: re.Pattern, timeout_s: float) -> re.M
     return None
 
 
+def _shut_down(port, cap: Capture, normal_pct: int) -> bool:
+    """Ask the fan off, then back to the normal speed, so the button that clears red does
+    not start it again. Fan off goes first and every command is tried even when the one
+    before got no ack: a lost ack must never leave the fan powered. True if the last ack
+    received shows duty 0, which is the only proof that it is safe to touch the fan."""
+    duty = -1
+    for cmd in ("fan off", f"fan speed {normal_pct}"):
+        try:
+            duty = int(_send(port, cap, cmd)[7])
+        except TrialError as e:
+            cap.note(f"cleanup: {e}")
+    if duty != 0:
+        cap.note("the board did not confirm the fan is off: unplug it before touching it")
+    return duty == 0
+
+
 def run(
     cfg: Config, port, fan: str, out: TextIO, clock: Callable[[], float] = time.monotonic
 ) -> list[str]:
@@ -167,14 +183,14 @@ def run(
     try:
         _trial(port, cap, s, fan)
     finally:
-        # However the trial ended, leave the fan asked off at the normal speed, so the
-        # button that clears red does not start it again.
-        _send(port, cap, f"fan speed {s.normal_pct}")
-        _send(port, cap, "fan off")
-        _send(port, cap, "status")
-        # The detector and recorder lines follow the status ack; the detector's stream
-        # restart count is how a trial shows it had no gap in the audio.
-        _wait_for(port, cap, _REC, 2.0)
+        _shut_down(port, cap, s.normal_pct)
+        try:
+            _send(port, cap, "status")
+            # The detector and recorder lines follow the status ack; the detector's stream
+            # restart count is how a trial shows it had no gap in the audio.
+            _wait_for(port, cap, _REC, 2.0)
+        except TrialError as e:
+            cap.note(f"cleanup: {e}")
     return cap.lines
 
 
@@ -406,12 +422,15 @@ def main(argv: list[str] | None = None) -> None:
     fault_pct = TrialSettings.from_config(cfg).fault_pct
 
     if args.cmd == "run":
+        if args.out.exists():
+            parser.error(f"{args.out} exists: a capture is never overwritten, pick a new name")
         import serial  # only needed with a board attached
 
         args.out.parent.mkdir(parents=True, exist_ok=True)
+        # The port opens first, so a busy or mistyped port leaves no empty capture behind.
         with (
-            args.out.open("w", encoding="utf-8", newline="\n") as out,
             serial.Serial(args.port, 115200, timeout=0.2) as port,
+            args.out.open("x", encoding="utf-8", newline="\n") as out,
         ):
             lines = run(cfg, port, args.fan, out)
         trial = parse_capture("\n".join(lines), fault_pct)
