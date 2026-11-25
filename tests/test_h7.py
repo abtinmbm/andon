@@ -118,12 +118,15 @@ class Board:
         self.n += 1
         if self.phase == "calibrating":
             self.calib_n += 1
+            if self.calib_n == CALIB:
+                self.have_limits, self.phase = True, "watching"
+            # As on the board: the window that completes the calibration is printed after
+            # the phase has moved on, so it says watching, and its limits line follows.
             self.out.append(
-                f"score t_us={self.t_us} n={self.n} fan={self.watch} phase=calibrating "
+                f"score t_us={self.t_us} n={self.n} fan={self.watch} phase={self.phase} "
                 "s=10.0000 light=green"
             )
             if self.calib_n == CALIB:
-                self.have_limits, self.phase = True, "watching"
                 self.out.append(self._limits())
             return
         fault = self.speed == FAULT or self.fitted

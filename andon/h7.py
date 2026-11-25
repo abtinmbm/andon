@@ -422,20 +422,24 @@ def parse_soak(text: str, soak_s: float) -> Soak:
     out = Soak()
     watched = WatchClock()
     for line in text.splitlines():
-        watched.feed(line)
+        # Only windows judged against limits count. The window that completes the
+        # calibration is printed as watching just before its limits line, so it is not one.
+        if out.limits.fan:
+            watched.feed(line)
         if m := _BUILD.match(line):
             out.build = m[1]
+        elif (m := _ACK.match(line)) and m[1].startswith("watch ") and m[2] == "ok":
+            out.limits = Limits()  # a new calibration follows; older limits don't apply
         elif m := _LIMITS.match(line):
             lim = _limits(m)
-            # Limits printed before the first watched window may be an older calibration's.
-            if out.windows and (lim.center, lim.control) != (
+            if out.limits.fan and (lim.center, lim.control) != (
                 out.limits.center,
                 out.limits.control,
             ):
                 out.problems.append("the limits changed during the soak")
             out.limits = lim
             out.fan = lim.fan
-        elif (m := _SCORE.match(line)) and m[4] == "watching":
+        elif (m := _SCORE.match(line)) and m[4] == "watching" and out.limits.fan:
             score = float(m[5])
             out.windows += 1
             out.above_control += score > out.limits.control
