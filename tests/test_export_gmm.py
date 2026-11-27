@@ -69,7 +69,7 @@ def test_synthetic_export_round_trips_through_the_headers(exported):
 
 
 def test_both_exporters_write_the_same_front_end(exported, tmp_path):
-    ex, _, out = exported
+    _, _, out = exported
     export_c.write(export_c.synthetic_export(seed=0, n=2), tmp_path, n=2)
     assert (out / export_c.FRONTEND_HEADER).read_bytes() == (
         tmp_path / export_c.FRONTEND_HEADER

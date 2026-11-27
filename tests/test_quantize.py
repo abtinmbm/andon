@@ -77,7 +77,7 @@ def test_int8_cnn_matches_float_on_normal_clips_and_saturates_on_loud_faults(tmp
     make_dataset(tmp_path / "data")
     src = write_cfg(tiny_cfg(tmp_path / "data", epochs=15, learning_rate=0.01), tmp_path / "s.yaml")
     train_idcnn.run(src, 0, ["fan"], CPU, log=tmp_path / "log.csv")
-    model, ckpt = train_idcnn.load_checkpoint(src.checkpoint_path("fan", 0), src, CPU)
+    model, _ = train_idcnn.load_checkpoint(src.checkpoint_path("fan", 0), src, CPU)
     train_feats, _, classes = train_idcnn.training_data(src, "fan", Path("data/cache"))
     clips, cache_name = score.split_clips(src, "fan", "dev_test")
     feats = load_or_extract(clips, src.logmel, Path("data/cache"), cache_name)

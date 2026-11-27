@@ -60,7 +60,12 @@ def fit_limits(
         raise ValueError("need at least two normal window scores to fit limits")
     if log_scale:
         s = np.log(np.maximum(s, _SCORE_FLOOR))
+    # The board refuses the same calibrations (firmware/src/andon_light.c, light_calib_limits).
+    if not np.isfinite(s).all():
+        raise ValueError("unusable limits: a calibration score is not finite")
     center, sigma = float(s.mean()), float(s.std(ddof=1))
+    if sigma <= 0:
+        raise ValueError(f"unusable limits: center {center}, sigma {sigma}")
     return Limits(
         center=center,
         sigma=sigma,
@@ -99,6 +104,10 @@ class AndonLight:
         self._above_control = 0
 
     def update(self, score: float) -> Light:
+        # Checked before any count changes: a NaN compares False everywhere, so it would
+        # read as a low score and could clear a yellow. The board trips red on one instead.
+        if not np.isfinite(score):
+            raise ValueError(f"the light was given a non-finite score: {score}")
         if self.state is Light.RED:
             return self.state
         x = float(self.limits.transform(score))

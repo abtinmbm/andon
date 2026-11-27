@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import argparse
 import csv
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -104,6 +104,12 @@ def _check_sessions(cfg: Config, recording: dict, fold: Fold, split: str) -> Non
     """Refuse a fold whose sessions don't belong to ``split``; eval only for a final config."""
     sessions = recording["sessions"]
     dev, ev = set(sessions["dev"]), set(sessions["eval"])
+    # A session in both lists, or a fold tested on a session it trains on, would score
+    # clips the model was fitted on.
+    if dev & ev:
+        raise ValueError(f"sessions {sorted(dev & ev)} are listed as both dev and eval")
+    if fold.test in fold.train:
+        raise ValueError(f"fold {fold.name}: it is tested on {fold.test}, which it trains on")
     if not set(fold.train) <= dev:
         raise ValueError(f"fold {fold.name}: training sessions must be dev sessions")
     if split == "dev_test" and fold.test not in dev:
@@ -437,16 +443,38 @@ def parse_notes(notes: str) -> dict[str, str]:
     return dict(p.split("=", 1) for p in notes.split() if "=" in p)
 
 
-def _logged_runs(cfg: Config, split: str, log: Path, kind: str = "scores") -> set[tuple[str, str]]:
-    """(fold, seed) pairs already in the log, for the scoring rows or the light rows."""
-    out = set()
+def _logged_runs(cfg: Config, split: str, log: Path, kind: str = "scores") -> Counter:
+    """How many rows each (fold, seed) already has in the log, scoring rows or light rows."""
+    out: Counter = Counter()
     for r in read_results(log):
         if r["config"] != cfg.name or r["split"] != split:
             continue
         n = parse_notes(r["notes"])
         if (n.get("fault") == "light") == (kind == "light"):
-            out.add((n.get("fold", ""), r["seed"]))
+            out[(n.get("fold", ""), r["seed"])] += 1
     return out
+
+
+def expected_rows(clips: list[FanClip], kind: str = "scores") -> int:
+    """The rows one (fold, seed) logs: per fan, one per fault it has plus the control row
+    (``fold_rows``), or one light row per fan (``light_rows``)."""
+    fans = {c.clip.machine_id for c in clips}  # as fold_rows and light_rows count them
+    if kind == "light":
+        return len(fans)
+    faults = {(c.clip.machine_id, c.fault) for c in clips if c.role == "fault"}
+    return len(fans) + len({(f, x) for f, x in faults if x in FAULTS})
+
+
+def _already_done(done: Counter, fold: Fold, seed: int, want: int, what: str) -> bool:
+    """True if every row of this (fold, seed) is logged; a part of them is refused: rows are
+    never edited by hand, so a fold cut off part-way must not pass as finished."""
+    have = done[(fold.name, str(seed))]
+    if 0 < have < want:
+        raise ValueError(
+            f"{fold.name} seed {seed}: {have} of {want} {what} rows are logged; "
+            "the run stopped part-way, so its rows can't be trusted as a set"
+        )
+    return have >= want
 
 
 def _save_scores(path: Path, clips: list[FanClip], scored: Scored) -> None:
@@ -488,8 +516,9 @@ def run(
         feats = load_or_extract(
             [c.clip for c in clips], cfg.logmel, cache_dir, f"realfan_h3_{fold.slug}"
         )
+        want = expected_rows(clips)
         for seed in seeds:
-            if (fold.name, str(seed)) in done:
+            if _already_done(done, fold, seed, want, "scoring"):
                 print(f"{cfg.name} {fold.name} seed {seed}: already logged, skipped")
                 continue
             print(f"{cfg.name} {fold.name} seed {seed}", flush=True)
@@ -774,8 +803,9 @@ def light(
         feats = load_or_extract(
             [c.clip for c in clips], cfg.logmel, cache_dir, f"realfan_h3_{fold.slug}"
         )
+        want = expected_rows(clips, "light")
         for seed in seeds:
-            if (fold.name, str(seed)) in done:
+            if _already_done(done, fold, seed, want, "light"):
                 print(f"{cfg.name} {fold.name} seed {seed}: light already logged, skipped")
                 continue
             path = scores_dir / f"{cfg.name}_{split}_{fold.slug}_seed{seed}.npz"

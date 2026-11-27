@@ -53,12 +53,17 @@ def module_macs(model: nn.Module, example: torch.Tensor) -> int:
         for m in model.modules()
         if isinstance(m, nn.Conv2d | nn.Linear)
     ]
+    # eval() for the count (dropout and batch norm off), then each module's own mode back:
+    # the caller's model may be mid-training.
+    modes = {m: m.training for m in model.modules()}
     try:
         with torch.no_grad():
             model.eval()(example)
     finally:
         for h in handles:
             h.remove()
+        for m, training in modes.items():
+            m.train(training)
     return total
 
 

@@ -144,10 +144,12 @@ def test_simulate_id_catches_loud_faults_without_false_alarms():
 def test_simulate_id_keeps_calibration_clips_out_of_every_judged_stream(monkeypatch):
     clips, feats = synthetic_split(n_normal=10, n_anom=3)
     calib, _ = simulate.calibration_split(clips, list(range(13)))
-    # Calibration clips get one constant level, so the fitted centre shows what it was fitted on.
+    # Calibration clips get (almost) one level, so the fitted centre shows what it was fitted
+    # on. A tiny step per clip keeps the spread above 0: limits with none are refused, as on
+    # the board.
     marked = SplitFeatures(frames=feats.frames.copy(), offsets=feats.offsets)
-    for i in calib:
-        marked.frames[i * 40 : (i + 1) * 40] = 0.5
+    for k, i in enumerate(calib):
+        marked.frames[i * 40 : (i + 1) * 40] = 0.5 + 1e-4 * k
     seen = []
 
     def spy(model, frames, streams, *args):
@@ -161,8 +163,8 @@ def test_simulate_id_keeps_calibration_clips_out_of_every_judged_stream(monkeypa
 
     calib_frames = set(simulate.stream_frames(marked.offsets, calib).tolist())
     assert seen[0].tolist() == sorted(calib_frames)  # the limits' stream is calibration only
-    assert limits.center == pytest.approx(np.log1p(np.exp(4 * 0.5 - 4)))  # Loudness at 0.5
-    assert limits.sigma == pytest.approx(0.0, abs=1e-6)
+    assert limits.center == pytest.approx(np.log1p(np.exp(4 * 0.5 - 4)), rel=1e-2)  # at 0.5
+    assert 0 < limits.sigma < 1e-2
     assert not set(sim) & set(calib)
     for s in seen[1:]:  # false-alarm stream, then warmup + fault streams
         assert not calib_frames & set(s.tolist())

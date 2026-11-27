@@ -53,3 +53,11 @@ def test_front_end_and_time_estimate():
 
 def test_gmm_macs():
     assert budget.gmm_macs(4, 128) == 4 * (128 + 128 * 129 // 2 + 128)
+
+
+def test_counting_macs_leaves_the_model_in_the_mode_it_came_in():
+    cfg = load_config(CONFIGS / "phase1_baseline.yaml")
+    model = train.build_model(cfg, input_dim=640)
+    model.train()
+    budget.module_macs(model, torch.zeros(1, 640))
+    assert model.training and all(m.training for m in model.modules())

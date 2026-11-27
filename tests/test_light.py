@@ -93,3 +93,20 @@ def test_log_scale_limits_are_applied_to_raw_scores():
     lt = AndonLight(lim, LightSettings(red_hold=2))
     # log(30) = 3.4 is above control; 10 (log 2.3) is only above warn.
     assert lt.run([10, 30, 30]) == [G, Y, R]
+
+
+@pytest.mark.parametrize("scores", [[1.0, np.nan, 2.0], [1.0, np.inf], [3.0, 3.0, 3.0]])
+def test_limits_the_board_would_refuse_are_refused(scores):
+    # firmware/src/andon_light.c refuses a non-finite mean or sigma and a sigma of 0.
+    with pytest.raises(ValueError, match="unusable limits"):
+        fit_limits(np.array(scores))
+
+
+def test_a_non_finite_score_is_refused_before_it_changes_the_light():
+    light = AndonLight(fit_limits(np.array([0.0, 1.0, 2.0])))
+    light.run([10.0, 10.0])
+    assert light.state is Light.YELLOW
+    for bad in (np.nan, np.inf):
+        with pytest.raises(ValueError, match="non-finite"):
+            light.update(bad)
+    assert light.state is Light.YELLOW  # three NaNs used to clear it to green

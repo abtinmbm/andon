@@ -6,7 +6,7 @@ import torch
 from test_idcnn import make_dataset, tiny_cfg, write_cfg
 
 from andon import reproduce, score, train_idcnn
-from andon.experiment import RESULTS_COLUMNS, load_config, read_results
+from andon.experiment import RESULTS_COLUMNS, Config, load_config, read_results
 
 CONFIGS = Path(__file__).resolve().parents[1] / "configs"
 CPU = torch.device("cpu")
@@ -127,7 +127,7 @@ def test_a_run_never_scored_on_eval_is_refused_before_anything_runs(scored, monk
     assert calls == [] and not out.exists()
 
 
-def test_only_the_id_cnn_can_be_rechecked(scored, tmp_path):
+def test_only_the_id_cnn_can_be_rechecked(scored):
     _, log, out = scored
     cfg = load_config(CONFIGS / "phase1_baseline.yaml")
     with pytest.raises(ValueError, match="machine-ID CNN only"):
@@ -167,3 +167,19 @@ def test_headline_averages_types_within_each_seed(tmp_path):
     assert mean == pytest.approx(90.0)
     with pytest.raises(ValueError, match="no eval row"):
         reproduce.headline(cfg, log, ["fan", "pump"], [0, 2])
+
+
+@pytest.mark.parametrize("metric", ["auc", "pauc"])
+def test_a_nan_metric_never_reads_as_reproduced(tmp_path, metric):
+    # max() skips a NaN, so a NaN AUC or pAUC used to leave the largest difference at 0.
+    cfg = Config("tiny_idcnn", {})
+    row = {c: "" for c in RESULTS_COLUMNS}
+    row.update(config="tiny_idcnn", machine_type="fan", split="eval", seed="0")
+    good = dict(row, auc="0.9000", pauc="0.8000")
+    bad = dict(good, **{metric: "nan"})
+    for path, r in ((tmp_path / "log.csv", good), (tmp_path / "new.csv", bad)):
+        path.write_text(
+            ",".join(RESULTS_COLUMNS) + "\n" + ",".join(f'"{r[c]}"' for c in RESULTS_COLUMNS) + "\n"
+        )
+    lines, worst = reproduce.compare(cfg, ["fan"], [0], tmp_path / "new.csv", tmp_path / "log.csv")
+    assert "NOT FINITE" in lines[0] and worst == float("inf")

@@ -258,3 +258,18 @@ def test_extract_eval_train_then_test_into_one_folder(tmp_path):
     assert len(list((root / "eval_data/fan/test").glob("*.wav"))) == 3
     with pytest.raises(RuntimeError, match="fan/test"):
         dl.extract(tmp_path / "train.zip", root, "fan", "eval_data", ("test",))
+
+
+def test_a_truncated_wav_is_refused(tmp_path):
+    path = tmp_path / "a.wav"
+    write_wav(path, np.zeros(4096, dtype=np.float32), 16000)
+    path.write_bytes(path.read_bytes()[:-2048])  # the header still says 4096 frames
+    with pytest.raises(ValueError, match="holds fewer"):
+        read_wav(path)
+
+
+def test_a_file_listed_twice_in_the_labels_is_refused(tmp_path):
+    path = tmp_path / "gt.csv"
+    path.write_text("fan\nid_01_00000000.wav,a,0\nid_01_00000000.wav,b,1\n")
+    with pytest.raises(ValueError, match="listed twice"):
+        read_ground_truth(path)

@@ -92,6 +92,8 @@ def read_ground_truth(path: Path) -> dict[str, dict[str, bool]]:
                 continue
             if current is None or len(row) != 3 or row[2] not in ("0", "1"):
                 raise ValueError(f"{path}: unexpected line {row}")
+            if row[0] in current:  # the last label would silently win
+                raise ValueError(f"{path}: {row[0]} is listed twice for one machine type")
             current[row[0]] = row[2] == "1"
     return labels
 

@@ -124,7 +124,7 @@ def test_every_word_is_one_frames_sample(seed: int):
 
 
 def test_clock_shape_matches_the_datasheet():
-    words, trace = run([0] * 6)
+    _, trace = run([0] * 6)
     # Whole frames, from one WS falling edge to the next.
     ws_falls = [i for i in range(1, len(trace)) if trace[i - 1][1] == 1 and trace[i][1] == 0]
     assert len(ws_falls) >= 4

@@ -26,7 +26,12 @@ def read_wav(path: str | Path) -> tuple[np.ndarray, int]:
             raise ValueError(f"{path}: expected 16-bit PCM, got {8 * wf.getsampwidth()}-bit")
         sample_rate = wf.getframerate()
         n_channels = wf.getnchannels()
-        raw = wf.readframes(wf.getnframes())
+        n_frames = wf.getnframes()
+        raw = wf.readframes(n_frames)
+    # wave returns what is there without complaint, so a truncated file would quietly be a
+    # shorter clip.
+    if len(raw) != n_frames * n_channels * 2:
+        raise ValueError(f"{path}: header says {n_frames} frames, the file holds fewer")
     samples = np.frombuffer(raw, dtype="<i2").reshape(-1, n_channels)[:, 0]
     return samples.astype(np.float32) / _INT16_SCALE, sample_rate
 

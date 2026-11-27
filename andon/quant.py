@@ -35,7 +35,7 @@ from andon.models.autoencoder import DenseAutoencoder
 from andon.models.idcnn import IdCNN
 
 INT8_MIN, INT8_MAX = -128, 127
-INT32_MAX = 2**31 - 1
+INT32_MIN, INT32_MAX = -(2**31), 2**31 - 1
 
 
 @dataclass(frozen=True)
@@ -174,16 +174,25 @@ class QLayer:
 def to_int32(x: np.ndarray, what: str) -> np.ndarray:
     """Round to int32, refusing values the C code's int32 would silently wrap."""
     r = np.round(x)
-    if np.abs(r).max(initial=0) > INT32_MAX:
-        raise ValueError(f"{what} overflows int32 (largest {np.abs(r).max():.3g})")
+    _check_int32_range(r, what, "int32")
     return r.astype(np.int32)
 
 
 def check_int32(acc: np.ndarray, what: str) -> np.ndarray:
     """Pass ``acc`` through, raising if the C code's int32 accumulator would overflow."""
-    if np.abs(acc).max(initial=0) > INT32_MAX:
-        raise ValueError(f"{what} overflows the int32 accumulator")
+    _check_int32_range(acc, what, "the int32 accumulator")
     return acc
+
+
+def _check_int32_range(a: np.ndarray, what: str, where: str) -> None:
+    # Compared against both bounds directly: abs() turns INT32_MIN into a false overflow and
+    # overflows itself at the int64 minimum, and a NaN passes any comparison.
+    if a.size == 0:
+        return
+    if not np.isfinite(a).all():
+        raise ValueError(f"{what} is not finite")
+    if a.min() < INT32_MIN or a.max() > INT32_MAX:
+        raise ValueError(f"{what} overflows {where} (range {a.min():.3g} to {a.max():.3g})")
 
 
 def _requant_layer(
@@ -412,6 +421,10 @@ def quantize_gmm(gm: GaussianMixture) -> QuantGMM:
     k, d = chol.shape[:2]
     chol_q = q.reshape(k, d, d).transpose(0, 2, 1)
     chol_scale = scale.reshape(k, d)
+    # A column's scale follows its largest entry, so a small diagonal next to a large
+    # off-diagonal can round to 0: log 0 makes every score NaN. Refuse it instead.
+    if (np.diagonal(chol_q, axis1=1, axis2=2) == 0).any():
+        raise ValueError("a precision Cholesky diagonal rounds to 0 in int8")
     deq = chol_q.astype(np.float64) * chol_scale[:, None, :]
     log_det = np.log(np.abs(np.diagonal(deq, axis1=1, axis2=2))).sum(axis=1)
     return QuantGMM(

@@ -25,6 +25,7 @@ differ from the logged ones by more than the tolerance and then report "NOT repr
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 from pathlib import Path
 
@@ -171,9 +172,17 @@ def compare(
         for seed in seeds:
             key = (machine_type, str(seed))
             new, old = mine[key], logged[key]
-            diff = max(abs(float(new[m]) - float(old[m])) for m in ("auc", "pauc"))
+            values = [float(r[m]) for r in (new, old) for m in ("auc", "pauc")]
+            # max() skips a NaN (every comparison with it is False), so a NaN metric would
+            # read as a match; anything not finite fails outright.
+            if all(math.isfinite(v) for v in values):
+                diff = max(abs(float(new[m]) - float(old[m])) for m in ("auc", "pauc"))
+            else:
+                diff = math.inf
             worst = max(worst, diff)
-            verdict = "match" if diff <= TOLERANCE else "DIFFERS"
+            verdict = (
+                "match" if diff <= TOLERANCE else "NOT FINITE" if math.isinf(diff) else "DIFFERS"
+            )
             lines.append(
                 f"{machine_type:<12} seed {seed}  AUC {new['auc']} (logged {old['auc']})  "
                 f"pAUC {new['pauc']} (logged {old['pauc']})  {verdict}"

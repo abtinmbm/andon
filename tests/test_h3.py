@@ -571,3 +571,23 @@ def test_the_light_summary_is_total_reds_over_total_time_and_skips_flagged_takes
     # 1 red in 3600 s; 1 red in 360 s; caught 2 of the 3 unflagged takes, mean (4.10 + 2.00) / 2.
     assert "| `cfg` | 1.00 | 10.00 | 2 of 3 | 3.05 |" in text
     assert "missed in 1 of 1" in text and "(flagged)" in text
+
+
+def test_overlapping_dev_and_eval_sessions_are_refused():
+    # The shipped split shares no session; one edit to the lists must not let eval score
+    # the clips the model trained on.
+    rec = dict(RECORDING, sessions=dict(RECORDING["sessions"], eval=["d1"]))
+    with pytest.raises(ValueError, match="both dev and eval"):
+        h3.fold_clips(cfg(final=True), rec, manifest(), h3.Fold(("d1", "d2"), "d1"), "eval")
+    with pytest.raises(ValueError, match="which it trains on"):
+        h3._check_sessions(cfg(), RECORDING, h3.Fold(("d1", "d2"), "d1"), "dev_test")
+
+
+def test_a_fold_with_only_some_of_its_rows_logged_is_refused_not_skipped(synthetic, tmp_path):
+    cfg_, log, rows, dirs = _run("h3_level", synthetic, tmp_path)
+    lines = log.read_text(encoding="utf-8").splitlines()
+    # Drop all but one of one fold's rows, as a run cut off part-way would leave them.
+    fold_lines = [i for i, ln in enumerate(lines) if "fold=d2>d1" in ln]
+    log.write_text("\n".join(ln for i, ln in enumerate(lines) if i not in fold_lines[1:]) + "\n")
+    with pytest.raises(ValueError, match="1 of 6 scoring rows"):
+        h3.run(cfg_, [0], "dev_test", CPU, log=log, checkpoint_dir=tmp_path, **dirs)

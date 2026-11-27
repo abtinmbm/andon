@@ -211,3 +211,25 @@ def test_biases_and_sums_that_overflow_int32_are_refused():
     acc = np.array([2**31], dtype=np.int64)
     with pytest.raises(ValueError, match="int32 accumulator"):
         quant.check_int32(acc, "a conv layer's sum")
+
+
+def test_the_int32_guards_check_both_bounds_and_refuse_nan():
+    lo, hi = np.array([quant.INT32_MIN], dtype=np.float64), np.array([quant.INT32_MAX + 1.0])
+    assert quant.to_int32(lo, "x")[0] == quant.INT32_MIN  # the valid minimum passes
+    with pytest.raises(ValueError, match="overflows"):
+        quant.to_int32(hi, "x")
+    with pytest.raises(ValueError, match="not finite"):
+        quant.to_int32(np.array([np.nan, 2.0**32]), "x")
+    with pytest.raises(ValueError, match="overflows"):
+        quant.check_int32(np.array([np.iinfo(np.int64).min]), "x")
+    assert quant.check_int32(np.array([quant.INT32_MIN], dtype=np.int64), "x")[0] == quant.INT32_MIN
+
+
+def test_a_gmm_whose_cholesky_diagonal_rounds_to_zero_is_refused():
+    # Strongly correlated features (u, 1000 u + v): the first precision column holds a
+    # huge off-diagonal and a small diagonal, which rounds to 0 in int8.
+    rng = np.random.default_rng(0)
+    u, v = rng.normal(size=2000), rng.normal(size=2000)
+    gm = GaussianMixture(1, covariance_type="full", random_state=0).fit(np.c_[u, 1000 * u + v])
+    with pytest.raises(ValueError, match="rounds to 0"):
+        quant.quantize_gmm(gm)
