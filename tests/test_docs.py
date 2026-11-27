@@ -114,6 +114,7 @@ EVAL_TABLES = {
     "h3_dev.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"], ["dev_test"]),
     "h3_eval.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_centred", "h3_idcnn_mixup"], ["eval"]),
     "level_check_fans.md": ("h3", ["h3_level", "h3_gmm", "h3_gmm_levelmatched"], ["dev_test"]),
+    "h7_unseen.md": ("unseen", ["h7_unseen", "h7_unseen_levelmatched"], ["eval"]),
     "level_check_dcase.md": (
         "evaluate",
         ["phase2_level_id", "phase1_baseline", "phase2_gmm_id", "phase3_idcnn_mixup"],
@@ -125,7 +126,7 @@ EVAL_TABLES = {
 @pytest.mark.parametrize("name", sorted(EVAL_TABLES))
 def test_results_tables_are_what_the_log_generates(name):
     """A table edited by hand, or not regenerated after new rows, fails here."""
-    from andon import evaluate, h3, quantize, simulate
+    from andon import evaluate, h3, quantize, simulate, unseen
 
     tool, configs, splits = EVAL_TABLES[name]
     log = ROOT / "results" / "results_log.csv"
@@ -133,6 +134,8 @@ def test_results_tables_are_what_the_log_generates(name):
         text = evaluate.comparison_tables(configs, splits, log=log) + "\n"
     elif tool == "h3":
         text = h3.tables(configs, splits[0], log=log) + "\n"
+    elif tool == "unseen":
+        text = unseen.table(configs, log=log) + "\n"
     elif tool == "quantize":
         text = quantize.summary(configs, splits, log=log) + "\n"
     else:
