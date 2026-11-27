@@ -289,3 +289,14 @@ def test_a_lost_ack_mid_run_still_stops_the_fan(monkeypatch, tmp_path):
     with pytest.raises(TimeoutError, match="fan on"):
         main(["--port", "COM9", "--trials", "3", "--out", str(tmp_path / "log.txt")])
     assert made[0].written[-1] == "fan off"
+
+
+def test_a_red_start_and_a_listen_both_end_with_fan_off(monkeypatch, tmp_path):
+    made = fake_serial(monkeypatch, light="red")
+    with pytest.raises(RuntimeError, match="light is red"):
+        main(["--port", "COM9", "--out", str(tmp_path / "log.txt")])
+    assert made[-1].written[-1] == "fan off"
+    clock = iter(x * 0.01 for x in range(100_000))
+    monkeypatch.setattr(fan_latency.time, "monotonic", lambda: next(clock))
+    main(["--port", "COM9", "--listen", "1", "--out", str(tmp_path / "listen.txt")])
+    assert made[-1].written[-1] == "fan off"

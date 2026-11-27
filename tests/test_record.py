@@ -213,7 +213,7 @@ class FakeBoard:
         self.watch = watch  # None: an H2 build, whose acks have no watch field
         self.sent: list[str] = []
         self.out = bytearray()
-        self.streaming = False
+        self.streaming = self.want_on = False
         self.seq = 0
         self.drop = drop or set()
 
@@ -229,9 +229,15 @@ class FakeBoard:
                 self.streaming = False
             elif cmd == "watch none":
                 self.watch = "none"
+            elif cmd in ("fan on", "fan off"):
+                self.want_on = cmd == "fan on"
             build = "build=abc1234\n" if cmd == "status" else ""
             watch = "" if self.watch is None else f" watch={self.watch}"
-            self.out += f'{build}ack cmd="{cmd}" result=ok t_rx_us=1{watch}\n'.encode()
+            on = int(self.want_on)
+            self.out += (
+                f'{build}ack cmd="{cmd}" result=ok t_rx_us=1 t_set_us=2 t_pin_us=3 pin={on} '
+                f"duty={100 * on} light=green speed=100 want_on={on} kick=0{watch}\n"
+            ).encode()
 
     def read(self, n: int) -> bytes:
         if self.streaming and len(self.out) < n:
@@ -378,8 +384,58 @@ class LostAckBoard(FakeBoard):
 
 
 def test_a_lost_fan_on_ack_still_stops_the_fan(cfg, monkeypatch):
+    cfg["audio"]["clip_seconds"] = 0.064
     monkeypatch.setattr(record, "_command", functools.partial(record._command, timeout_s=0.05))
     board = LostAckBoard("fan on")
     with pytest.raises(TimeoutError, match="fan on"):
         record.record_take(board, record.Take("s1", "id_00", "none", 0.128), cfg, [])
     assert board.sent[-2:] == ["rec stop", "fan off"]
+
+
+class StuckOnBoard(FakeBoard):
+    """Its closing fan off ack says the fan is still asked on."""
+
+    def write(self, data: bytes):
+        super().write(data)
+        if data.decode().endswith("fan off\n"):
+            self.out = self.out.replace(b"want_on=0", b"want_on=1")
+
+
+def test_a_take_whose_fan_off_is_not_confirmed_is_saved_and_then_stops_the_run(cfg):
+    cfg["audio"]["clip_seconds"] = 0.064
+    take = record.Take("s1", "id_00", "none", 0.064)
+    clips, stats = record.record_take(FakeBoard(), take, cfg, [])
+    assert stats["fan_off_confirmed"] == 1 and len(clips) == 1
+    with pytest.raises(RuntimeError, match="unplug it"):
+        record.run_take(StuckOnBoard(), take, cfg)
+    assert len(list((Path(cfg["data"]["root"]) / "s1").glob("normal_id_00_*.wav"))) == 1
+
+
+@pytest.mark.parametrize(("clip_seconds", "seconds"), [(0.064, 0.0), (0.064, 0.01), (0.0, 1.0)])
+def test_a_take_that_could_make_no_clip_never_starts_the_fan(cfg, clip_seconds, seconds):
+    cfg["audio"]["clip_seconds"] = clip_seconds
+    board = FakeBoard()
+    with pytest.raises(ValueError):
+        record.record_take(board, record.Take("s1", "id_00", "none", seconds), cfg, [])
+    assert board.sent == []
+
+
+def test_noise_with_no_newline_does_not_grow_the_text_buffer():
+    p = record.StreamParser()
+    for _ in range(64):
+        list(p.feed(b"x" * 1024))
+    assert len(p.text) <= record.MAX_LINE_BYTES
+    assert list(p.feed(b"\nack ok\n")) == ["ack ok"]  # the next whole line still reads
+
+
+def test_a_recording_is_created_exclusively(cfg):
+    take = record.Take("s1", "id_00", "none", 10.0)
+    clip = np.zeros(1024, dtype=np.int16)
+    (path,) = record.save_take(take, [clip], cfg, "b", "t1", "x")
+    real_next = record.next_index
+    try:
+        record.next_index = lambda *a: 0  # a second recorder that picked the same number
+        with pytest.raises(FileExistsError):
+            record.save_take(take, [clip], cfg, "b", "t2", "x")
+    finally:
+        record.next_index = real_next

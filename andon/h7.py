@@ -67,6 +67,7 @@ from andon.jidoka import (
     _FAN_UPDATE,
     _LIGHT,
     _LIMITS,
+    _MODEL,
     _REC,
     _SCORE,
     _TRIP,
@@ -78,6 +79,11 @@ from andon.jidoka import (
     _send,
     _shut_down,
     _wait_for,
+    check_model,
+    expected_model,
+    is_off,
+    model_name,
+    refuse_report_over_input,
 )
 
 _DETECTOR = re.compile(
@@ -115,6 +121,7 @@ class Settings:
     settle_s: float
     calib_timeout_s: float
     wait_s: float  # for the person at the bench (button, fitting a fault)
+    model: str = ""  # the model the board must run: "h3_gmm seed 0"
     soak_s: float = 0.0
     max_wall_s: float = 0.0
     fault: str = ""
@@ -133,6 +140,7 @@ class Settings:
             settle_s=float(rec["recording"]["settle_seconds"]),
             calib_timeout_s=float(cfg.raw["calib_timeout_seconds"]),
             wait_s=float(cfg.raw["wait_minutes"]) * 60,
+            model=expected_model(cfg),
         )
         if "soak" in cfg.raw:
             s = cfg.raw["soak"]
@@ -208,6 +216,7 @@ def _ensure_limits(port, cap: Capture, fan: str, s: Settings, recalibrate: bool)
     st = _status(port, cap)
     if st["ack"][8] == "red":
         raise TrialError("the light is red: press the button to reset it, then rerun")
+    check_model(cap, s.model)
     det, lim = st.get("detector"), st.get("limits")
     if not recalibrate and det and det[1] == fan and lim and lim[2] == fan:
         cap.note(f"keeping the board's limits for {fan} (control {lim[7]})")
@@ -335,9 +344,16 @@ def run_series(
     return cap.lines
 
 
+def _fan_off(port, cap: Capture) -> None:
+    """``fan off``, and stop unless its ack proves the fan off (``is_off``): the next step
+    may ask for hands in the fan, or for the button that restarts a fan still asked on."""
+    if not is_off(_send(port, cap, "fan off")):
+        raise TrialError("the board did not confirm the fan is off: unplug it before touching it")
+
+
 def _one_trial(port, cap: Capture, ask: Ask, s: Settings, first: bool) -> None:
     st = _status(port, cap)  # its detector line opens the trial's restart count
-    _send(port, cap, "fan off")
+    _fan_off(port, cap)
     _send(port, cap, f"fan speed {s.normal_pct}")
     if st["ack"][8] == "red":
         _clear_red(port, cap, s)
@@ -352,7 +368,7 @@ def _one_trial(port, cap: Capture, ask: Ask, s: Settings, first: bool) -> None:
             _status(port, cap)
             return
         if s.start == "fit_each":
-            _send(port, cap, "fan off")
+            _fan_off(port, cap)
             _ask(port, cap, ask, f"wait for the blades to stop, then fit the {s.fault}", s)
     cap.note("fault start")
     _send(port, cap, f"fan speed {s.fault_pct}" if s.start == "switch" else "fan on")
@@ -400,6 +416,7 @@ def _limits(m: re.Match) -> Limits:
 class Soak:
     fan: str = ""
     build: str = "unknown"
+    model: str = ""
     limits: Limits = field(default_factory=Limits)
     watched_s: float = 0.0
     windows: int = 0
@@ -423,7 +440,8 @@ def _restarts(text: str) -> int:
     return counts[-1] - counts[0] if len(counts) >= 2 else -1
 
 
-def parse_soak(text: str, soak_s: float) -> Soak:
+def parse_soak(text: str, soak_s: float, model: str = "") -> Soak:
+    """The soak in a capture. With ``model``, the board must have said it runs that model."""
     out = Soak()
     watched = WatchClock()
     for line in text.splitlines():
@@ -433,6 +451,8 @@ def parse_soak(text: str, soak_s: float) -> Soak:
             watched.feed(line)
         if m := _BUILD.match(line):
             out.build = m[1]
+            if mm := _MODEL.match(line):
+                out.model = model_name(mm)
         elif (m := _ACK.match(line)) and m[1].startswith("watch ") and m[2] == "ok":
             out.limits = Limits()  # a new calibration follows; older limits don't apply
         elif m := _LIMITS.match(line):
@@ -461,7 +481,13 @@ def parse_soak(text: str, soak_s: float) -> Soak:
         out.problems.append(f"watched {out.watched_s / 60:.1f} min of {soak_s / 60:g}")
     if out.restarts > 0:
         out.problems.append(f"the audio stream restarted {out.restarts} time(s)")
+    _check_capture_model(out, model)
     return out
+
+
+def _check_capture_model(x: Soak | Series, model: str) -> None:
+    if model and x.model != model:
+        x.problems.append(f"the board runs {x.model or 'an unnamed model'}, not {model}")
 
 
 @dataclass
@@ -476,6 +502,7 @@ class Series:
     start: str
     fan: str = ""
     build: str = "unknown"
+    model: str = ""
     limits: Limits = field(default_factory=Limits)
     trials: list[SeriesTrial] = field(default_factory=list)
     problems: list[str] = field(default_factory=list)  # about the series as a whole
@@ -502,6 +529,8 @@ def parse_series(text: str, s: Settings) -> Series:
     for line in segments[0]:
         if m := _BUILD.match(line):
             out.build = m[1]
+            if mm := _MODEL.match(line):
+                out.model = model_name(mm)
         elif m := _LIMITS.match(line):
             out.limits = _limits(m)
     out.fan = out.limits.fan
@@ -511,6 +540,7 @@ def parse_series(text: str, s: Settings) -> Series:
         out.trials.append(_parse_trial(seg, k, s, out))
     if len(out.trials) != s.trials:
         out.problems.append(f"{len(out.trials)} trials of {s.trials}")
+    _check_capture_model(out, s.model)
     return out
 
 
@@ -525,11 +555,12 @@ def _parse_trial(lines: list[str], k: int, s: Settings, series: Series) -> Serie
     # The board's window count when the fault starts. A fit-once trial prints no score line
     # before its start, so the status line that opens each trial sets it first.
     last_n = n_at_start = 0
+    opened = False  # a status line before the fault; without it windows to red can't count
     for line in lines:
         if _FAULT_MARK.match(line):
             stage = "starting"
         elif (m := _DETECTOR.match(line)) and stage == "before":
-            last_n = int(m[5])
+            last_n, opened = int(m[5]), True
         elif _NO_STOP_MARK.match(line) and stage == "started":
             stage = "timed out"  # the tool's own closing commands follow
         elif m := _ACK.match(line):
@@ -555,14 +586,16 @@ def _parse_trial(lines: list[str], k: int, s: Settings, series: Series) -> Serie
                     v if math.isnan(t.max_normal_score) else max(t.max_normal_score, v)
                 )
         elif m := _TRIP.match(line):
-            if stage == "started" and t.trip_us < 0:
+            # The board's clock only runs forward: a trip stamped before the start is not
+            # this fault's, so it is not taken as the evidence.
+            if stage == "started" and t.trip_us < 0 and int(m[1]) >= t.switch_us:
                 t.trip_us, t.trip_reason = int(m[1]), m[2]
                 t.windows_to_red = int(m[4]) - n_at_start
             elif stage == "before":
                 t.false_stop = True
                 t.problems.append(f"a stop before the fault (reason {m[2]}): a false stop")
         elif m := _FAN_UPDATE.match(line):
-            cut = int(m[4]) == 0 and int(m[3]) == 0 and int(m[2]) >= 0
+            cut = int(m[4]) == 0 and int(m[3]) == 0 and int(m[2]) >= t.trip_us  # not older
             if t.trip_us >= 0 and t.stop_us < 0 and cut:
                 t.stop_us, stage = int(m[2]), "stopped"
         elif (m := _LIGHT.match(line)) and m[4] == "1" and stage == "started":
@@ -570,6 +603,8 @@ def _parse_trial(lines: list[str], k: int, s: Settings, series: Series) -> Serie
     t.restarts = _restarts("\n".join(lines))
     if t.restarts > 0:
         t.problems.append(f"the audio stream restarted {t.restarts} time(s) in the trial")
+    if not opened:
+        t.problems.append("no status line opened the trial, so windows to red can't be counted")
     if s.start != "fit_once" and not t.false_stop and t.normal_windows == 0:
         t.problems.append("no normal window was watched before the fault")
     if t.false_stop:
@@ -706,7 +741,8 @@ def read_capture(path: Path) -> tuple[Config, str, Soak | Series]:
         raise ValueError(f"{path} is not an andon.h7 capture")
     cfg = load_config(Path("configs") / f"{m[2]}.yaml")
     s = Settings.from_config(cfg)
-    return cfg, m[1], parse_soak(text, s.soak_s) if m[1] == "soak" else parse_series(text, s)
+    x = parse_soak(text, s.soak_s, s.model) if m[1] == "soak" else parse_series(text, s)
+    return cfg, m[1], x
 
 
 def log_rows(items: list[tuple[Config, Soak | Series, Path]], seed: int, log: Path) -> None:
@@ -718,6 +754,10 @@ def log_rows(items: list[tuple[Config, Soak | Series, Path]], seed: int, log: Pa
         require_final(cfg, "eval")
         if not x.fan:
             raise ValueError(f"{cfg.name}: no fan in the capture")
+        # The row is logged once: a capture the parser found incomplete or wrong (a short
+        # soak, missing trials, another model) must not take that one slot.
+        if x.problems:
+            raise ValueError(f"{cfg.name} {x.fan}: not logged, {'; '.join(x.problems)}")
         if is_logged(cfg, x.fan, seed, "eval", log):
             raise ValueError(f"{cfg.name} {x.fan} seed {seed} is already logged (once)")
     for cfg, x, path in items:
@@ -752,6 +792,8 @@ def report(items: list[tuple[Config, Soak | Series, Path]]) -> str:
         )
         for x in series:
             parts.append(f"\n### {x.fault} ({x.fan})\n\n" + trials_table(x))
+            if x.problems:
+                parts.append("\n**Incomplete series**: " + "; ".join(x.problems) + "\n")
     return "".join(parts)
 
 
@@ -776,7 +818,9 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.cmd == "report":
         items = []
-        for path in _expand(args.captures):
+        paths = _expand(args.captures)
+        refuse_report_over_input(args.out, paths)
+        for path in paths:
             cfg, _, x = read_capture(path)
             if args.seed != int(cfg.raw["seed"]):
                 parser.error(f"{cfg.name}: the board's model has seed {cfg.raw['seed']}")
@@ -810,7 +854,7 @@ def main(argv: list[str] | None = None) -> None:
     s = Settings.from_config(cfg)
     text = "\n".join(lines)
     if args.cmd == "soak":
-        print(soak_table([parse_soak(text, s.soak_s)]), end="")
+        print(soak_table([parse_soak(text, s.soak_s, s.model)]), end="")
     else:
         x = parse_series(text, s)
         print(series_table([x]) + "\n" + trials_table(x), end="")

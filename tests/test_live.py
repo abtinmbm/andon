@@ -40,3 +40,12 @@ def test_a_half_written_last_line_is_left_for_the_next_read():
     i = text.index("\ntrip ") + 1
     v = live.read_capture(text[: i + 10], FAULT)  # "trip t_us=" cut short
     assert v.trip_reason == "" and v.light is not Light.RED
+
+
+def test_a_limits_line_after_the_stop_keeps_the_page_stopped():
+    # Every status prints the limits again, the closing one too.
+    text = run_trial(Board()) + (
+        "limits t_us=99 fan=id_01 n=3 center=10.0000 sigma=1.0000 warn=12.0000 control=13.0000\n"
+    )
+    v = live.read_capture(text, FAULT)
+    assert v.stage == "stopped" and v.limits.control == 13.0

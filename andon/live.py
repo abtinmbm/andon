@@ -67,7 +67,10 @@ def read_capture(text: str, fault_pct: int) -> LiveView:
                 v.stage = "calibrating"
         elif m := jidoka._LIMITS.match(line):
             v.limits = Limits(float(m[4]), float(m[5]), float(m[6]), float(m[7]), False)
-            v.stage = "watching"
+            # Every status prints the limits again, the closing one too: a stopped fan stays
+            # stopped on the page.
+            if v.stage != "stopped":
+                v.stage = "watching"
         elif m := jidoka._TRIP.match(line):
             v.red_s, v.trip_reason, v.light = v.seconds(int(m[1])), m[2], Light.RED
         elif (m := jidoka._FAN_UPDATE.match(line)) and int(m[4]) == 0 and int(m[3]) == 0:

@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIGS = ROOT / "configs"
 FAULT = 85  # h2_recording.yaml: fault_speed_pct.underspeed
 CALIB = 3
+BUILD_LINE = "build=abc1234 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/x.wav"
 
 
 def cfg(name: str, **over) -> Config:
@@ -79,7 +80,7 @@ class Board:
             if self.running:
                 self._start()
         elif cmd == "status":
-            self.out.append("build=abc1234")
+            self.out.append(BUILD_LINE)
         self.t_us += 500
         duty = self.speed if self.running else 0
         part = 0 < duty < 100  # a part duty toggles the pin, so it is not read back
@@ -424,18 +425,30 @@ def test_report_tables_and_log_rows(tmp_path, monkeypatch):
     assert "| underspeed | serial switch to the fault duty | 3 | 3 | 0 |" in text
     assert "### underspeed (id_00)" in text
     log = tmp_path / "log.csv"
-    h7.log_rows(items, 0, log)
+    # The configs ask for a 60 min soak and 10 trials; the fakes ran 0.2 min and 3, so the
+    # parser marks both incomplete, and an incomplete capture never takes the once-only row.
+    for item in items:
+        with pytest.raises(ValueError, match="not logged"):
+            h7.log_rows([item], 0, log)
+    assert "**Incomplete series**: 3 trials of 10" in text
+    (sc, _, sp), (uc, _, up) = items
+    s_soak, s_series = h7.Settings.from_config(sc), settings("h7_underspeed", trials=3)
+    complete = [
+        (sc, h7.parse_soak(sp.read_text(encoding="utf-8"), 12.0, s_soak.model), sp),
+        (uc, h7.parse_series(up.read_text(encoding="utf-8"), s_series), up),
+    ]
+    h7.log_rows(complete, 0, log)
     rows = read_results(log)
     assert [(r["config"], r["machine_type"], r["split"]) for r in rows] == [
         ("h7_soak", "id_00", "eval"),
         ("h7_underspeed", "id_00", "eval"),
     ]
-    assert rows[0]["auc"] == "nan" and "trial=soak complete=0 " in rows[0]["notes"]
+    assert rows[0]["auc"] == "nan" and "trial=soak complete=1 " in rows[0]["notes"]
     assert "fault=underspeed start=switch trials=3 caught=3 false_stops=0 " in rows[1]["notes"]
     with pytest.raises(ValueError, match="already logged"):
-        h7.log_rows(items[:1], 0, log)
+        h7.log_rows(complete[:1], 0, log)
     with pytest.raises(ValueError, match="one capture per config and fan"):
-        h7.log_rows([items[0], items[0]], 0, tmp_path / "other.csv")
+        h7.log_rows([complete[0], complete[0]], 0, tmp_path / "other.csv")
 
 
 def test_rows_need_a_final_config(tmp_path, monkeypatch):
@@ -447,7 +460,7 @@ def test_rows_need_a_final_config(tmp_path, monkeypatch):
         h7.log_rows([(draft, x, path)], 0, tmp_path / "log.csv")
 
 
-def test_the_report_command_writes_the_tables(tmp_path, monkeypatch, capsys):
+def test_the_report_command_writes_the_tables(tmp_path, monkeypatch):
     monkeypatch.chdir(ROOT)
     paths = _captures(tmp_path)
     out = tmp_path / "h7.md"
@@ -532,3 +545,113 @@ def test_a_run_never_overwrites_a_capture(kind, tmp_path):
     with pytest.raises(SystemExit):
         h7.main([*args, "--out", str(out)])
     assert out.read_text(encoding="utf-8") == "an earlier capture\n"
+
+
+class DroppedBoard(Board):
+    """Never receives the commands in ``dropped``: no change, no ack (a lost serial line)."""
+
+    def __init__(self, dropped: set[str], **kw) -> None:
+        super().__init__(**kw)
+        self.dropped = dropped
+
+    def write(self, data: bytes) -> None:
+        if data.decode().strip() in self.dropped:
+            self.sent.append(data.decode().strip())
+            return
+        super().write(data)
+
+
+def test_a_dropped_fan_off_while_red_is_not_confirmed():
+    # Red cuts the duty, so the speed ack says duty 0; but the fan is still asked on, and
+    # the button that clears red would restart it.
+    board = DroppedBoard({"fan off"}, limits_for="id_00", button_after=0)  # nobody presses
+    board.want_on = board.red = True
+    out = io.StringIO()
+    assert h7._finish(board, h7.Capture(out, board.clock), settings("h7_soak")) is False
+    assert "unplug it before touching it" in out.getvalue()
+
+
+class NoReadbackBoard(Board):
+    def write(self, data: bytes) -> None:
+        super().write(data)
+        self.out[-1] = self.out[-1].replace(" pin=0 ", " pin=-1 ")
+
+
+def test_an_off_without_the_gate_read_back_is_not_confirmed():
+    board = NoReadbackBoard(limits_for="id_00")
+    assert h7._finish(board, h7.Capture(io.StringIO(), board.clock), settings("h7_soak")) is False
+
+
+class BrokenFile(io.StringIO):
+    def write(self, text: str) -> int:
+        raise OSError("disk full")
+
+
+def test_a_capture_file_that_fails_does_not_stop_the_cleanup():
+    board = Board(limits_for="id_00")
+    board.want_on = True
+    cap = h7.Capture(BrokenFile(), board.clock, echo=False)
+    with pytest.raises(OSError):
+        h7._finish(board, cap, settings("h7_soak"))  # the closing status can't be written
+    assert board.sent[:2] == ["fan off", "fan speed 100"] and not board.running
+
+
+class RefusesOffBoard(Board):
+    def write(self, data: bytes) -> None:
+        if data.decode().strip() != "fan off":
+            return super().write(data)
+        self.sent.append("fan off")
+        self.out.append(
+            'ack cmd="fan off" result=refused t_rx_us=1 t_set_us=2 t_pin_us=-1 pin=-1 duty=100 '
+            "light=green speed=100 want_on=1 kick=0 watch=id_00 phase=watching"
+        )
+
+
+def test_no_one_is_asked_to_fit_a_fault_unless_the_fan_is_confirmed_off():
+    board, asked, out = RefusesOffBoard(limits_for="id_00"), [], io.StringIO()
+    c = cfg("h7_imbalance_large", trials=3, normal_seconds=3)
+    with pytest.raises(h7.TrialError, match="unplug it"):
+        h7.run_series(c, board, "id_00", out, ask=fitter(board, asked), clock=board.clock)
+    assert asked == [] and "fault start" not in out.getvalue()
+
+
+def test_a_trial_without_its_opening_status_line_is_not_counted():
+    # Without it, a fit-once trial would count windows from the board's lifetime total.
+    text = series("h7_imbalance_large", Board())
+    cut = "\n".join(ln for ln in text.splitlines() if not ln.startswith("detector "))
+    x = h7.parse_series(cut, settings("h7_imbalance_large", trials=3))
+    assert all(
+        "no status line opened the trial, so windows to red can't be counted" in t.problems
+        for t in x.trials
+    )
+    assert x.caught == []
+
+
+def test_an_older_cut_replayed_after_a_trip_is_not_taken_as_its_stop():
+    text = series("h7_underspeed", Board())
+    first_cut = next(
+        ln for ln in text.splitlines() if ln.startswith("fan update ") and "duty=0" in ln
+    )
+    lines = text.splitlines()
+    second_trip = [i for i, ln in enumerate(lines) if ln.startswith("trip ")][1]
+    lines.insert(second_trip + 1, first_cut)
+    x = h7.parse_series("\n".join(lines), settings("h7_underspeed", trials=3))
+    assert all(t.passed and t.red_to_stop_ms > 0 for t in x.trials)
+
+
+def test_a_board_running_another_model_fails_the_capture_and_the_run():
+    text = series("h7_underspeed", Board())
+    other = text.replace("model=h3_gmm, trained on d1+d2, seed 0", "model=h3_gmm, seed 99")
+    x = h7.parse_series(other, settings("h7_underspeed", trials=3))
+    assert "the board runs h3_gmm seed 99, not h3_gmm seed 0" in x.problems
+    soak_text = soak(Board()).replace("seed 0;", "seed 99;")
+    assert any("seed 99" in p for p in h7.parse_soak(soak_text, 12.0, "h3_gmm seed 0").problems)
+
+
+def test_the_report_never_writes_over_a_capture(tmp_path, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    path = _captures(tmp_path)[1]
+    before = path.read_text(encoding="utf-8")
+    with pytest.raises(SystemExit, match="is one of the captures"):
+        h7.main(["report", str(path), "--out", str(path)])
+    assert path.read_text(encoding="utf-8") == before

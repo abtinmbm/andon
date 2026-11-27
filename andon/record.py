@@ -45,6 +45,7 @@ import numpy as np
 import yaml
 
 from andon.data.audio import write_wav
+from andon.jidoka import _ACK, is_off
 
 MAGIC = b"AMIC"
 FRAME_SAMPLES = 256
@@ -52,6 +53,7 @@ HEADER = struct.Struct("<4sIBBH")  # magic, seq, gain shift, flags, sample count
 FRAME_BYTES = HEADER.size + 2 * FRAME_SAMPLES + 2
 FLAG_OVERRUN = 0x01
 FLAG_CLIPPED = 0x02
+MAX_LINE_BYTES = 4096  # far past the firmware's longest line (the model's build line)
 MANIFEST_FIELDS = [
     "file",
     "session",
@@ -90,6 +92,7 @@ class StreamParser:
     buf: bytearray = field(default_factory=bytearray)
     text: bytearray = field(default_factory=bytearray)
     corrupt: int = 0  # magic found but the CRC or length was wrong
+    overlong: bool = False  # dropping a line that ran past MAX_LINE_BYTES, up to its newline
 
     def feed(self, data: bytes) -> Iterator[Frame | str]:
         self.buf += data
@@ -124,8 +127,15 @@ class StreamParser:
         while (nl := self.text.find(b"\n")) >= 0:
             line = self.text[:nl].decode(errors="replace").strip()
             del self.text[: nl + 1]
-            if line:
+            if self.overlong:
+                self.overlong = False  # the end of the dropped line
+            elif line:
                 yield line
+        # The firmware's lines are a few hundred bytes; text that runs far past that with no
+        # newline is noise, and keeping it would grow without bound. Drop it to its newline.
+        if len(self.text) > MAX_LINE_BYTES:
+            self.text.clear()
+            self.overlong = True
 
     @staticmethod
     def _frame(raw: bytes) -> Frame | None:
@@ -246,10 +256,11 @@ def save_take(
     paths, rows = [], []
     for i, clip in enumerate(clips):
         path = session_dir / f"{take.condition}_{take.fan_id}_{start + i:08d}.wav"
-        if path.exists():
-            raise FileExistsError(path)  # never overwrite a recording
-        # write_wav scales by 32768, so int16 / 32768 round-trips exactly.
-        write_wav(path, clip.astype(np.float32) / 32768.0, rate)
+        # Created exclusively ("x"): a recording is never overwritten, even by a second
+        # recorder that picked the same number at the same moment.
+        with path.open("xb") as f:
+            # write_wav scales by 32768, so int16 / 32768 round-trips exactly.
+            write_wav(f, clip.astype(np.float32) / 32768.0, rate)
         paths.append(path)
         rows.append(
             {
@@ -295,8 +306,12 @@ def record_take(
     watched; unwatch=True sends ``watch none`` first (which drops the board's limits)."""
     rate = cfg["audio"]["sample_rate"]
     clip_samples = int(cfg["audio"]["clip_seconds"] * rate)
-    if clip_samples % FRAME_SAMPLES:
-        raise ValueError("clip_seconds must be a whole number of 256-sample frames")
+    # Checked before the first command, so a take that could make no clip never starts the fan.
+    if clip_samples <= 0 or clip_samples % FRAME_SAMPLES:
+        raise ValueError("clip_seconds must be a positive whole number of 256-sample frames")
+    if not np.isfinite(take.seconds) or take.seconds * rate < clip_samples:
+        raise ValueError(f"a take of {take.seconds} s is shorter than one clip")
+    need = int(take.seconds * rate) // clip_samples
     parser = StreamParser()
     port.reset_input_buffer()
     watched = _WATCH.search(_command(port, "status", log, parser))
@@ -307,9 +322,11 @@ def record_take(
                 "take: rerun with --unwatch (sends 'watch none' and drops the board's limits)"
             )
         _command(port, "watch none", log, parser)
-    _command(port, f"fan speed {take_speed(take, cfg)}", log, parser)
+    off = False
     try:
-        # Inside the try: the board may start the fan even if its ack is lost.
+        # Inside the try: the board may start the fan even if an ack is lost, and a speed
+        # sent to a board that still has the fan asked on would start it.
+        _command(port, f"fan speed {take_speed(take, cfg)}", log, parser)
         if fan:
             _command(port, "fan on", log, parser)
             time.sleep(cfg["recording"]["settle_seconds"])
@@ -317,7 +334,6 @@ def record_take(
         assembler = ClipAssembler(clip_samples)
         clips: list[np.ndarray] = []
         frames = 0
-        need = int(take.seconds * rate) // clip_samples
         while len(clips) < need:
             data = port.read(4096)
             if not data:
@@ -336,14 +352,35 @@ def record_take(
         _command(port, "rec stop", log, parser)
     finally:
         port.write(b"rec stop\nfan off\n")  # also on Ctrl+C: never leave the fan running
+        off = _off_confirmed(port, log, parser)
+        if not off:
+            print("the board did not confirm the fan is off: unplug it before touching it")
     stats = {
         "frames": frames,
         "gaps": assembler.gaps,
         "frames_missing": assembler.frames_missing,
         "corrupt": parser.corrupt,
         "discarded_seconds": assembler.discarded_samples / rate,
+        "fan_off_confirmed": int(off),
     }
     return clips[:need], stats
+
+
+def _off_confirmed(port, log: list[str], parser: StreamParser, timeout_s: float = 2.0) -> bool:
+    """Read the board's reply to the closing ``fan off``; True only if it proves the fan off
+    (``jidoka.is_off``). Never raises: it runs while another error may be on its way out."""
+    try:
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            for item in parser.feed(port.read(4096)):
+                if isinstance(item, str):
+                    log.append(item)
+                    if item.startswith('ack cmd="fan off"'):
+                        m = _ACK.match(item)
+                        return m is not None and is_off(m)
+    except Exception:  # a failed read means not confirmed
+        pass
+    return False
 
 
 def run_take(port, take: Take, cfg: dict, unwatch: bool = False) -> None:
@@ -361,6 +398,9 @@ def run_take(port, take: Take, cfg: dict, unwatch: bool = False) -> None:
     header = f"# andon.record {take_id} firmware {build} clips={len(paths)} {summary}"
     (logs / f"{take_id}.txt").write_text("\n".join([header, *log]) + "\n", encoding="utf-8")
     print(f"  saved {len(paths)} clips; {summary}", flush=True)
+    # The take is saved; what follows (a guided run's next prompt) may ask for hands in the fan.
+    if not stats["fan_off_confirmed"]:
+        raise RuntimeError("the board did not confirm the fan is off: unplug it before touching it")
 
 
 def record_tone(port, out: Path, cfg: dict) -> None:

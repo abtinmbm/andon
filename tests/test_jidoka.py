@@ -13,6 +13,8 @@ from andon.experiment import Config, load_config, read_results
 ROOT = Path(__file__).resolve().parents[1]
 CONFIGS = ROOT / "configs"
 FAULT = 85  # h2_recording.yaml: fault_speed_pct.underspeed
+# main.c's build line names the flashed model (say_model).
+BUILD_LINE = "build=abc1234 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/x.wav"
 
 
 def cfg(normal_s: float = 2.0) -> Config:
@@ -31,7 +33,7 @@ class Board:
         self.t_us, self.n = 1_000_000, 0
         self.out: list[str] = []
         self.calib, self.false_stop, self.stops = calib, false_stop, stops
-        self.running = self.red = self.under = False
+        self.running = self.red = self.under = self.want_on = False
         self.watch = "none"
         self.clock_s = 0.0
         self.restarts, self.restarts_at_end = 0, restarts
@@ -45,15 +47,16 @@ class Board:
         if cmd == "fan on":
             result = "refused_red" if self.red else "ok"
             self.running = not self.red
+            self.want_on = self.want_on or not self.red
         elif cmd == "fan off":
-            self.running = False
+            self.running = self.want_on = False
         elif cmd.startswith("watch "):
             self.watch = cmd.split()[1]
             result = "ok" if self.watch in ("id_00", "id_01", "id_02") else "unknown_fan"
         elif cmd == f"fan speed {FAULT}":
             self.under = True
         elif cmd == "status":
-            self.out.append("build=abc1234")
+            self.out.append(BUILD_LINE)
         duty = (FAULT if self.under else 100) if self.running and not self.red else 0
         self.t_us += 500
         # A part duty toggles the pin, so it is not read back (t_pin_us=-1, pin=-1).
@@ -62,7 +65,8 @@ class Board:
         self.out.append(
             f'ack cmd="{cmd}" result={result} t_rx_us={self.t_us} t_set_us={self.t_us + 3} '
             f"t_pin_us={t_pin} pin={pin} "
-            f"duty={duty} light={'red' if self.red else 'green'} speed=100 want_on=1 kick=0 "
+            f"duty={duty} light={'red' if self.red else 'green'} speed=100 "
+            f"want_on={int(self.want_on)} kick=0 "
             f"watch={self.watch} phase=calibrating"
         )
         if cmd == "status":  # main.c prints the detector and recorder lines after the ack
@@ -312,3 +316,72 @@ def test_run_never_overwrites_a_capture(tmp_path):
     with pytest.raises(SystemExit):
         jidoka.main([*args, "--fan", "id_01", "--out", str(out)])
     assert out.read_text(encoding="utf-8") == "an earlier capture\n"
+
+
+def test_a_red_light_at_the_start_still_sends_fan_off():
+    # A red board may still have the fan asked on; the button would restart it.
+    board = Board()
+    board.red = board.want_on = True
+    out = io.StringIO()
+    with pytest.raises(jidoka.TrialError, match="press the button"):
+        jidoka.run(cfg(), board, "id_01", out, clock=board.clock)
+    assert "sent: fan off" in out.getvalue() and not board.want_on
+
+
+def _ack(want_on: int = 0, pin: int = 0, duty: int = 0, result: str = "ok"):
+    line = (
+        f'ack cmd="fan off" result={result} t_rx_us=1 t_set_us=2 t_pin_us={3 if pin >= 0 else -1} '
+        f"pin={pin} duty={duty} light=red speed=100 want_on={want_on} kick=0"
+    )
+    return jidoka._ACK.match(line)
+
+
+def test_only_an_ack_with_the_fan_not_asked_on_and_the_pin_low_proves_it_off():
+    assert jidoka.is_off(_ack())
+    assert not jidoka.is_off(_ack(want_on=1))  # red: duty 0, but the button restarts it
+    assert not jidoka.is_off(_ack(pin=-1))  # the gate was not read back
+    assert not jidoka.is_off(_ack(duty=85, pin=-1))
+    assert not jidoka.is_off(_ack(result="refused_red"))
+    no_field = jidoka._ACK.match(_ack().string.replace(" want_on=0", ""))
+    assert not jidoka.is_off(no_field)  # an older build that does not say
+
+
+def test_a_board_running_another_model_fails_and_is_refused():
+    text = run_trial(Board())
+    other = text.replace("model=h3_gmm, trained on d1+d2, seed 0", "model=h3_level, seed 99")
+    t = jidoka.parse_capture(other, FAULT, "h3_gmm seed 0")
+    assert "the board runs h3_level seed 99, not h3_gmm seed 0" in t.problems
+    assert jidoka.parse_capture(text, FAULT, "h3_gmm seed 0").passed
+    final = load_config(CONFIGS / "h6_jidoka.yaml")
+    with pytest.raises(ValueError, match="h3_level seed 99"):
+        jidoka.log_rows(final, 0, [t], [Path("x.txt")], Path("unused.csv"))
+    cap = jidoka.Capture(io.StringIO(), lambda: 0.0, echo=False)
+    cap.add("build=abc model=h3_level, seed 99; vectors from x")
+    with pytest.raises(jidoka.TrialError, match="reflash"):
+        jidoka.check_model(cap, "h3_gmm seed 0")
+
+
+def test_a_cut_stamped_before_the_trip_is_not_taken_as_the_stop():
+    text = run_trial(Board())
+    i = text.index("\ntrip ")
+    old_cut = "fan update t_set_us=5 t_pin_us=6 pin=0 duty=0 light=red kick=0 trip=score"
+    j = text.index("\n", i + 1)
+    t = jidoka.parse_capture(text[:j] + "\n" + old_cut + text[j:], FAULT)
+    assert t.passed and t.red_to_stop_ms == pytest.approx(0.060)
+
+
+def test_absolute_globs_are_expanded_too(tmp_path):
+    for f in ("h6_jidoka_id_00.txt", "h6_jidoka_id_01.txt"):
+        (tmp_path / f).write_text("", encoding="utf-8")
+    found = jidoka._expand([str(tmp_path / "h6_jidoka_id_*.txt")])
+    assert [p.name for p in found] == ["h6_jidoka_id_00.txt", "h6_jidoka_id_01.txt"]
+
+
+def test_the_report_never_writes_over_a_capture(tmp_path):
+    capture = tmp_path / "h6_jidoka_id_01.txt"
+    capture.write_text(run_trial(Board()), encoding="utf-8")
+    before = capture.read_text(encoding="utf-8")
+    args = ["report", "--config", str(CONFIGS / "h6_jidoka.yaml"), str(capture)]
+    with pytest.raises(SystemExit, match="is one of the captures"):
+        jidoka.main([*args, "--out", str(capture)])
+    assert capture.read_text(encoding="utf-8") == before

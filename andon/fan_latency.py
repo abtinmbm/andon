@@ -211,12 +211,14 @@ def run(port_name: str, trials: int, spin_s: float, stop_s: float, speed: int = 
 
     log: list[str] = []
     with serial.Serial(port_name, 115200, timeout=0.2) as port:
-        status = _send(port, "status", log)
-        if status.light == "red":
-            raise RuntimeError("the light is red: press the button to reset it, then rerun")
-        _send(port, "fan off", log)  # start every trial from stopped
-        time.sleep(stop_s)
         try:
+            # Inside the try: a red board may still have the fan asked on, and the button
+            # would restart it, so even this early exit sends fan off.
+            status = _send(port, "status", log)
+            if status.light == "red":
+                raise RuntimeError("the light is red: press the button to reset it, then rerun")
+            _send(port, "fan off", log)  # start every trial from stopped
+            time.sleep(stop_s)
             _send(port, f"fan speed {speed}", log)
             for i in range(trials):
                 on = _send(port, "fan on", log)
@@ -244,19 +246,22 @@ def listen(port_name: str, seconds: float, probe_s: float = 5.0) -> str:
 
     log: list[str] = []
     with serial.Serial(port_name, 115200, timeout=0.2) as port:
-        _send(port, "status", log)
-        _send(port, "fan on", log)
-        start = time.monotonic()
-        next_probe = start + probe_s
-        while (now := time.monotonic()) < start + seconds:
-            if now >= next_probe:
-                port.write(b"fan on\n")
-                log.append(f"pc_s={now - start:.1f} sent: fan on")
-                next_probe += probe_s
-            line = port.readline().decode(errors="replace").strip()
-            if line:
-                log.append(f"pc_s={time.monotonic() - start:.1f} {line}")
-                print(line, flush=True)
+        try:
+            _send(port, "status", log)
+            _send(port, "fan on", log)
+            start = time.monotonic()
+            next_probe = start + probe_s
+            while (now := time.monotonic()) < start + seconds:
+                if now >= next_probe:
+                    port.write(b"fan on\n")
+                    log.append(f"pc_s={now - start:.1f} sent: fan on")
+                    next_probe += probe_s
+                line = port.readline().decode(errors="replace").strip()
+                if line:
+                    log.append(f"pc_s={time.monotonic() - start:.1f} {line}")
+                    print(line, flush=True)
+        finally:
+            port.write(b"fan off\n")  # however the listen ends, it leaves the fan off
     details = f"listen {seconds} s, fan on every {probe_s} s"
     return "\n".join([_header(port_name, details, _build(log)), *log]) + "\n"
 

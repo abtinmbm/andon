@@ -25,6 +25,7 @@ writes the table and, with ``--log``, one results-log row per fan (once; commit 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import math
 import re
 import time
@@ -61,6 +62,9 @@ _FAN_UPDATE = re.compile(
 )
 _LIGHT = re.compile(r"^light t_us=(\d+) light=(\w+) trip=(\w+) reset=(\d)")
 _BUILD = re.compile(r"^build=(\S+)")
+# main.c's say_model: "build=... model=h3_gmm, trained on d1+d2, seed 0; vectors from ..."
+_MODEL = re.compile(r"^build=\S+ model=([^,\s]+),.*?\bseed (\d+)\b")
+_WANT_ON = re.compile(r" want_on=(\d)\b")
 _DETECTOR = re.compile(r"^detector watch=\S+ .* restarts=(\d+) say_dropped=(\d+)")
 _REC = re.compile(r"^rec ")
 # Matches nothing: waiting on it captures lines until a trip or the timeout.
@@ -89,6 +93,30 @@ class TrialSettings:
             calib_timeout_s=float(t["calib_timeout_seconds"]),
             stop_timeout_s=float(t["stop_timeout_seconds"]),
         )
+
+
+def expected_model(cfg: Config) -> str:
+    """The model the board must run, as ``model_name(m)`` writes it: "h3_gmm seed 0"."""
+    return f"{Path(cfg.raw['model_config']).stem} seed {cfg.raw['seed']}"
+
+
+def model_name(m: re.Match) -> str:
+    return f"{m[1]} seed {m[2]}"
+
+
+def is_off(ack: re.Match) -> bool:
+    """An ack that proves the fan has no power and will not get it back: accepted, duty 0,
+    the gate pin read back low, and the fan not asked on. While red the duty is 0 anyway, and
+    the button restarts a fan still asked on (main.c), so duty 0 alone proves nothing."""
+    want = _WANT_ON.search(ack.string)
+    return (
+        ack[2] == "ok"
+        and int(ack[7]) == 0
+        and int(ack[6]) == 0
+        and int(ack[5]) >= 0
+        and want is not None
+        and want[1] == "0"
+    )
 
 
 # --- running a trial on the board ---------------------------------------------------------
@@ -127,8 +155,10 @@ def _read(port, cap: Capture) -> str | None:
 
 def _send(port, cap: Capture, cmd: str, timeout_s: float = 2.0) -> re.Match:
     """Write a command and read (and capture) lines until its ack."""
-    cap.note(f"sent: {cmd}")
+    # The command goes out before it is logged: a capture file that fails to write must not
+    # stop a cleanup's fan off from reaching the board.
     port.write((cmd + "\n").encode())
+    cap.note(f"sent: {cmd}")
     deadline = cap.clock() + timeout_s
     while cap.clock() < deadline:
         line = _read(port, cap)
@@ -151,20 +181,35 @@ def _wait_for(port, cap: Capture, pattern: re.Pattern, timeout_s: float) -> re.M
     return None
 
 
+def check_model(cap: Capture, want: str) -> None:
+    """Refuse a board that says (on its last build line) it runs another model than ``want``:
+    its trial would be logged under a model it never ran."""
+    found = next((model_name(m) for ln in reversed(cap.lines) if (m := _MODEL.match(ln))), "")
+    if found != want:
+        raise TrialError(f"the board runs {found or 'an unnamed model'}, not {want}: reflash it")
+
+
+def _note_quietly(cap: Capture, text: str) -> None:
+    """A cleanup note; a capture file that cannot be written must not end the cleanup."""
+    with contextlib.suppress(OSError):
+        cap.note(text)
+
+
 def _shut_down(port, cap: Capture, normal_pct: int) -> bool:
-    """Ask the fan off, then back to the normal speed, so the button that clears red does
-    not start it again. Fan off goes first and every command is tried even when the one
-    before got no ack: a lost ack must never leave the fan powered. True if the last ack
-    received shows duty 0, which is the only proof that it is safe to touch the fan."""
-    duty = -1
+    """Ask the fan off, then back to the normal speed. Fan off goes first and every command
+    is tried even when the one before failed (no ack, a serial error, a capture file that
+    cannot be written): nothing may leave the fan powered. True only if the last ack
+    received proves the fan off (``is_off``), the one proof that it is safe to touch it."""
+    last = None
     for cmd in ("fan off", f"fan speed {normal_pct}"):
         try:
-            duty = int(_send(port, cap, cmd)[7])
-        except TrialError as e:
-            cap.note(f"cleanup: {e}")
-    if duty != 0:
-        cap.note("the board did not confirm the fan is off: unplug it before touching it")
-    return duty == 0
+            last = _send(port, cap, cmd)
+        except Exception as e:  # cleanup goes on whatever went wrong
+            _note_quietly(cap, f"cleanup: {e!r}")
+    off = last is not None and is_off(last)
+    if not off:
+        _note_quietly(cap, "the board did not confirm the fan is off: unplug it before touching it")
+    return off
 
 
 def run(
@@ -178,9 +223,12 @@ def run(
         f"speed {s.normal_pct} -> {s.fault_pct} %, normal {s.normal_s:g} s, "
         f"config {cfg.name}, tools {git_commit()}"
     )
-    if _send(port, cap, "status")[8] == "red":
-        raise TrialError("the light is red: press the button to reset it, then rerun")
     try:
+        # Inside the try: a red board may still have the fan asked on, and the button that
+        # clears red would restart it, so even this early exit sends fan off.
+        if _send(port, cap, "status")[8] == "red":
+            raise TrialError("the light is red: press the button to reset it, then rerun")
+        check_model(cap, expected_model(cfg))
         _trial(port, cap, s, fan)
     finally:
         _shut_down(port, cap, s.normal_pct)
@@ -227,6 +275,7 @@ class Trial:
 
     fan: str = ""
     build: str = "unknown"
+    model: str = ""  # "h3_gmm seed 0", from the board's build line
     fault_pct: int = -1
     calib_windows: int = -1
     center: float = math.nan
@@ -263,10 +312,11 @@ class Trial:
         return self._span(self.switch_us, self.stop_us, 1e6)
 
 
-def parse_capture(text: str, fault_pct: int) -> Trial:
+def parse_capture(text: str, fault_pct: int, model: str = "") -> Trial:
     """The trial in a capture. It passes only if the board calibrated, ran the normal
     stretch without a stop, and after the switch to ``fault_pct`` cut the fan itself on its
-    scores, with no command or button press in between that could have stopped it."""
+    scores, with no command or button press in between that could have stopped it. With
+    ``model`` ("h3_gmm seed 0"), the board must also have said it runs that model."""
     t = Trial(fault_pct=fault_pct)
     stage = "setup"  # setup -> calibrating -> watching -> switched -> stopped
     last_n = last_n_at_switch = 0  # the board's window count, so windows to red can be counted
@@ -274,6 +324,8 @@ def parse_capture(text: str, fault_pct: int) -> Trial:
     for line in text.splitlines():
         if m := _BUILD.match(line):
             t.build = m[1]
+            if mm := _MODEL.match(line):
+                t.model = model_name(mm)
         elif m := _ACK.match(line):
             cmd, result = m[1], m[2]
             if cmd.startswith("watch ") and result == "ok":
@@ -303,14 +355,17 @@ def parse_capture(text: str, fault_pct: int) -> Trial:
                     s if math.isnan(t.max_normal_score) else max(t.max_normal_score, s)
                 )
         elif m := _TRIP.match(line):
-            if stage == "switched" and t.trip_us < 0:
+            # A trip stamped before the switch is not this fault's (the board's clock only
+            # runs forward), so it is not taken as the evidence.
+            if stage == "switched" and t.trip_us < 0 and int(m[1]) >= t.switch_us:
                 t.trip_us, t.trip_reason = int(m[1]), m[2]
                 t.windows_to_red = int(m[4]) - last_n_at_switch
             elif stage in ("calibrating", "watching"):
                 t.problems.append(f"a stop before the switch (reason {m[2]}): a false stop")
         elif m := _FAN_UPDATE.match(line):
             # duty 0 with the gate pin read back low: the fan has no power.
-            cut = int(m[4]) == 0 and int(m[3]) == 0 and int(m[2]) >= 0
+            # Stamped at or after the trip: an older cut is not this trip's.
+            cut = int(m[4]) == 0 and int(m[3]) == 0 and int(m[2]) >= t.trip_us
             if t.trip_us >= 0 and t.stop_us < 0 and cut:
                 t.stop_us, stage = int(m[2]), "stopped"
         elif (m := _LIGHT.match(line)) and m[4] == "1" and stage == "switched":
@@ -325,6 +380,8 @@ def parse_capture(text: str, fault_pct: int) -> Trial:
             t.problems.append(f"the audio stream restarted {t.restarts} time(s) in the trial")
     if not t.fan:
         t.problems.append("no fan was watched")
+    if model and t.model != model:
+        t.problems.append(f"the board runs {t.model or 'an unnamed model'}, not {model}")
     if t.calib_windows < 0:
         t.problems.append("the board never fitted its limits")
     elif t.normal_windows == 0:
@@ -373,6 +430,8 @@ def log_rows(cfg: Config, seed: int, trials: list[Trial], captures: list[Path], 
     if len(set(fans)) != len(fans):
         raise ValueError(f"one trial per fan: {fans}")
     for t in trials:
+        if t.model != expected_model(cfg):
+            raise ValueError(f"{t.fan}: the board ran {t.model or 'an unnamed model'}")
         if is_logged(cfg, t.fan, seed, "eval", log):
             raise ValueError(f"{cfg.name} {t.fan} seed {seed} is already logged (once per fan)")
     for t, path in zip(trials, captures, strict=True):
@@ -392,13 +451,25 @@ def _expand(patterns: list[str]) -> list[Path]:
     paths: list[Path] = []
     for p in patterns:
         if any(c in p for c in "*?["):
-            found = sorted(Path().glob(p))
+            # Path.glob takes only relative patterns: an absolute one globs from its anchor.
+            path = Path(p)
+            if path.is_absolute():
+                found = sorted(Path(path.anchor).glob(path.relative_to(path.anchor).as_posix()))
+            else:
+                found = sorted(Path().glob(p))
             if not found:
                 raise FileNotFoundError(f"no capture matches {p}")
             paths += found
         else:
             paths.append(Path(p))
     return paths
+
+
+def refuse_report_over_input(out: Path, captures: list[Path]) -> None:
+    """The report's ``--out`` must not be one of its captures: it would replace the raw
+    board output with the table made from it."""
+    if any(out.resolve() == p.resolve() for p in captures):
+        raise SystemExit(f"--out {out} is one of the captures: pick another name")
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -433,12 +504,14 @@ def main(argv: list[str] | None = None) -> None:
             args.out.open("x", encoding="utf-8", newline="\n") as out,
         ):
             lines = run(cfg, port, args.fan, out)
-        trial = parse_capture("\n".join(lines), fault_pct)
+        trial = parse_capture("\n".join(lines), fault_pct, expected_model(cfg))
         print(f"wrote {args.out}")
         print(jidoka_table([trial]), end="")
     else:
         captures = _expand(args.captures)
-        trials = [parse_capture(p.read_text(encoding="utf-8"), fault_pct) for p in captures]
+        refuse_report_over_input(args.out, captures)
+        model = expected_model(cfg)
+        trials = [parse_capture(p.read_text(encoding="utf-8"), fault_pct, model) for p in captures]
         table = jidoka_table(trials)
         calib = {t.calib_windows for t in trials}
         if len(calib) != 1:
