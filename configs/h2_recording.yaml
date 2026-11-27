@@ -48,7 +48,7 @@ faults:                     # name: what is done to the fan (all with the fan of
 
 unseen_faults:              # H7 only: recorded in these sessions, never trained or chosen on
   imbalance_large:
-    how: a 12/6 x 6 mm trapezoid of electrical tape on one blade of id_00 (d1's larger piece), fitted with the fan off
+    how: a 5 x 7 mm rectangle of electrical tape in the middle of one blade of id_00, fitted with the fan off (d1's 12/6 x 6 mm trapezoid rubbed the frame; DECISIONS 2026-11-27)
     sessions: [d4]
 
 retired_faults:             # dropped; their clips stay on disk, readable only in these sessions

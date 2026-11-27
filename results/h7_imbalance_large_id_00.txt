@@ -1,0 +1,334 @@
+# andon.h7 series, 2026-11-27T23:10:19+00:00, fan id_00, 10 x imbalance_large (fit_once), normal 30 s, config h7_imbalance_large, tools d5f96f8
+# pc_s=0.1 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2601977526 t_set_us=2601977549 t_pin_us=2601977551 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=green trip=none windows=917 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2601977526 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=0.1 keeping the board's limits for id_00 (control 347.7208)
+# pc_s=0.1 trial 1 of 10
+# pc_s=0.1 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2601988280 t_set_us=2601988297 t_pin_us=2601988299 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=green trip=none windows=917 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2601988280 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=0.1 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2601996895 t_set_us=2601996915 t_pin_us=2601996917 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=0.2 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2602000177 t_set_us=2602000200 t_pin_us=2602000202 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=0.2 asked: fit the imbalance_large (the fan is off; wait for the blades)
+t=2605000 ms alive build=7670489 light=green fan duty=0 watch=id_00 phase=idle
+t=2610000 ms alive build=7670489 light=green fan duty=0 watch=id_00 phase=idle
+# pc_s=12.2 fault start
+# pc_s=12.2 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2614061057 t_set_us=2614061072 t_pin_us=2614061115 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2615000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+t=2620000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=2621141386 n=918 fan=id_00 phase=watching s=676.5803 light=green
+score t_us=2622165976 n=919 fan=id_00 phase=watching s=627.3207 light=yellow
+light t_us=2622165976 light=yellow trip=none reset=0
+score t_us=2623189811 n=920 fan=id_00 phase=idle s=611.0660 light=red
+trip t_us=2623189811 reason=score fan=id_00 n=920 s=611.0660
+light t_us=2623189811 light=red trip=score reset=0
+fan update t_set_us=2623198747 t_pin_us=2623198753 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=21.4 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2623202876 t_set_us=2623202915 t_pin_us=2623202918 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=920 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2623202876 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=21.4 trial 2 of 10
+# pc_s=21.4 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2623210625 t_set_us=2623210645 t_pin_us=2623210647 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=920 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2623210625 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=21.4 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2623219386 t_set_us=2623219407 t_pin_us=2623219409 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=21.4 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2623222672 t_set_us=2623222699 t_pin_us=2623222701 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=21.4 asked: press the button to clear red
+t=2625000 ms alive build=7670489 light=red fan duty=0 watch=id_00 phase=idle
+light t_us=2627133150 light=green trip=none reset=1
+# pc_s=25.3 fault start
+# pc_s=25.3 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2627135322 t_set_us=2627135341 t_pin_us=2627135384 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2630000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=2634215292 n=921 fan=id_00 phase=watching s=595.8745 light=green
+t=2635001 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=2635239318 n=922 fan=id_00 phase=watching s=585.6368 light=yellow
+light t_us=2635239318 light=yellow trip=none reset=0
+score t_us=2636264152 n=923 fan=id_00 phase=idle s=514.9718 light=red
+trip t_us=2636264152 reason=score fan=id_00 n=923 s=514.9718
+light t_us=2636264152 light=red trip=score reset=0
+fan update t_set_us=2636273079 t_pin_us=2636273113 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=34.4 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2636281241 t_set_us=2636281281 t_pin_us=2636281283 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=923 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2636281241 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=34.4 trial 3 of 10
+# pc_s=34.4 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2636293128 t_set_us=2636293144 t_pin_us=2636293146 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=923 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2636293128 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=34.5 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2636304919 t_set_us=2636304941 t_pin_us=2636304943 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=34.5 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2636308212 t_set_us=2636308241 t_pin_us=2636308243 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=34.5 asked: press the button to clear red
+light t_us=2639842670 light=green trip=none reset=1
+# pc_s=38.0 fault start
+# pc_s=38.0 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2639844835 t_set_us=2639844853 t_pin_us=2639844896 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2640000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+t=2645000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=2646925081 n=924 fan=id_00 phase=watching s=552.3271 light=green
+score t_us=2647949716 n=925 fan=id_00 phase=watching s=563.8088 light=yellow
+light t_us=2647949716 light=yellow trip=none reset=0
+score t_us=2648973491 n=926 fan=id_00 phase=idle s=472.3242 light=red
+trip t_us=2648973491 reason=score fan=id_00 n=926 s=472.3242
+light t_us=2648973491 light=red trip=score reset=0
+fan update t_set_us=2648982432 t_pin_us=2648982434 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=47.1 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2648986569 t_set_us=2648986609 t_pin_us=2648986611 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=926 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2648986569 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=47.1 trial 4 of 10
+# pc_s=47.1 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2648993473 t_set_us=2648993492 t_pin_us=2648993495 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=926 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2648993473 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=47.2 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2649001070 t_set_us=2649001092 t_pin_us=2649001095 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=47.2 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2649003347 t_set_us=2649003375 t_pin_us=2649003377 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=47.2 asked: press the button to clear red
+t=2650000 ms alive build=7670489 light=red fan duty=0 watch=id_00 phase=idle
+light t_us=2650748389 light=green trip=none reset=1
+# pc_s=48.9 fault start
+# pc_s=48.9 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2650751559 t_set_us=2650751576 t_pin_us=2650751618 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2655000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=2657831569 n=927 fan=id_00 phase=watching s=499.4420 light=green
+score t_us=2658856232 n=928 fan=id_00 phase=watching s=558.2180 light=yellow
+light t_us=2658856232 light=yellow trip=none reset=0
+score t_us=2659880020 n=929 fan=id_00 phase=idle s=578.3091 light=red
+trip t_us=2659880020 reason=score fan=id_00 n=929 s=578.3091
+light t_us=2659880020 light=red trip=score reset=0
+fan update t_set_us=2659888960 t_pin_us=2659888993 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=58.0 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2659896110 t_set_us=2659896150 t_pin_us=2659896152 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=929 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2659896110 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=58.1 trial 5 of 10
+# pc_s=58.1 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2659908997 t_set_us=2659909017 t_pin_us=2659909019 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=929 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2659908997 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=58.1 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2659920812 t_set_us=2659920834 t_pin_us=2659920836 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=58.1 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2659924105 t_set_us=2659924132 t_pin_us=2659924135 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=58.1 asked: press the button to clear red
+t=2660000 ms alive build=7670489 light=red fan duty=0 watch=id_00 phase=idle
+light t_us=2661436388 light=green trip=none reset=1
+# pc_s=59.6 fault start
+# pc_s=59.6 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2661438546 t_set_us=2661438564 t_pin_us=2661438607 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2665000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=2668518572 n=930 fan=id_00 phase=watching s=479.1102 light=green
+score t_us=2669543250 n=931 fan=id_00 phase=watching s=473.4643 light=yellow
+light t_us=2669543250 light=yellow trip=none reset=0
+t=2670000 ms alive build=7670489 light=yellow fan duty=100 watch=id_00 phase=watching
+score t_us=2670567423 n=932 fan=id_00 phase=idle s=458.9899 light=red
+trip t_us=2670567423 reason=score fan=id_00 n=932 s=458.9899
+light t_us=2670567423 light=red trip=score reset=0
+fan update t_set_us=2670576352 t_pin_us=2670576355 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=68.7 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2670585493 t_set_us=2670585533 t_pin_us=2670585535 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=932 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2670585493 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=68.8 trial 6 of 10
+# pc_s=68.8 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2670598396 t_set_us=2670598415 t_pin_us=2670598417 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=932 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2670598396 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=68.8 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2670607020 t_set_us=2670607041 t_pin_us=2670607043 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=68.8 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2670610433 t_set_us=2670610459 t_pin_us=2670610461 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=68.8 asked: press the button to clear red
+light t_us=2672619540 light=green trip=none reset=1
+# pc_s=70.8 fault start
+# pc_s=70.8 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2672621702 t_set_us=2672621720 t_pin_us=2672621763 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2675000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=2679701795 n=933 fan=id_00 phase=watching s=422.0252 light=green
+t=2680000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=2680725838 n=934 fan=id_00 phase=watching s=476.7709 light=yellow
+light t_us=2680725838 light=yellow trip=none reset=0
+score t_us=2681749640 n=935 fan=id_00 phase=idle s=504.0617 light=red
+trip t_us=2681749640 reason=score fan=id_00 n=935 s=504.0617
+light t_us=2681749640 light=red trip=score reset=0
+fan update t_set_us=2681758596 t_pin_us=2681758633 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=79.9 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2681764735 t_set_us=2681764774 t_pin_us=2681764776 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=935 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2681764735 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=79.9 trial 7 of 10
+# pc_s=79.9 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2681775509 t_set_us=2681775528 t_pin_us=2681775530 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=935 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2681775509 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=79.9 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2681786303 t_set_us=2681786327 t_pin_us=2681786329 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=79.9 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2681789587 t_set_us=2681789615 t_pin_us=2681789617 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=79.9 asked: press the button to clear red
+light t_us=2684696066 light=green trip=none reset=1
+# pc_s=82.8 fault start
+# pc_s=82.8 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2684698233 t_set_us=2684698250 t_pin_us=2684698292 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2685000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+t=2690000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=2691778625 n=936 fan=id_00 phase=watching s=464.1721 light=green
+score t_us=2692802292 n=937 fan=id_00 phase=watching s=444.7200 light=yellow
+light t_us=2692802292 light=yellow trip=none reset=0
+score t_us=2693827091 n=938 fan=id_00 phase=idle s=389.6594 light=red
+trip t_us=2693827091 reason=score fan=id_00 n=938 s=389.6594
+light t_us=2693827091 light=red trip=score reset=0
+fan update t_set_us=2693836023 t_pin_us=2693836033 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=92.0 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2693844155 t_set_us=2693844196 t_pin_us=2693844199 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=938 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2693844155 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=92.0 trial 8 of 10
+# pc_s=92.0 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2693855938 t_set_us=2693855960 t_pin_us=2693855962 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=938 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2693855938 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=92.0 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2693868745 t_set_us=2693868768 t_pin_us=2693868771 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=92.0 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2693872029 t_set_us=2693872058 t_pin_us=2693872060 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=92.0 asked: press the button to clear red
+t=2695000 ms alive build=7670489 light=red fan duty=0 watch=id_00 phase=idle
+light t_us=2697685078 light=green trip=none reset=1
+# pc_s=95.8 fault start
+# pc_s=95.8 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2697688253 t_set_us=2697688269 t_pin_us=2697688311 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2700000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=2704769085 n=939 fan=id_00 phase=watching s=458.0537 light=green
+t=2705000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=2705793109 n=940 fan=id_00 phase=watching s=437.7058 light=yellow
+light t_us=2705793109 light=yellow trip=none reset=0
+score t_us=2706816902 n=941 fan=id_00 phase=idle s=483.5502 light=red
+trip t_us=2706816902 reason=score fan=id_00 n=941 s=483.5502
+light t_us=2706816902 light=red trip=score reset=0
+fan update t_set_us=2706825948 t_pin_us=2706825953 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=105.0 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2706833064 t_set_us=2706833104 t_pin_us=2706833106 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=941 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2706833064 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=105.0 trial 9 of 10
+# pc_s=105.0 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2706843834 t_set_us=2706843854 t_pin_us=2706843856 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=941 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2706843834 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=105.0 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2706854617 t_set_us=2706854640 t_pin_us=2706854642 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=105.0 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2706856897 t_set_us=2706856923 t_pin_us=2706856926 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=105.0 asked: press the button to clear red
+t=2710000 ms alive build=7670489 light=red fan duty=0 watch=id_00 phase=idle
+light t_us=2711927915 light=green trip=none reset=1
+# pc_s=110.1 fault start
+# pc_s=110.1 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2711930076 t_set_us=2711930092 t_pin_us=2711930134 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2715000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=2719010009 n=942 fan=id_00 phase=watching s=441.1510 light=green
+t=2720000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=2720034056 n=943 fan=id_00 phase=watching s=526.4142 light=yellow
+light t_us=2720034056 light=yellow trip=none reset=0
+score t_us=2721058912 n=944 fan=id_00 phase=idle s=587.0858 light=red
+trip t_us=2721058912 reason=score fan=id_00 n=944 s=587.0858
+light t_us=2721058912 light=red trip=score reset=0
+fan update t_set_us=2721067854 t_pin_us=2721067873 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=119.2 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2721076015 t_set_us=2721076054 t_pin_us=2721076057 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=944 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2721076015 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=119.2 trial 10 of 10
+# pc_s=119.2 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2721087843 t_set_us=2721087860 t_pin_us=2721087862 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=944 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2721087843 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=119.2 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2721100650 t_set_us=2721100669 t_pin_us=2721100671 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=119.2 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2721103938 t_set_us=2721103966 t_pin_us=2721103968 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=119.2 asked: press the button to clear red
+light t_us=2723168990 light=green trip=none reset=1
+# pc_s=121.3 fault start
+# pc_s=121.3 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=2723171268 t_set_us=2723171287 t_pin_us=2723171330 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=2725000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+t=2730000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=2730251516 n=945 fan=id_00 phase=watching s=539.9637 light=green
+score t_us=2731276142 n=946 fan=id_00 phase=watching s=541.1495 light=yellow
+light t_us=2731276142 light=yellow trip=none reset=0
+score t_us=2732299991 n=947 fan=id_00 phase=idle s=473.7727 light=red
+trip t_us=2732299991 reason=score fan=id_00 n=947 s=473.7727
+light t_us=2732299991 light=red trip=score reset=0
+fan update t_set_us=2732308912 t_pin_us=2732308915 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=130.5 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2732315065 t_set_us=2732315104 t_pin_us=2732315107 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=947 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2732315065 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=130.5 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=2732323946 t_set_us=2732323970 t_pin_us=2732323972 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=130.5 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=2732327251 t_set_us=2732327279 t_pin_us=2732327281 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=130.5 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=2732331521 t_set_us=2732331535 t_pin_us=2732331537 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=947 calib=584/584 restarts=0 say_dropped=194
+limits t_us=2732331521 fan=id_00 n=584 center=160.8697 sigma=62.2837 warn=285.4371 control=347.7208
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=130.5 series done: remove the imbalance_large with the fan off

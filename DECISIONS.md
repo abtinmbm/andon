@@ -12,6 +12,16 @@ One entry per experiment or design choice, newest first. Keep each entry short. 
 
 ---
 
+### 2026-11-27: H7's unseen fault: a smaller tape piece, and how d4 is scored (Phase H7)
+- **Tried:** session B's tape series first used d1's 12/6 × 6 mm trapezoid. In trial 1 it rubbed the frame: it sounded wrong, and the board's scores reached 15,173 against a calibration centre of 160.87, a contact fault rather than an imbalance. The run was stopped and voided after that trial, before any row was logged; the capture is kept outside the repo, not cited for figures. The tape was refitted as a 5 × 7 mm rectangle in the middle of one blade, clear of the frame, and that piece stayed on through the 10 trials and the d4 tape take (`configs/h2_recording.yaml`, `docs/recording_protocol.md`). The d4 scorer was then written before any d4 clip was scored: `andon.unseen` with `configs/h7_unseen.yaml` and `configs/h7_unseen_levelmatched.yaml`.
+- **Result:** none yet for d4.
+- **Decision:** kept, with these choices, fixed before scoring:
+  - The model is `h3_gmm` unchanged, trained on every usable normal clip of d1 and d2 (the eval fold's training set), seeds 0-2.
+  - d4 has no main normal take, only the control take recorded after the tape take (tape off, fan lifted and put back). So the 18 tape clips are judged against those 18 control clips: clip AUC and pAUC.
+  - Detection at 1 % false alarms is per window: the share of tape windows above the lowest threshold that at most 1 % of control windows exceed. With about 150 control windows, that threshold allows one control window above it.
+  - The level-matched config shifts every d4 window to the control take's mean level (`match_levels` with the control take as reference; d4 has no limit clips), since a remount alone moves the level (2026-11-20).
+- **Why:** the trapezoid rubbing the frame would have measured a different fault. A smaller piece risks a fault too weak to see (d1's 5 × 5 mm square changed the 0-125 Hz band by only +0.5 dB), but it was fitted before any tape trial was kept and nothing was chosen on it. The control take is the only normal running in d4, so it is the only fair comparison. The two configs together say whether the model hears more than a change of level.
+
 ### 2026-11-27: H7 session A on the board: 2 false stops in the soak hour, underspeed caught in 2 of 10 trials (Phase H7)
 - **Tried:** `h7_soak` then `h7_underspeed` on `id_00`, run once on one fresh calibration (584 windows), board build `7670489`, tools `d2b23a7`; empty room, window and door closed. Nothing tuned before or after. Two earlier attempts were voided before any row was logged, each for a person in the room: the 11-24 soak (capture deleted) and the 11-27 soak and series (the series' reds came during the noise; the board then lost power, and with it the limits the soak had fitted, so both were rerun together).
 - **Result:** soak: 1.0001 h watched, 3519 windows, 2 stops on scores and 0 others (2.00 per hour), 17 yellows, 14 windows above control (highest score 375.8534 against a control limit of 310.2824), 0 stream restarts. Underspeed series: 10 trials, 2 caught, 1 false stop before the fault; start to fan off 28.256 ± 27.511 s (8.803 to 47.710 s), red to fan off 8.956 ms mean.
