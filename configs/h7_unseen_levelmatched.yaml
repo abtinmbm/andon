@@ -1,0 +1,40 @@
+# Phase H7: the unseen fault (imbalance_large, session d4), scored once by the final real-fan
+# model (2026-11-27). The data, features, window and model are h3_gmm's, unchanged: one GMM
+# per fan trained on every usable normal clip of d1 and d2. d4 holds id_00's tape take and
+# the control take recorded after it, so the fault clips are judged against that control
+# take (andon/unseen.py). Seeds 0-2. Nothing is chosen from it. Level matched: every d4
+# window is shifted to the control take's mean level, so only the spectrum's shape is left
+# (a remount alone moves the level; DECISIONS 2026-11-20).
+phase: H7
+final: true  # scored once; its rows are the result
+
+data:
+  root: data/realfan
+  recording_config: configs/h2_recording.yaml
+
+features:           # identical to the Stage 1 front end
+  sample_rate: 16000
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 128
+  power: 2.0
+
+window:             # every model scores the same windows; a clip's score is their mean
+  frames: 64        # 2.05 s
+  hop: 32           # 1.02 s
+
+model:
+  # Fitted on the mean log-mel spectrum of each training window; scores a window by its
+  # negative log-likelihood under its fan's mixture.
+  type: gmm
+  fit_per: machine_id
+  n_components: 4
+  covariance_type: full
+  reg_covar: 0.01
+  level_matched: true  # every d4 window shifted to the control take's level (andon.h3.match_levels)
+
+unseen:
+  session: d4
+  fan: id_00
+  fault: imbalance_large
+  false_alarm_rate: 0.01  # PLAN.md's operating point: detection rate at 1 % false alarms

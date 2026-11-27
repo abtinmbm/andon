@@ -266,7 +266,11 @@ def centres(clips: list[FanClip], feats: SplitFeatures) -> np.ndarray:
 
 
 def match_levels(
-    x: np.ndarray, level: np.ndarray, owner: np.ndarray, clips: list[FanClip]
+    x: np.ndarray,
+    level: np.ndarray,
+    owner: np.ndarray,
+    clips: list[FanClip],
+    ref_role: str = "limits",
 ) -> np.ndarray:
     """Shift each test window's mean spectrum so its level equals its fan's limit-clip level.
 
@@ -274,14 +278,20 @@ def match_levels(
     takes it back out, as if each test window had been played at the fan's normal volume.
     Only the spectrum's shape is left, and the level meter scores every window the same.
     Training windows are left as recorded, so the model is the one trained without it.
+    ``ref_role`` names the clips that set the level: H7's unseen session has no limit
+    clips, only a control take (``andon.unseen``).
     """
     roles = np.array([c.role for c in clips])
     fan_of = np.array([c.clip.machine_id for c in clips])
     shift = np.zeros(len(level))
     for fan in sorted(set(fan_of)):
-        ref = level[np.isin(owner, _role_idx(clips, "limits", fan))].mean()
         w = (fan_of[owner] == fan) & (roles[owner] != "train")
-        shift[w] = ref - level[w]
+        if not w.any():  # a fan only trained on (H7's unseen session tests one fan)
+            continue
+        ref_w = np.isin(owner, _role_idx(clips, ref_role, fan))
+        if not ref_w.any():
+            raise ValueError(f"{fan}: no {ref_role} clips to set the level")
+        shift[w] = level[ref_w].mean() - level[w]
     return x + shift[:, None]
 
 

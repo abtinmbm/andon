@@ -482,6 +482,8 @@ def test_console_ask_waits_for_enter_on_another_thread(monkeypatch):
 def test_the_h7_configs_are_final_and_watch_with_the_boards_model():
     for p in CONFIGS.glob("h7_*.yaml"):
         raw = load_config(p).raw
+        if "unseen" in raw:  # the offline d4 scorer's configs (tests/test_unseen.py)
+            continue
         assert raw["final"] is True and raw["phase"] == "H7" and raw["seed"] == 0
         assert raw["model_config"] == "configs/h3_gmm.yaml"
 
