@@ -23,10 +23,12 @@ FINAL = {
     "h3_gmm",
     "h3_level",
     "h6_jidoka",
+    "h7_soak",
+    "h7_underspeed",
 }
 # Chosen on dev and marked final, but not yet scored on eval. Each moves to FINAL in the
 # commit that logs its one eval run, so a final config can never stay unscored unnoticed.
-PENDING: set[str] = {"h7_soak", "h7_underspeed", "h7_obstruction", "h7_imbalance_large"}
+PENDING: set[str] = {"h7_obstruction", "h7_imbalance_large"}
 
 
 def test_only_the_configs_scored_on_eval_are_final():

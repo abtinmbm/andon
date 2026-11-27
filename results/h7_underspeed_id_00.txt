@@ -1,0 +1,1207 @@
+# andon.h7 series, 2026-11-27T08:21:33+00:00, fan id_00, 10 x underspeed (switch), normal 30 s, config h7_underspeed, tools d2b23a7
+# pc_s=0.1 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5509747136 t_set_us=5509747158 t_pin_us=5509747161 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=green trip=none windows=4105 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5509747136 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=0.1 keeping the board's limits for id_00 (control 310.2824)
+# pc_s=0.1 trial 1 of 10
+# pc_s=0.1 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5509757819 t_set_us=5509757835 t_pin_us=5509757837 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=green trip=none windows=4105 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5509757819 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=0.1 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=5509765536 t_set_us=5509765553 t_pin_us=5509765556 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=0.1 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=5509767805 t_set_us=5509767825 t_pin_us=5509767828 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=0.1 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=5509770050 t_set_us=5509770066 t_pin_us=5509770108 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=5510000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+t=5515000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5516850334 n=4106 fan=id_00 phase=watching s=143.0699 light=green
+score t_us=5517874281 n=4107 fan=id_00 phase=watching s=143.1250 light=green
+score t_us=5518898222 n=4108 fan=id_00 phase=watching s=141.1600 light=green
+score t_us=5519922154 n=4109 fan=id_00 phase=watching s=150.1402 light=green
+t=5520000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5520946435 n=4110 fan=id_00 phase=watching s=175.5157 light=green
+score t_us=5521970384 n=4111 fan=id_00 phase=watching s=168.5096 light=green
+score t_us=5522994309 n=4112 fan=id_00 phase=watching s=148.0995 light=green
+score t_us=5524018214 n=4113 fan=id_00 phase=watching s=164.9178 light=green
+t=5525000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5525042578 n=4114 fan=id_00 phase=watching s=148.1484 light=green
+score t_us=5526066609 n=4115 fan=id_00 phase=watching s=179.7818 light=green
+score t_us=5527090488 n=4116 fan=id_00 phase=watching s=195.7413 light=green
+score t_us=5528114447 n=4117 fan=id_00 phase=watching s=220.7428 light=green
+score t_us=5529138366 n=4118 fan=id_00 phase=watching s=252.5956 light=green
+t=5530000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5530162701 n=4119 fan=id_00 phase=watching s=207.1531 light=green
+score t_us=5531186573 n=4120 fan=id_00 phase=watching s=152.3336 light=green
+score t_us=5532210442 n=4121 fan=id_00 phase=watching s=147.2849 light=green
+score t_us=5533234392 n=4122 fan=id_00 phase=watching s=153.3743 light=green
+score t_us=5534258261 n=4123 fan=id_00 phase=watching s=157.5635 light=green
+t=5535000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5535282681 n=4124 fan=id_00 phase=watching s=157.5159 light=green
+score t_us=5536306619 n=4125 fan=id_00 phase=watching s=197.2793 light=green
+score t_us=5537330493 n=4126 fan=id_00 phase=watching s=204.4721 light=green
+score t_us=5538354413 n=4127 fan=id_00 phase=watching s=240.4471 light=green
+score t_us=5539378312 n=4128 fan=id_00 phase=watching s=224.3245 light=green
+t=5540000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5540402729 n=4129 fan=id_00 phase=watching s=179.1717 light=green
+score t_us=5541426647 n=4130 fan=id_00 phase=watching s=178.6701 light=green
+score t_us=5542450534 n=4131 fan=id_00 phase=watching s=193.7445 light=green
+score t_us=5543474511 n=4132 fan=id_00 phase=watching s=206.8789 light=green
+score t_us=5544498409 n=4133 fan=id_00 phase=watching s=231.3296 light=green
+t=5545000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5545522754 n=4134 fan=id_00 phase=watching s=273.0176 light=green
+score t_us=5546546719 n=4135 fan=id_00 phase=watching s=224.3690 light=green
+# pc_s=37.3 fault start
+# pc_s=37.3 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=5546968916 t_set_us=5546968971 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+score t_us=5547570445 n=4136 fan=id_00 phase=watching s=175.8289 light=green
+score t_us=5548594386 n=4137 fan=id_00 phase=watching s=97.0518 light=green
+score t_us=5549618275 n=4138 fan=id_00 phase=watching s=94.0979 light=green
+t=5550000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5550642533 n=4139 fan=id_00 phase=watching s=105.9746 light=green
+score t_us=5551666393 n=4140 fan=id_00 phase=watching s=111.1077 light=green
+score t_us=5552690245 n=4141 fan=id_00 phase=watching s=124.7100 light=green
+score t_us=5553714161 n=4142 fan=id_00 phase=watching s=130.8905 light=green
+score t_us=5554738005 n=4143 fan=id_00 phase=watching s=131.6227 light=green
+t=5555000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5555762367 n=4144 fan=id_00 phase=watching s=126.4396 light=green
+score t_us=5556786322 n=4145 fan=id_00 phase=watching s=144.3783 light=green
+score t_us=5557810185 n=4146 fan=id_00 phase=watching s=157.2542 light=green
+score t_us=5558834076 n=4147 fan=id_00 phase=watching s=156.5383 light=green
+score t_us=5559858995 n=4148 fan=id_00 phase=watching s=151.0650 light=green
+t=5560000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5560882255 n=4149 fan=id_00 phase=watching s=121.5160 light=green
+score t_us=5561906131 n=4150 fan=id_00 phase=watching s=106.4730 light=green
+score t_us=5562930058 n=4151 fan=id_00 phase=watching s=144.9260 light=green
+score t_us=5563953995 n=4152 fan=id_00 phase=watching s=153.6257 light=green
+score t_us=5564978927 n=4153 fan=id_00 phase=watching s=135.1665 light=green
+t=5565000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5566002025 n=4154 fan=id_00 phase=watching s=157.4906 light=green
+score t_us=5567026955 n=4155 fan=id_00 phase=watching s=149.0296 light=green
+score t_us=5568050861 n=4156 fan=id_00 phase=watching s=163.9020 light=green
+score t_us=5569074754 n=4157 fan=id_00 phase=watching s=143.3129 light=green
+t=5570000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5570098070 n=4158 fan=id_00 phase=watching s=141.9784 light=green
+score t_us=5571122992 n=4159 fan=id_00 phase=watching s=127.1518 light=green
+score t_us=5572146955 n=4160 fan=id_00 phase=watching s=120.3189 light=green
+score t_us=5573170791 n=4161 fan=id_00 phase=watching s=128.5595 light=green
+score t_us=5574194712 n=4162 fan=id_00 phase=watching s=122.0229 light=green
+t=5575000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5575218031 n=4163 fan=id_00 phase=watching s=123.3004 light=green
+score t_us=5576242964 n=4164 fan=id_00 phase=watching s=139.0545 light=green
+score t_us=5577266878 n=4165 fan=id_00 phase=watching s=220.9992 light=green
+score t_us=5578290850 n=4166 fan=id_00 phase=watching s=235.4337 light=green
+score t_us=5579314814 n=4167 fan=id_00 phase=watching s=202.3773 light=green
+t=5580000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5580338126 n=4168 fan=id_00 phase=watching s=158.7103 light=green
+score t_us=5581362026 n=4169 fan=id_00 phase=watching s=129.1040 light=green
+score t_us=5582386976 n=4170 fan=id_00 phase=watching s=126.1830 light=green
+score t_us=5583410900 n=4171 fan=id_00 phase=watching s=121.4230 light=green
+score t_us=5584434784 n=4172 fan=id_00 phase=watching s=113.4990 light=green
+t=5585000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5585458081 n=4173 fan=id_00 phase=watching s=110.2346 light=green
+score t_us=5586482043 n=4174 fan=id_00 phase=watching s=126.6237 light=green
+score t_us=5587506949 n=4175 fan=id_00 phase=watching s=131.9757 light=green
+score t_us=5588530872 n=4176 fan=id_00 phase=watching s=142.8738 light=green
+score t_us=5589554851 n=4177 fan=id_00 phase=watching s=138.8942 light=green
+t=5590000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5590578145 n=4178 fan=id_00 phase=watching s=124.0105 light=green
+score t_us=5591602039 n=4179 fan=id_00 phase=watching s=115.6542 light=green
+score t_us=5592626971 n=4180 fan=id_00 phase=watching s=116.9478 light=green
+score t_us=5593650926 n=4181 fan=id_00 phase=watching s=112.9866 light=green
+score t_us=5594674817 n=4182 fan=id_00 phase=watching s=156.3277 light=green
+t=5595000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5595698128 n=4183 fan=id_00 phase=watching s=143.9416 light=green
+score t_us=5596722079 n=4184 fan=id_00 phase=watching s=155.8907 light=green
+score t_us=5597746978 n=4185 fan=id_00 phase=watching s=168.3338 light=green
+score t_us=5598770929 n=4186 fan=id_00 phase=watching s=148.1201 light=green
+score t_us=5599794811 n=4187 fan=id_00 phase=watching s=147.7292 light=green
+t=5600000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5600818150 n=4188 fan=id_00 phase=watching s=126.1934 light=green
+score t_us=5601842094 n=4189 fan=id_00 phase=watching s=125.0654 light=green
+score t_us=5602866991 n=4190 fan=id_00 phase=watching s=148.8327 light=green
+score t_us=5603890870 n=4191 fan=id_00 phase=watching s=135.2530 light=green
+score t_us=5604914724 n=4192 fan=id_00 phase=watching s=108.7250 light=green
+t=5605000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5605938004 n=4193 fan=id_00 phase=watching s=132.1996 light=green
+score t_us=5606962906 n=4194 fan=id_00 phase=watching s=135.3055 light=green
+# pc_s=97.3 no stop within 60 s
+# pc_s=97.3 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5606975550 t_set_us=5606975593 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4194 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5606975550 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=97.3 trial 2 of 10
+# pc_s=97.3 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5606987574 t_set_us=5606987593 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4194 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5606987574 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=97.4 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=5606998359 t_set_us=5606998395 t_pin_us=5606998398 pin=0 duty=0 light=green speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=97.4 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=5607001793 t_set_us=5607001820 t_pin_us=5607001822 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=97.4 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=5607005064 t_set_us=5607005078 t_pin_us=5607005120 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=5610000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=5614085775 n=4195 fan=id_00 phase=watching s=206.2867 light=green
+t=5615000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5615109053 n=4196 fan=id_00 phase=watching s=161.9690 light=green
+score t_us=5616133021 n=4197 fan=id_00 phase=watching s=210.6764 light=green
+score t_us=5617157000 n=4198 fan=id_00 phase=watching s=217.1343 light=green
+score t_us=5618181937 n=4199 fan=id_00 phase=watching s=197.4424 light=green
+score t_us=5619205817 n=4200 fan=id_00 phase=watching s=193.7100 light=green
+t=5620000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5620229156 n=4201 fan=id_00 phase=watching s=190.3298 light=green
+score t_us=5621253144 n=4202 fan=id_00 phase=watching s=195.2798 light=green
+score t_us=5622277104 n=4203 fan=id_00 phase=watching s=216.7335 light=green
+score t_us=5623301019 n=4204 fan=id_00 phase=watching s=220.8219 light=green
+score t_us=5624325011 n=4205 fan=id_00 phase=watching s=227.8894 light=green
+t=5625000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5625349318 n=4206 fan=id_00 phase=watching s=297.5819 light=green
+score t_us=5626373227 n=4207 fan=id_00 phase=watching s=269.2922 light=yellow
+light t_us=5626373227 light=yellow trip=none reset=0
+score t_us=5627397346 n=4208 fan=id_00 phase=watching s=179.3504 light=yellow
+score t_us=5628421260 n=4209 fan=id_00 phase=watching s=206.7401 light=yellow
+score t_us=5629445199 n=4210 fan=id_00 phase=watching s=208.1047 light=green
+light t_us=5629445199 light=green trip=none reset=0
+t=5630000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5630469657 n=4211 fan=id_00 phase=watching s=183.7916 light=green
+score t_us=5631493633 n=4212 fan=id_00 phase=watching s=239.7792 light=green
+score t_us=5632517534 n=4213 fan=id_00 phase=watching s=267.5791 light=green
+score t_us=5633541516 n=4214 fan=id_00 phase=watching s=251.0976 light=green
+score t_us=5634565501 n=4215 fan=id_00 phase=watching s=219.6788 light=green
+t=5635000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5635589864 n=4216 fan=id_00 phase=watching s=191.0011 light=green
+score t_us=5636613777 n=4217 fan=id_00 phase=watching s=231.2962 light=green
+score t_us=5637637692 n=4218 fan=id_00 phase=watching s=275.9442 light=green
+score t_us=5638661618 n=4219 fan=id_00 phase=watching s=212.4573 light=green
+score t_us=5639685532 n=4220 fan=id_00 phase=watching s=159.2271 light=green
+t=5640000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5640709853 n=4221 fan=id_00 phase=watching s=191.4841 light=green
+score t_us=5641733794 n=4222 fan=id_00 phase=watching s=221.1159 light=green
+score t_us=5642757743 n=4223 fan=id_00 phase=watching s=182.1209 light=green
+score t_us=5643781728 n=4224 fan=id_00 phase=watching s=170.7849 light=green
+# pc_s=134.6 fault start
+# pc_s=134.6 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=5644202901 t_set_us=5644202955 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+score t_us=5644805414 n=4225 fan=id_00 phase=watching s=172.7596 light=green
+t=5645000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5645829719 n=4226 fan=id_00 phase=watching s=104.7041 light=green
+score t_us=5646853706 n=4227 fan=id_00 phase=watching s=109.4334 light=green
+score t_us=5647877698 n=4228 fan=id_00 phase=watching s=120.8228 light=green
+score t_us=5648901682 n=4229 fan=id_00 phase=watching s=133.4107 light=green
+score t_us=5649925595 n=4230 fan=id_00 phase=watching s=136.0884 light=green
+t=5650000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5650949891 n=4231 fan=id_00 phase=watching s=144.2016 light=green
+score t_us=5651973843 n=4232 fan=id_00 phase=watching s=175.0196 light=green
+score t_us=5652997763 n=4233 fan=id_00 phase=watching s=125.9546 light=green
+score t_us=5654021727 n=4234 fan=id_00 phase=watching s=101.8078 light=green
+t=5655000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5655045056 n=4235 fan=id_00 phase=watching s=137.8266 light=green
+score t_us=5656069050 n=4236 fan=id_00 phase=watching s=158.8484 light=green
+score t_us=5657092987 n=4237 fan=id_00 phase=watching s=136.1549 light=green
+score t_us=5658117912 n=4238 fan=id_00 phase=watching s=132.0777 light=green
+score t_us=5659141827 n=4239 fan=id_00 phase=watching s=117.9127 light=green
+t=5660000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5660165180 n=4240 fan=id_00 phase=watching s=136.0019 light=green
+score t_us=5661189091 n=4241 fan=id_00 phase=watching s=122.0593 light=green
+score t_us=5662213027 n=4242 fan=id_00 phase=watching s=104.7480 light=green
+score t_us=5663237962 n=4243 fan=id_00 phase=watching s=92.4335 light=green
+score t_us=5664261821 n=4244 fan=id_00 phase=watching s=140.4855 light=green
+t=5665000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5665285171 n=4245 fan=id_00 phase=watching s=127.8891 light=green
+score t_us=5666309138 n=4246 fan=id_00 phase=watching s=140.5381 light=green
+score t_us=5667333057 n=4247 fan=id_00 phase=watching s=126.7770 light=green
+score t_us=5668357006 n=4248 fan=id_00 phase=watching s=137.2125 light=green
+score t_us=5669381951 n=4249 fan=id_00 phase=watching s=153.5474 light=green
+t=5670000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5670405214 n=4250 fan=id_00 phase=watching s=126.0919 light=green
+score t_us=5671429141 n=4251 fan=id_00 phase=watching s=123.1095 light=green
+score t_us=5672453048 n=4252 fan=id_00 phase=watching s=156.5948 light=green
+score t_us=5673477993 n=4253 fan=id_00 phase=watching s=154.9634 light=green
+score t_us=5674501895 n=4254 fan=id_00 phase=watching s=118.6070 light=green
+t=5675000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5675525205 n=4255 fan=id_00 phase=watching s=139.4854 light=green
+score t_us=5676549129 n=4256 fan=id_00 phase=watching s=154.9892 light=green
+score t_us=5677572993 n=4257 fan=id_00 phase=watching s=156.2072 light=green
+score t_us=5678597834 n=4258 fan=id_00 phase=watching s=144.2598 light=green
+score t_us=5679621814 n=4259 fan=id_00 phase=watching s=146.9971 light=green
+t=5680000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5680645124 n=4260 fan=id_00 phase=watching s=124.9308 light=green
+score t_us=5681668990 n=4261 fan=id_00 phase=watching s=110.5211 light=green
+score t_us=5682693951 n=4262 fan=id_00 phase=watching s=114.4678 light=green
+score t_us=5683717933 n=4263 fan=id_00 phase=watching s=123.8871 light=green
+score t_us=5684741841 n=4264 fan=id_00 phase=watching s=138.7809 light=green
+t=5685000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5685765139 n=4265 fan=id_00 phase=watching s=100.9508 light=green
+score t_us=5686789093 n=4266 fan=id_00 phase=watching s=113.9779 light=green
+score t_us=5687813022 n=4267 fan=id_00 phase=watching s=126.9685 light=green
+score t_us=5688837942 n=4268 fan=id_00 phase=watching s=135.5885 light=green
+score t_us=5689861859 n=4269 fan=id_00 phase=watching s=131.1513 light=green
+t=5690000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5690885159 n=4270 fan=id_00 phase=watching s=122.6582 light=green
+score t_us=5691909040 n=4271 fan=id_00 phase=watching s=121.0570 light=green
+score t_us=5692933008 n=4272 fan=id_00 phase=watching s=133.7521 light=green
+score t_us=5693957879 n=4273 fan=id_00 phase=watching s=144.8290 light=green
+score t_us=5694981743 n=4274 fan=id_00 phase=watching s=122.3616 light=green
+t=5695000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5696005803 n=4275 fan=id_00 phase=watching s=118.1387 light=green
+score t_us=5697029748 n=4276 fan=id_00 phase=watching s=128.6534 light=green
+score t_us=5698053752 n=4277 fan=id_00 phase=watching s=142.4979 light=green
+score t_us=5699077699 n=4278 fan=id_00 phase=watching s=94.4397 light=green
+t=5700000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5700101021 n=4279 fan=id_00 phase=watching s=128.3874 light=green
+score t_us=5701125965 n=4280 fan=id_00 phase=watching s=122.1381 light=green
+score t_us=5702149990 n=4281 fan=id_00 phase=watching s=139.2227 light=green
+score t_us=5703173885 n=4282 fan=id_00 phase=watching s=157.3993 light=green
+score t_us=5704197794 n=4283 fan=id_00 phase=watching s=134.1791 light=green
+# pc_s=194.8 no stop within 60 s
+# pc_s=194.8 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5704420861 t_set_us=5704420904 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4283 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5704420861 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=194.8 trial 3 of 10
+# pc_s=194.8 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5704428635 t_set_us=5704428662 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4283 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5704428635 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=194.8 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=5704437591 t_set_us=5704437616 t_pin_us=5704437630 pin=0 duty=0 light=green speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=194.8 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=5704439908 t_set_us=5704439936 t_pin_us=5704439938 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=194.8 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=5704442162 t_set_us=5704442177 t_pin_us=5704442219 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=5705000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+t=5710000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5711522078 n=4284 fan=id_00 phase=watching s=272.8259 light=green
+score t_us=5712546080 n=4285 fan=id_00 phase=watching s=298.2373 light=yellow
+light t_us=5712546080 light=yellow trip=none reset=0
+score t_us=5713570083 n=4286 fan=id_00 phase=watching s=291.0190 light=yellow
+score t_us=5714595014 n=4287 fan=id_00 phase=watching s=291.5891 light=yellow
+t=5715000 ms alive build=7670489 light=yellow fan duty=100 watch=id_00 phase=watching
+score t_us=5715618323 n=4288 fan=id_00 phase=watching s=259.6777 light=yellow
+score t_us=5716642222 n=4289 fan=id_00 phase=watching s=283.4960 light=yellow
+score t_us=5717666147 n=4290 fan=id_00 phase=watching s=295.7577 light=yellow
+score t_us=5718690074 n=4291 fan=id_00 phase=watching s=317.8420 light=yellow
+score t_us=5719714112 n=4292 fan=id_00 phase=watching s=262.0072 light=yellow
+t=5720000 ms alive build=7670489 light=yellow fan duty=100 watch=id_00 phase=watching
+score t_us=5720738448 n=4293 fan=id_00 phase=watching s=230.6284 light=yellow
+score t_us=5721762358 n=4294 fan=id_00 phase=watching s=236.4925 light=yellow
+score t_us=5722786276 n=4295 fan=id_00 phase=watching s=212.7834 light=green
+light t_us=5722786276 light=green trip=none reset=0
+score t_us=5723810339 n=4296 fan=id_00 phase=watching s=251.1522 light=green
+score t_us=5724834244 n=4297 fan=id_00 phase=watching s=273.6783 light=green
+t=5725000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5725858488 n=4298 fan=id_00 phase=watching s=309.6862 light=yellow
+light t_us=5725858488 light=yellow trip=none reset=0
+score t_us=5726882565 n=4299 fan=id_00 phase=watching s=304.2320 light=yellow
+score t_us=5727906502 n=4300 fan=id_00 phase=watching s=210.1178 light=yellow
+score t_us=5728930456 n=4301 fan=id_00 phase=watching s=204.1479 light=yellow
+score t_us=5729954409 n=4302 fan=id_00 phase=watching s=258.4936 light=yellow
+t=5730000 ms alive build=7670489 light=yellow fan duty=100 watch=id_00 phase=watching
+score t_us=5730978691 n=4303 fan=id_00 phase=watching s=268.8863 light=yellow
+score t_us=5732002575 n=4304 fan=id_00 phase=watching s=257.2416 light=yellow
+score t_us=5733026483 n=4305 fan=id_00 phase=watching s=248.1187 light=yellow
+score t_us=5734050370 n=4306 fan=id_00 phase=watching s=247.9707 light=yellow
+t=5735000 ms alive build=7670489 light=yellow fan duty=100 watch=id_00 phase=watching
+score t_us=5735074705 n=4307 fan=id_00 phase=watching s=246.8010 light=green
+light t_us=5735074705 light=green trip=none reset=0
+score t_us=5736098733 n=4308 fan=id_00 phase=watching s=178.0625 light=green
+score t_us=5737122626 n=4309 fan=id_00 phase=watching s=171.4404 light=green
+score t_us=5738146539 n=4310 fan=id_00 phase=watching s=199.3138 light=green
+score t_us=5739170439 n=4311 fan=id_00 phase=watching s=221.4774 light=green
+t=5740000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5740194773 n=4312 fan=id_00 phase=watching s=222.5741 light=green
+score t_us=5741218716 n=4313 fan=id_00 phase=watching s=211.0121 light=green
+# pc_s=232.0 fault start
+# pc_s=232.0 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=5741654211 t_set_us=5741654266 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+score t_us=5742242384 n=4314 fan=id_00 phase=watching s=218.3668 light=green
+score t_us=5743266270 n=4315 fan=id_00 phase=watching s=156.5542 light=green
+score t_us=5744290120 n=4316 fan=id_00 phase=watching s=121.0870 light=green
+t=5745000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5745314494 n=4317 fan=id_00 phase=watching s=132.1098 light=green
+score t_us=5746338429 n=4318 fan=id_00 phase=watching s=122.4758 light=green
+score t_us=5747362413 n=4319 fan=id_00 phase=watching s=108.6310 light=green
+score t_us=5748386383 n=4320 fan=id_00 phase=watching s=111.2152 light=green
+score t_us=5749410287 n=4321 fan=id_00 phase=watching s=101.8605 light=green
+t=5750000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5750434621 n=4322 fan=id_00 phase=watching s=85.5841 light=green
+score t_us=5751458489 n=4323 fan=id_00 phase=watching s=103.4880 light=green
+score t_us=5752482428 n=4324 fan=id_00 phase=watching s=134.3958 light=green
+score t_us=5753506305 n=4325 fan=id_00 phase=watching s=148.2363 light=green
+score t_us=5754530295 n=4326 fan=id_00 phase=watching s=125.4077 light=green
+t=5755000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5755554557 n=4327 fan=id_00 phase=watching s=127.8393 light=green
+score t_us=5756578408 n=4328 fan=id_00 phase=watching s=140.6693 light=green
+score t_us=5757602316 n=4329 fan=id_00 phase=watching s=129.3004 light=green
+score t_us=5758626257 n=4330 fan=id_00 phase=watching s=132.7880 light=green
+score t_us=5759650183 n=4331 fan=id_00 phase=watching s=116.4185 light=green
+t=5760000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5760674550 n=4332 fan=id_00 phase=watching s=122.7650 light=green
+score t_us=5761698478 n=4333 fan=id_00 phase=watching s=123.7646 light=green
+score t_us=5762722414 n=4334 fan=id_00 phase=watching s=148.9869 light=green
+score t_us=5763746394 n=4335 fan=id_00 phase=watching s=130.4657 light=green
+score t_us=5764770230 n=4336 fan=id_00 phase=watching s=120.4425 light=green
+t=5765000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5765794493 n=4337 fan=id_00 phase=watching s=115.7900 light=green
+score t_us=5766818380 n=4338 fan=id_00 phase=watching s=136.1039 light=green
+score t_us=5767842324 n=4339 fan=id_00 phase=watching s=134.0157 light=green
+score t_us=5768866274 n=4340 fan=id_00 phase=watching s=125.8883 light=green
+score t_us=5769890185 n=4341 fan=id_00 phase=watching s=125.7114 light=green
+t=5770000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5770914526 n=4342 fan=id_00 phase=watching s=121.7312 light=green
+score t_us=5771938496 n=4343 fan=id_00 phase=watching s=129.7405 light=green
+score t_us=5772962441 n=4344 fan=id_00 phase=watching s=123.8779 light=green
+score t_us=5773986371 n=4345 fan=id_00 phase=watching s=121.2212 light=green
+t=5775000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5775010510 n=4346 fan=id_00 phase=watching s=132.5690 light=green
+score t_us=5776034534 n=4347 fan=id_00 phase=watching s=106.3600 light=green
+score t_us=5777058386 n=4348 fan=id_00 phase=watching s=114.4399 light=green
+score t_us=5778082314 n=4349 fan=id_00 phase=watching s=150.6038 light=green
+score t_us=5779106286 n=4350 fan=id_00 phase=watching s=141.4136 light=green
+t=5780000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5780130576 n=4351 fan=id_00 phase=watching s=141.1105 light=green
+score t_us=5781154466 n=4352 fan=id_00 phase=watching s=147.9982 light=green
+score t_us=5782178344 n=4353 fan=id_00 phase=watching s=115.9098 light=green
+score t_us=5783202249 n=4354 fan=id_00 phase=watching s=119.1532 light=green
+score t_us=5784226149 n=4355 fan=id_00 phase=watching s=122.5175 light=green
+t=5785000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5785250457 n=4356 fan=id_00 phase=watching s=149.6989 light=green
+score t_us=5786274452 n=4357 fan=id_00 phase=watching s=137.0759 light=green
+score t_us=5787298384 n=4358 fan=id_00 phase=watching s=128.7364 light=green
+score t_us=5788322281 n=4359 fan=id_00 phase=watching s=123.1404 light=green
+score t_us=5789346180 n=4360 fan=id_00 phase=watching s=147.3551 light=green
+t=5790000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5790370489 n=4361 fan=id_00 phase=watching s=128.1315 light=green
+score t_us=5791394463 n=4362 fan=id_00 phase=watching s=117.5438 light=green
+score t_us=5792418369 n=4363 fan=id_00 phase=watching s=143.6846 light=green
+score t_us=5793442228 n=4364 fan=id_00 phase=watching s=130.0146 light=green
+score t_us=5794466160 n=4365 fan=id_00 phase=watching s=127.5407 light=green
+t=5795000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5795490473 n=4366 fan=id_00 phase=watching s=119.0392 light=green
+score t_us=5796514384 n=4367 fan=id_00 phase=watching s=134.2716 light=green
+score t_us=5797538353 n=4368 fan=id_00 phase=watching s=117.2106 light=green
+score t_us=5798562202 n=4369 fan=id_00 phase=watching s=81.8083 light=green
+score t_us=5799586150 n=4370 fan=id_00 phase=watching s=97.5847 light=green
+t=5800000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5800610482 n=4371 fan=id_00 phase=watching s=110.5458 light=green
+score t_us=5801634376 n=4372 fan=id_00 phase=watching s=132.1095 light=green
+# pc_s=292.2 no stop within 60 s
+# pc_s=292.2 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5801861027 t_set_us=5801861070 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4372 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5801861027 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=292.2 trial 4 of 10
+# pc_s=292.2 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5801872093 t_set_us=5801872113 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4372 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5801872093 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=292.2 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=5801882936 t_set_us=5801882960 t_pin_us=5801882990 pin=0 duty=0 light=green speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=292.2 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=5801886262 t_set_us=5801886288 t_pin_us=5801886291 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=292.2 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=5801891652 t_set_us=5801891666 t_pin_us=5801891708 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=5805000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=5808972176 n=4373 fan=id_00 phase=watching s=219.6128 light=green
+score t_us=5809996049 n=4374 fan=id_00 phase=watching s=227.5378 light=green
+t=5810006 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5811020069 n=4375 fan=id_00 phase=watching s=256.8263 light=green
+score t_us=5812043954 n=4376 fan=id_00 phase=watching s=293.8434 light=yellow
+light t_us=5812043954 light=yellow trip=none reset=0
+score t_us=5813068019 n=4377 fan=id_00 phase=watching s=281.9315 light=yellow
+score t_us=5814091905 n=4378 fan=id_00 phase=watching s=211.3300 light=yellow
+t=5815000 ms alive build=7670489 light=yellow fan duty=100 watch=id_00 phase=watching
+score t_us=5815116264 n=4379 fan=id_00 phase=watching s=212.1120 light=yellow
+score t_us=5816140139 n=4380 fan=id_00 phase=watching s=247.8452 light=green
+light t_us=5816140139 light=green trip=none reset=0
+score t_us=5817164217 n=4381 fan=id_00 phase=watching s=230.6069 light=green
+score t_us=5818188095 n=4382 fan=id_00 phase=watching s=252.8324 light=green
+score t_us=5819212018 n=4383 fan=id_00 phase=watching s=287.0574 light=green
+t=5820001 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5820236349 n=4384 fan=id_00 phase=watching s=262.0777 light=yellow
+light t_us=5820236349 light=yellow trip=none reset=0
+score t_us=5821260404 n=4385 fan=id_00 phase=watching s=260.3168 light=yellow
+score t_us=5822284365 n=4386 fan=id_00 phase=watching s=289.7257 light=yellow
+score t_us=5823308368 n=4387 fan=id_00 phase=watching s=233.8358 light=yellow
+score t_us=5824332326 n=4388 fan=id_00 phase=watching s=210.3851 light=yellow
+t=5825000 ms alive build=7670489 light=yellow fan duty=100 watch=id_00 phase=watching
+score t_us=5825355621 n=4389 fan=id_00 phase=watching s=267.4227 light=yellow
+score t_us=5826380544 n=4390 fan=id_00 phase=watching s=271.3357 light=yellow
+score t_us=5827404458 n=4391 fan=id_00 phase=watching s=245.8659 light=yellow
+score t_us=5828428423 n=4392 fan=id_00 phase=watching s=272.0161 light=yellow
+score t_us=5829452301 n=4393 fan=id_00 phase=watching s=333.3152 light=yellow
+t=5830000 ms alive build=7670489 light=yellow fan duty=100 watch=id_00 phase=watching
+score t_us=5830475606 n=4394 fan=id_00 phase=watching s=315.8280 light=yellow
+score t_us=5831499549 n=4395 fan=id_00 phase=idle s=326.2357 light=red
+trip t_us=5831499549 reason=score fan=id_00 n=4395 s=326.2357
+# pc_s=321.9 false stop before the fault
+# pc_s=321.9 sent: status
+light t_us=5831499549 light=red trip=score reset=0
+fan update t_set_us=5831508470 t_pin_us=5831508476 pin=0 duty=0 light=red kick=0 trip=score
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5831512568 t_set_us=5831512606 t_pin_us=5831512608 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=4395 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5831512568 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=321.9 trial 5 of 10
+# pc_s=321.9 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5831526519 t_set_us=5831526538 t_pin_us=5831526541 pin=0 duty=0 light=red speed=100 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=4395 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5831526519 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=321.9 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=5831543343 t_set_us=5831543365 t_pin_us=5831543367 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=321.9 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=5831547632 t_set_us=5831547659 t_pin_us=5831547661 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=321.9 asked: press the button to clear red
+t=5835000 ms alive build=7670489 light=red fan duty=0 watch=id_00 phase=idle
+t=5840000 ms alive build=7670489 light=red fan duty=0 watch=id_00 phase=idle
+light t_us=5842434803 light=green trip=none reset=1
+# pc_s=332.8 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=5842436962 t_set_us=5842436982 t_pin_us=5842437024 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=5845000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=5849517708 n=4396 fan=id_00 phase=watching s=169.8559 light=green
+t=5850000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5850541030 n=4397 fan=id_00 phase=watching s=177.5207 light=green
+score t_us=5851564927 n=4398 fan=id_00 phase=watching s=166.4058 light=green
+score t_us=5852589805 n=4399 fan=id_00 phase=watching s=166.7783 light=green
+score t_us=5853613693 n=4400 fan=id_00 phase=watching s=163.3464 light=green
+score t_us=5854637546 n=4401 fan=id_00 phase=watching s=192.3149 light=green
+t=5855000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5855660859 n=4402 fan=id_00 phase=watching s=218.5101 light=green
+score t_us=5856685762 n=4403 fan=id_00 phase=watching s=215.9012 light=green
+score t_us=5857709664 n=4404 fan=id_00 phase=watching s=184.1571 light=green
+score t_us=5858733576 n=4405 fan=id_00 phase=watching s=198.3064 light=green
+score t_us=5859757453 n=4406 fan=id_00 phase=watching s=160.9868 light=green
+t=5860000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5860781739 n=4407 fan=id_00 phase=watching s=147.9239 light=green
+score t_us=5861805655 n=4408 fan=id_00 phase=watching s=147.1544 light=green
+score t_us=5862829623 n=4409 fan=id_00 phase=watching s=181.5480 light=green
+score t_us=5863853615 n=4410 fan=id_00 phase=watching s=163.0287 light=green
+score t_us=5864877556 n=4411 fan=id_00 phase=watching s=147.7463 light=green
+t=5865000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5865900863 n=4412 fan=id_00 phase=watching s=174.1136 light=green
+score t_us=5866925806 n=4413 fan=id_00 phase=watching s=223.2131 light=green
+score t_us=5867949724 n=4414 fan=id_00 phase=watching s=239.3820 light=green
+score t_us=5868973585 n=4415 fan=id_00 phase=watching s=209.4114 light=green
+score t_us=5869997504 n=4416 fan=id_00 phase=watching s=196.6926 light=green
+t=5870007 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5871021566 n=4417 fan=id_00 phase=watching s=177.4582 light=green
+score t_us=5872045476 n=4418 fan=id_00 phase=watching s=160.8866 light=green
+score t_us=5873069318 n=4419 fan=id_00 phase=watching s=151.2763 light=green
+score t_us=5874093217 n=4420 fan=id_00 phase=watching s=157.8414 light=green
+t=5875000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5875117515 n=4421 fan=id_00 phase=watching s=203.6063 light=green
+score t_us=5876141490 n=4422 fan=id_00 phase=watching s=232.5265 light=green
+score t_us=5877165473 n=4423 fan=id_00 phase=watching s=199.4673 light=green
+score t_us=5878189356 n=4424 fan=id_00 phase=watching s=191.1119 light=green
+score t_us=5879213258 n=4425 fan=id_00 phase=watching s=152.8706 light=green
+# pc_s=370.0 fault start
+# pc_s=370.0 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=5879645729 t_set_us=5879645784 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+t=5880000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5880237285 n=4426 fan=id_00 phase=watching s=110.0077 light=green
+score t_us=5881261198 n=4427 fan=id_00 phase=watching s=116.7497 light=green
+score t_us=5882285098 n=4428 fan=id_00 phase=watching s=135.8943 light=green
+score t_us=5883308974 n=4429 fan=id_00 phase=watching s=172.6191 light=green
+score t_us=5884332972 n=4430 fan=id_00 phase=watching s=174.6882 light=green
+t=5885000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5885357289 n=4431 fan=id_00 phase=watching s=150.2675 light=green
+score t_us=5886381225 n=4432 fan=id_00 phase=watching s=136.2786 light=green
+score t_us=5887405152 n=4433 fan=id_00 phase=watching s=115.1447 light=green
+score t_us=5888429118 n=4434 fan=id_00 phase=watching s=138.8547 light=green
+score t_us=5889452974 n=4435 fan=id_00 phase=watching s=142.6150 light=green
+t=5890000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5890477271 n=4436 fan=id_00 phase=watching s=164.2610 light=green
+score t_us=5891501250 n=4437 fan=id_00 phase=watching s=177.1627 light=green
+score t_us=5892525177 n=4438 fan=id_00 phase=watching s=198.4897 light=green
+score t_us=5893549084 n=4439 fan=id_00 phase=watching s=221.9034 light=green
+score t_us=5894573001 n=4440 fan=id_00 phase=watching s=158.7127 light=green
+t=5895000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5895597391 n=4441 fan=id_00 phase=watching s=161.6510 light=green
+score t_us=5896621291 n=4442 fan=id_00 phase=watching s=167.5972 light=green
+score t_us=5897645176 n=4443 fan=id_00 phase=watching s=143.7321 light=green
+score t_us=5898669078 n=4444 fan=id_00 phase=watching s=144.2276 light=green
+score t_us=5899693021 n=4445 fan=id_00 phase=watching s=210.4142 light=green
+t=5900000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5900717438 n=4446 fan=id_00 phase=watching s=227.0975 light=green
+score t_us=5901741364 n=4447 fan=id_00 phase=watching s=183.9774 light=green
+score t_us=5902765282 n=4448 fan=id_00 phase=watching s=173.1254 light=green
+score t_us=5903789229 n=4449 fan=id_00 phase=watching s=187.7739 light=green
+score t_us=5904813149 n=4450 fan=id_00 phase=watching s=147.7653 light=green
+t=5905000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5905837470 n=4451 fan=id_00 phase=watching s=158.6500 light=green
+score t_us=5906861394 n=4452 fan=id_00 phase=watching s=161.9455 light=green
+score t_us=5907885340 n=4453 fan=id_00 phase=watching s=145.1398 light=green
+score t_us=5908909302 n=4454 fan=id_00 phase=watching s=148.9960 light=green
+score t_us=5909933197 n=4455 fan=id_00 phase=watching s=145.6165 light=green
+t=5910000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5910957533 n=4456 fan=id_00 phase=watching s=149.2949 light=green
+score t_us=5911981442 n=4457 fan=id_00 phase=watching s=168.0230 light=green
+score t_us=5913005280 n=4458 fan=id_00 phase=watching s=186.7997 light=green
+score t_us=5914029221 n=4459 fan=id_00 phase=watching s=169.1149 light=green
+t=5915000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5915053471 n=4460 fan=id_00 phase=watching s=156.3335 light=green
+score t_us=5916077382 n=4461 fan=id_00 phase=watching s=172.9867 light=green
+score t_us=5917101410 n=4462 fan=id_00 phase=watching s=179.0385 light=green
+score t_us=5918125294 n=4463 fan=id_00 phase=watching s=206.4731 light=green
+score t_us=5919149186 n=4464 fan=id_00 phase=watching s=217.9003 light=green
+t=5920000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5920173582 n=4465 fan=id_00 phase=watching s=187.2903 light=green
+score t_us=5921197474 n=4466 fan=id_00 phase=watching s=187.4641 light=green
+score t_us=5922221445 n=4467 fan=id_00 phase=watching s=263.6783 light=green
+score t_us=5923245350 n=4468 fan=id_00 phase=watching s=275.1339 light=yellow
+light t_us=5923245350 light=yellow trip=none reset=0
+score t_us=5924269391 n=4469 fan=id_00 phase=watching s=236.6026 light=yellow
+t=5925000 ms alive build=7670489 light=yellow fan duty=85 watch=id_00 phase=watching
+score t_us=5925293584 n=4470 fan=id_00 phase=watching s=171.3659 light=yellow
+score t_us=5926317523 n=4471 fan=id_00 phase=watching s=117.5350 light=green
+light t_us=5926317523 light=green trip=none reset=0
+score t_us=5927341544 n=4472 fan=id_00 phase=watching s=134.6346 light=green
+score t_us=5928365445 n=4473 fan=id_00 phase=watching s=160.1127 light=green
+score t_us=5929389340 n=4474 fan=id_00 phase=watching s=161.5725 light=green
+t=5930000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5930413635 n=4475 fan=id_00 phase=watching s=134.0862 light=green
+score t_us=5931437505 n=4476 fan=id_00 phase=watching s=116.1471 light=green
+score t_us=5932461465 n=4477 fan=id_00 phase=watching s=114.4988 light=green
+score t_us=5933485453 n=4478 fan=id_00 phase=watching s=152.7995 light=green
+score t_us=5934509379 n=4479 fan=id_00 phase=watching s=164.2957 light=green
+t=5935000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5935533709 n=4480 fan=id_00 phase=watching s=181.0817 light=green
+score t_us=5936557578 n=4481 fan=id_00 phase=watching s=184.8032 light=green
+score t_us=5937581553 n=4482 fan=id_00 phase=watching s=156.3817 light=green
+score t_us=5938605436 n=4483 fan=id_00 phase=watching s=177.2037 light=green
+score t_us=5939629350 n=4484 fan=id_00 phase=watching s=214.8809 light=green
+# pc_s=430.0 no stop within 60 s
+# pc_s=430.0 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5939640098 t_set_us=5939640141 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4484 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5939640098 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=430.0 trial 6 of 10
+# pc_s=430.0 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=5939647969 t_set_us=5939647984 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4484 calib=584/584 restarts=0 say_dropped=255
+limits t_us=5939647969 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=430.0 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=5939655768 t_set_us=5939655793 t_pin_us=5939655795 pin=0 duty=0 light=green speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=430.0 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=5939659073 t_set_us=5939659099 t_pin_us=5939659101 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=430.0 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=5939662331 t_set_us=5939662346 t_pin_us=5939662388 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=5940000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+t=5945001 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5946742491 n=4485 fan=id_00 phase=watching s=171.8909 light=green
+score t_us=5947766375 n=4486 fan=id_00 phase=watching s=173.7242 light=green
+score t_us=5948790344 n=4487 fan=id_00 phase=watching s=140.8882 light=green
+score t_us=5949814291 n=4488 fan=id_00 phase=watching s=147.0589 light=green
+t=5950000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5950838583 n=4489 fan=id_00 phase=watching s=160.1272 light=green
+score t_us=5951862499 n=4490 fan=id_00 phase=watching s=133.7864 light=green
+score t_us=5952886411 n=4491 fan=id_00 phase=watching s=151.9888 light=green
+score t_us=5953910319 n=4492 fan=id_00 phase=watching s=157.3504 light=green
+score t_us=5954935218 n=4493 fan=id_00 phase=watching s=117.7323 light=green
+t=5955001 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5955958487 n=4494 fan=id_00 phase=watching s=101.0228 light=green
+score t_us=5956982388 n=4495 fan=id_00 phase=watching s=124.6629 light=green
+score t_us=5958006339 n=4496 fan=id_00 phase=watching s=150.8033 light=green
+score t_us=5959030251 n=4497 fan=id_00 phase=watching s=183.7248 light=green
+t=5960000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5960054537 n=4498 fan=id_00 phase=watching s=245.2271 light=green
+score t_us=5961078527 n=4499 fan=id_00 phase=watching s=193.1764 light=green
+score t_us=5962102444 n=4500 fan=id_00 phase=watching s=170.4662 light=green
+score t_us=5963126314 n=4501 fan=id_00 phase=watching s=165.8478 light=green
+score t_us=5964150276 n=4502 fan=id_00 phase=watching s=161.8594 light=green
+t=5965000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5965174584 n=4503 fan=id_00 phase=watching s=174.3919 light=green
+score t_us=5966198516 n=4504 fan=id_00 phase=watching s=178.3173 light=green
+score t_us=5967222452 n=4505 fan=id_00 phase=watching s=200.5772 light=green
+score t_us=5968246367 n=4506 fan=id_00 phase=watching s=220.7832 light=green
+score t_us=5969270273 n=4507 fan=id_00 phase=watching s=175.5615 light=green
+t=5970000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5970294574 n=4508 fan=id_00 phase=watching s=139.6223 light=green
+score t_us=5971318505 n=4509 fan=id_00 phase=watching s=147.7121 light=green
+score t_us=5972342441 n=4510 fan=id_00 phase=watching s=169.8865 light=green
+score t_us=5973366361 n=4511 fan=id_00 phase=watching s=213.3545 light=green
+score t_us=5974390307 n=4512 fan=id_00 phase=watching s=208.2022 light=green
+t=5975001 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=5975414676 n=4513 fan=id_00 phase=watching s=197.5916 light=green
+score t_us=5976438576 n=4514 fan=id_00 phase=watching s=167.2318 light=green
+# pc_s=467.2 fault start
+# pc_s=467.2 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=5976858706 t_set_us=5976858760 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+score t_us=5977463242 n=4515 fan=id_00 phase=watching s=111.2709 light=green
+score t_us=5978487147 n=4516 fan=id_00 phase=watching s=102.9488 light=green
+score t_us=5979511109 n=4517 fan=id_00 phase=watching s=128.8268 light=green
+t=5980000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5980534441 n=4518 fan=id_00 phase=watching s=158.6175 light=green
+score t_us=5981558401 n=4519 fan=id_00 phase=watching s=152.7833 light=green
+score t_us=5982582343 n=4520 fan=id_00 phase=watching s=137.9627 light=green
+score t_us=5983606240 n=4521 fan=id_00 phase=watching s=160.6183 light=green
+score t_us=5984631211 n=4522 fan=id_00 phase=watching s=164.0000 light=green
+t=5985000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5985654581 n=4523 fan=id_00 phase=watching s=127.4844 light=green
+score t_us=5986678493 n=4524 fan=id_00 phase=watching s=143.5158 light=green
+score t_us=5987702478 n=4525 fan=id_00 phase=watching s=184.4327 light=green
+score t_us=5988726374 n=4526 fan=id_00 phase=watching s=209.7941 light=green
+score t_us=5989750265 n=4527 fan=id_00 phase=watching s=195.7848 light=green
+t=5990000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5990774548 n=4528 fan=id_00 phase=watching s=180.8873 light=green
+score t_us=5991798490 n=4529 fan=id_00 phase=watching s=192.2740 light=green
+score t_us=5992822400 n=4530 fan=id_00 phase=watching s=152.1611 light=green
+score t_us=5993846388 n=4531 fan=id_00 phase=watching s=167.7698 light=green
+score t_us=5994870353 n=4532 fan=id_00 phase=watching s=203.3974 light=green
+t=5995001 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=5995894705 n=4533 fan=id_00 phase=watching s=223.7020 light=green
+score t_us=5996918645 n=4534 fan=id_00 phase=watching s=249.8696 light=green
+score t_us=5997942504 n=4535 fan=id_00 phase=watching s=195.1909 light=green
+score t_us=5998966428 n=4536 fan=id_00 phase=watching s=164.9229 light=green
+score t_us=5999990403 n=4537 fan=id_00 phase=watching s=146.3588 light=green
+t=6000000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6001014453 n=4538 fan=id_00 phase=watching s=182.9926 light=green
+score t_us=6002038391 n=4539 fan=id_00 phase=watching s=163.7429 light=green
+score t_us=6003062269 n=4540 fan=id_00 phase=watching s=146.6407 light=green
+score t_us=6004086235 n=4541 fan=id_00 phase=watching s=188.9116 light=green
+t=6005000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6005110554 n=4542 fan=id_00 phase=watching s=269.0038 light=green
+score t_us=6006134502 n=4543 fan=id_00 phase=watching s=218.1669 light=green
+score t_us=6007158453 n=4544 fan=id_00 phase=watching s=157.6990 light=green
+score t_us=6008182441 n=4545 fan=id_00 phase=watching s=230.2791 light=green
+score t_us=6009206323 n=4546 fan=id_00 phase=watching s=236.2132 light=green
+t=6010000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6010230611 n=4547 fan=id_00 phase=watching s=154.4455 light=green
+score t_us=6011254562 n=4548 fan=id_00 phase=watching s=170.6608 light=green
+score t_us=6012278488 n=4549 fan=id_00 phase=watching s=173.8167 light=green
+score t_us=6013302523 n=4550 fan=id_00 phase=watching s=133.7078 light=green
+score t_us=6014326427 n=4551 fan=id_00 phase=watching s=186.4641 light=green
+t=6015001 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6015350754 n=4552 fan=id_00 phase=watching s=243.7383 light=green
+score t_us=6016374705 n=4553 fan=id_00 phase=watching s=192.2944 light=green
+score t_us=6017398691 n=4554 fan=id_00 phase=watching s=172.9170 light=green
+score t_us=6018422574 n=4555 fan=id_00 phase=watching s=181.8008 light=green
+score t_us=6019446432 n=4556 fan=id_00 phase=watching s=188.9182 light=green
+t=6020000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6020470796 n=4557 fan=id_00 phase=watching s=158.2284 light=green
+score t_us=6021494748 n=4558 fan=id_00 phase=watching s=157.5820 light=green
+score t_us=6022518697 n=4559 fan=id_00 phase=watching s=195.7765 light=green
+score t_us=6023542662 n=4560 fan=id_00 phase=watching s=193.2803 light=green
+score t_us=6024566613 n=4561 fan=id_00 phase=watching s=170.3951 light=green
+t=6025000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6025590953 n=4562 fan=id_00 phase=watching s=114.8636 light=green
+score t_us=6026614920 n=4563 fan=id_00 phase=watching s=121.7211 light=green
+score t_us=6027638836 n=4564 fan=id_00 phase=watching s=150.4922 light=green
+score t_us=6028662780 n=4565 fan=id_00 phase=watching s=150.0266 light=green
+score t_us=6029686708 n=4566 fan=id_00 phase=watching s=180.0089 light=green
+t=6030000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6030710956 n=4567 fan=id_00 phase=watching s=160.9364 light=green
+score t_us=6031734838 n=4568 fan=id_00 phase=watching s=150.9996 light=green
+score t_us=6032758848 n=4569 fan=id_00 phase=watching s=186.4808 light=green
+score t_us=6033782734 n=4570 fan=id_00 phase=watching s=159.0294 light=green
+score t_us=6034806678 n=4571 fan=id_00 phase=watching s=157.1904 light=green
+t=6035000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6035830987 n=4572 fan=id_00 phase=watching s=162.2093 light=green
+score t_us=6036854899 n=4573 fan=id_00 phase=watching s=154.1317 light=green
+# pc_s=527.2 no stop within 60 s
+# pc_s=527.2 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6036866672 t_set_us=6036866715 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4573 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6036866672 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=527.2 trial 7 of 10
+# pc_s=527.2 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6036878595 t_set_us=6036878613 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4573 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6036878595 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=527.2 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=6036891434 t_set_us=6036891467 t_pin_us=6036891470 pin=0 duty=0 light=green speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=527.2 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=6036895884 t_set_us=6036895912 t_pin_us=6036895914 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=527.2 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=6036899285 t_set_us=6036899301 t_pin_us=6036899344 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=6040000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=6043979847 n=4574 fan=id_00 phase=watching s=145.9252 light=green
+t=6045000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6045003947 n=4575 fan=id_00 phase=watching s=164.5538 light=green
+score t_us=6046027961 n=4576 fan=id_00 phase=watching s=126.7258 light=green
+score t_us=6047051862 n=4577 fan=id_00 phase=watching s=112.8207 light=green
+score t_us=6048075781 n=4578 fan=id_00 phase=watching s=129.1496 light=green
+score t_us=6049099703 n=4579 fan=id_00 phase=watching s=153.8309 light=green
+t=6050000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6050124016 n=4580 fan=id_00 phase=watching s=120.0833 light=green
+score t_us=6051147911 n=4581 fan=id_00 phase=watching s=121.5645 light=green
+score t_us=6052171829 n=4582 fan=id_00 phase=watching s=128.6342 light=green
+score t_us=6053195720 n=4583 fan=id_00 phase=watching s=136.4534 light=green
+score t_us=6054219584 n=4584 fan=id_00 phase=watching s=149.0280 light=green
+t=6055000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6055243932 n=4585 fan=id_00 phase=watching s=196.0857 light=green
+score t_us=6056267829 n=4586 fan=id_00 phase=watching s=149.1038 light=green
+score t_us=6057291787 n=4587 fan=id_00 phase=watching s=144.4920 light=green
+score t_us=6058315727 n=4588 fan=id_00 phase=watching s=137.9487 light=green
+score t_us=6059339686 n=4589 fan=id_00 phase=watching s=114.3547 light=green
+t=6060000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6060364006 n=4590 fan=id_00 phase=watching s=133.2224 light=green
+score t_us=6061387964 n=4591 fan=id_00 phase=watching s=120.8848 light=green
+score t_us=6062411891 n=4592 fan=id_00 phase=watching s=105.7658 light=green
+score t_us=6063435750 n=4593 fan=id_00 phase=watching s=120.6126 light=green
+score t_us=6064459633 n=4594 fan=id_00 phase=watching s=172.5154 light=green
+t=6065000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6065483937 n=4595 fan=id_00 phase=watching s=140.2700 light=green
+score t_us=6066507838 n=4596 fan=id_00 phase=watching s=139.4423 light=green
+score t_us=6067531752 n=4597 fan=id_00 phase=watching s=179.9830 light=green
+score t_us=6068555660 n=4598 fan=id_00 phase=watching s=195.5760 light=green
+score t_us=6069579606 n=4599 fan=id_00 phase=watching s=176.9105 light=green
+t=6070000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6070603961 n=4600 fan=id_00 phase=watching s=176.5238 light=green
+score t_us=6071627912 n=4601 fan=id_00 phase=watching s=178.4987 light=green
+score t_us=6072651835 n=4602 fan=id_00 phase=watching s=173.1474 light=green
+score t_us=6073675651 n=4603 fan=id_00 phase=watching s=209.3233 light=green
+# pc_s=564.5 fault start
+# pc_s=564.5 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=6074097943 t_set_us=6074097998 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+score t_us=6074699379 n=4604 fan=id_00 phase=watching s=170.3550 light=green
+t=6075000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6075723723 n=4605 fan=id_00 phase=watching s=157.3880 light=green
+score t_us=6076747665 n=4606 fan=id_00 phase=watching s=228.1574 light=green
+score t_us=6077771633 n=4607 fan=id_00 phase=watching s=189.3499 light=green
+score t_us=6078795548 n=4608 fan=id_00 phase=watching s=173.8956 light=green
+score t_us=6079819465 n=4609 fan=id_00 phase=watching s=192.0657 light=green
+t=6080000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6080843828 n=4610 fan=id_00 phase=watching s=171.8376 light=green
+score t_us=6081867752 n=4611 fan=id_00 phase=watching s=234.8282 light=green
+score t_us=6082891691 n=4612 fan=id_00 phase=watching s=289.2891 light=green
+score t_us=6083915608 n=4613 fan=id_00 phase=watching s=256.5535 light=yellow
+light t_us=6083915608 light=yellow trip=none reset=0
+score t_us=6084939626 n=4614 fan=id_00 phase=watching s=257.3900 light=yellow
+t=6085000 ms alive build=7670489 light=yellow fan duty=85 watch=id_00 phase=watching
+score t_us=6085963876 n=4615 fan=id_00 phase=watching s=249.9544 light=yellow
+score t_us=6086987788 n=4616 fan=id_00 phase=watching s=222.9013 light=yellow
+score t_us=6088011741 n=4617 fan=id_00 phase=watching s=189.0783 light=green
+light t_us=6088011741 light=green trip=none reset=0
+score t_us=6089035890 n=4618 fan=id_00 phase=watching s=177.3557 light=green
+t=6090001 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6090059196 n=4619 fan=id_00 phase=watching s=208.2885 light=green
+score t_us=6091084165 n=4620 fan=id_00 phase=watching s=249.2635 light=green
+score t_us=6092108153 n=4621 fan=id_00 phase=watching s=177.8137 light=green
+score t_us=6093132168 n=4622 fan=id_00 phase=watching s=198.6307 light=green
+score t_us=6094156028 n=4623 fan=id_00 phase=watching s=210.5502 light=green
+t=6095000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6095179326 n=4624 fan=id_00 phase=watching s=116.0519 light=green
+score t_us=6096203306 n=4625 fan=id_00 phase=watching s=135.9519 light=green
+score t_us=6097227212 n=4626 fan=id_00 phase=watching s=162.5422 light=green
+score t_us=6098251203 n=4627 fan=id_00 phase=watching s=128.9199 light=green
+score t_us=6099276177 n=4628 fan=id_00 phase=watching s=136.9820 light=green
+t=6100000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6100299502 n=4629 fan=id_00 phase=watching s=131.6313 light=green
+score t_us=6101323429 n=4630 fan=id_00 phase=watching s=138.5457 light=green
+score t_us=6102347350 n=4631 fan=id_00 phase=watching s=145.0076 light=green
+score t_us=6103371288 n=4632 fan=id_00 phase=watching s=164.9207 light=green
+score t_us=6104395243 n=4633 fan=id_00 phase=watching s=189.1055 light=green
+t=6105000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6105419594 n=4634 fan=id_00 phase=watching s=145.4848 light=green
+score t_us=6106443468 n=4635 fan=id_00 phase=watching s=162.4443 light=green
+score t_us=6107467408 n=4636 fan=id_00 phase=watching s=174.3377 light=green
+score t_us=6108491334 n=4637 fan=id_00 phase=watching s=170.1416 light=green
+score t_us=6109515285 n=4638 fan=id_00 phase=watching s=182.1998 light=green
+t=6110000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6110539645 n=4639 fan=id_00 phase=watching s=191.1539 light=green
+score t_us=6111563649 n=4640 fan=id_00 phase=watching s=164.7272 light=green
+score t_us=6112587567 n=4641 fan=id_00 phase=watching s=157.4850 light=green
+score t_us=6113611523 n=4642 fan=id_00 phase=watching s=181.5799 light=green
+score t_us=6114635500 n=4643 fan=id_00 phase=watching s=168.3376 light=green
+t=6115000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6115659943 n=4644 fan=id_00 phase=watching s=165.6021 light=green
+score t_us=6116683841 n=4645 fan=id_00 phase=watching s=153.9160 light=green
+score t_us=6117707757 n=4646 fan=id_00 phase=watching s=127.8199 light=green
+score t_us=6118731664 n=4647 fan=id_00 phase=watching s=198.1546 light=green
+score t_us=6119755564 n=4648 fan=id_00 phase=watching s=259.5400 light=green
+t=6120000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6120779881 n=4649 fan=id_00 phase=watching s=223.7506 light=green
+score t_us=6121803765 n=4650 fan=id_00 phase=watching s=161.3615 light=green
+score t_us=6122827695 n=4651 fan=id_00 phase=watching s=177.9426 light=green
+score t_us=6123851704 n=4652 fan=id_00 phase=watching s=192.1568 light=green
+score t_us=6124875707 n=4653 fan=id_00 phase=watching s=179.4294 light=green
+t=6125000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6125900027 n=4654 fan=id_00 phase=watching s=211.8644 light=green
+score t_us=6126923909 n=4655 fan=id_00 phase=watching s=153.9224 light=green
+score t_us=6127947923 n=4656 fan=id_00 phase=watching s=166.1342 light=green
+score t_us=6128971887 n=4657 fan=id_00 phase=watching s=151.5223 light=green
+score t_us=6129995818 n=4658 fan=id_00 phase=watching s=153.2183 light=green
+t=6130006 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6131019861 n=4659 fan=id_00 phase=watching s=167.5963 light=green
+score t_us=6132043781 n=4660 fan=id_00 phase=watching s=151.4362 light=green
+score t_us=6133067717 n=4661 fan=id_00 phase=watching s=165.3560 light=green
+score t_us=6134091579 n=4662 fan=id_00 phase=watching s=227.4763 light=green
+# pc_s=624.5 no stop within 60 s
+# pc_s=624.5 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6134104342 t_set_us=6134104385 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4662 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6134104342 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=624.5 trial 8 of 10
+# pc_s=624.5 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6134119465 t_set_us=6134119485 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4662 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6134119465 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=624.5 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=6134131339 t_set_us=6134131371 t_pin_us=6134131390 pin=0 duty=0 light=green speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=624.5 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=6134133777 t_set_us=6134133803 t_pin_us=6134133805 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=624.5 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=6134137061 t_set_us=6134137076 t_pin_us=6134137118 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=6135000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+t=6140000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6141217982 n=4663 fan=id_00 phase=watching s=154.2806 light=green
+score t_us=6142241931 n=4664 fan=id_00 phase=watching s=154.7120 light=green
+score t_us=6143265831 n=4665 fan=id_00 phase=watching s=161.9145 light=green
+score t_us=6144289682 n=4666 fan=id_00 phase=watching s=135.7121 light=green
+t=6145000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6145313992 n=4667 fan=id_00 phase=watching s=170.2524 light=green
+score t_us=6146337948 n=4668 fan=id_00 phase=watching s=169.9768 light=green
+score t_us=6147361929 n=4669 fan=id_00 phase=watching s=186.2070 light=green
+score t_us=6148385792 n=4670 fan=id_00 phase=watching s=171.6072 light=green
+score t_us=6149409788 n=4671 fan=id_00 phase=watching s=169.2903 light=green
+t=6150000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6150434090 n=4672 fan=id_00 phase=watching s=152.8810 light=green
+score t_us=6151457967 n=4673 fan=id_00 phase=watching s=130.6161 light=green
+score t_us=6152481892 n=4674 fan=id_00 phase=watching s=154.8475 light=green
+score t_us=6153505839 n=4675 fan=id_00 phase=watching s=148.1599 light=green
+score t_us=6154529756 n=4676 fan=id_00 phase=watching s=124.0893 light=green
+t=6155000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6155552995 n=4677 fan=id_00 phase=watching s=139.7667 light=green
+score t_us=6156578007 n=4678 fan=id_00 phase=watching s=157.5657 light=green
+score t_us=6157601903 n=4679 fan=id_00 phase=watching s=143.0467 light=green
+score t_us=6158625781 n=4680 fan=id_00 phase=watching s=142.0564 light=green
+score t_us=6159649766 n=4681 fan=id_00 phase=watching s=161.7525 light=green
+t=6160000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6160673002 n=4682 fan=id_00 phase=watching s=170.5417 light=green
+score t_us=6161698039 n=4683 fan=id_00 phase=watching s=139.4182 light=green
+score t_us=6162721915 n=4684 fan=id_00 phase=watching s=125.4027 light=green
+score t_us=6163745779 n=4685 fan=id_00 phase=watching s=112.6615 light=green
+score t_us=6164769729 n=4686 fan=id_00 phase=watching s=126.4959 light=green
+t=6165000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6165794043 n=4687 fan=id_00 phase=watching s=183.3715 light=green
+score t_us=6166817981 n=4688 fan=id_00 phase=watching s=202.5925 light=green
+score t_us=6167842019 n=4689 fan=id_00 phase=watching s=123.2536 light=green
+score t_us=6168865952 n=4690 fan=id_00 phase=watching s=138.0746 light=green
+score t_us=6169889853 n=4691 fan=id_00 phase=watching s=150.4089 light=green
+t=6170000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6170913072 n=4692 fan=id_00 phase=watching s=108.2195 light=green
+# pc_s=661.7 fault start
+# pc_s=661.7 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=6171340404 t_set_us=6171340459 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+score t_us=6171937867 n=4693 fan=id_00 phase=watching s=114.8873 light=green
+score t_us=6172961775 n=4694 fan=id_00 phase=watching s=127.7297 light=green
+score t_us=6173985701 n=4695 fan=id_00 phase=watching s=158.1527 light=green
+t=6175000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6175009901 n=4696 fan=id_00 phase=watching s=167.5211 light=green
+score t_us=6176033909 n=4697 fan=id_00 phase=watching s=213.5087 light=green
+score t_us=6177057810 n=4698 fan=id_00 phase=watching s=213.0732 light=green
+score t_us=6178081701 n=4699 fan=id_00 phase=watching s=216.2316 light=green
+score t_us=6179105598 n=4700 fan=id_00 phase=watching s=168.1318 light=green
+t=6180000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6180129860 n=4701 fan=id_00 phase=watching s=140.6942 light=green
+score t_us=6181153812 n=4702 fan=id_00 phase=watching s=149.5792 light=green
+score t_us=6182177721 n=4703 fan=id_00 phase=watching s=188.4344 light=green
+score t_us=6183201624 n=4704 fan=id_00 phase=watching s=227.3045 light=green
+score t_us=6184225540 n=4705 fan=id_00 phase=watching s=196.9091 light=green
+t=6185000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6185249889 n=4706 fan=id_00 phase=watching s=170.5869 light=green
+score t_us=6186273746 n=4707 fan=id_00 phase=watching s=218.1081 light=green
+score t_us=6187297703 n=4708 fan=id_00 phase=watching s=159.2821 light=green
+score t_us=6188321684 n=4709 fan=id_00 phase=watching s=160.9682 light=green
+score t_us=6189345610 n=4710 fan=id_00 phase=watching s=183.8968 light=green
+t=6190000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6190369973 n=4711 fan=id_00 phase=watching s=214.9916 light=green
+score t_us=6191393931 n=4712 fan=id_00 phase=watching s=196.7573 light=green
+score t_us=6192417838 n=4713 fan=id_00 phase=watching s=225.0793 light=green
+score t_us=6193441691 n=4714 fan=id_00 phase=watching s=227.8404 light=green
+score t_us=6194465550 n=4715 fan=id_00 phase=watching s=201.3901 light=green
+t=6195000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6195489854 n=4716 fan=id_00 phase=watching s=178.5890 light=green
+score t_us=6196513704 n=4717 fan=id_00 phase=watching s=237.4967 light=green
+score t_us=6197537646 n=4718 fan=id_00 phase=watching s=201.7231 light=green
+score t_us=6198561543 n=4719 fan=id_00 phase=watching s=161.1767 light=green
+score t_us=6199585343 n=4720 fan=id_00 phase=watching s=147.9401 light=green
+t=6200000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6200609736 n=4721 fan=id_00 phase=watching s=144.7962 light=green
+score t_us=6201633696 n=4722 fan=id_00 phase=watching s=150.8080 light=green
+score t_us=6202657612 n=4723 fan=id_00 phase=watching s=171.0354 light=green
+score t_us=6203681513 n=4724 fan=id_00 phase=watching s=190.8981 light=green
+score t_us=6204705310 n=4725 fan=id_00 phase=watching s=155.7482 light=green
+t=6205000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6205729692 n=4726 fan=id_00 phase=watching s=173.6604 light=green
+score t_us=6206753611 n=4727 fan=id_00 phase=watching s=163.9300 light=green
+score t_us=6207777560 n=4728 fan=id_00 phase=watching s=139.1644 light=green
+score t_us=6208801359 n=4729 fan=id_00 phase=watching s=148.9901 light=green
+score t_us=6209825288 n=4730 fan=id_00 phase=watching s=159.8907 light=green
+t=6210000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6210849800 n=4731 fan=id_00 phase=watching s=146.9036 light=green
+score t_us=6211873629 n=4732 fan=id_00 phase=watching s=166.6669 light=green
+score t_us=6212897540 n=4733 fan=id_00 phase=watching s=156.9827 light=green
+score t_us=6213921332 n=4734 fan=id_00 phase=watching s=192.3593 light=green
+score t_us=6214945246 n=4735 fan=id_00 phase=watching s=212.3697 light=green
+t=6215000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6215969696 n=4736 fan=id_00 phase=watching s=170.3555 light=green
+score t_us=6216993638 n=4737 fan=id_00 phase=watching s=134.7425 light=green
+score t_us=6218017509 n=4738 fan=id_00 phase=watching s=128.8794 light=green
+score t_us=6219041315 n=4739 fan=id_00 phase=watching s=176.9712 light=green
+t=6220000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6220065737 n=4740 fan=id_00 phase=watching s=170.1159 light=green
+score t_us=6221089752 n=4741 fan=id_00 phase=watching s=180.7108 light=green
+score t_us=6222113681 n=4742 fan=id_00 phase=watching s=201.5324 light=green
+score t_us=6223137581 n=4743 fan=id_00 phase=watching s=161.1330 light=green
+score t_us=6224161494 n=4744 fan=id_00 phase=watching s=209.6557 light=green
+t=6225000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6225185823 n=4745 fan=id_00 phase=watching s=159.2842 light=green
+score t_us=6226209712 n=4746 fan=id_00 phase=watching s=136.5170 light=green
+score t_us=6227233565 n=4747 fan=id_00 phase=watching s=201.9701 light=green
+score t_us=6228257530 n=4748 fan=id_00 phase=watching s=217.9898 light=green
+score t_us=6229281349 n=4749 fan=id_00 phase=watching s=206.4677 light=green
+t=6230000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6230305805 n=4750 fan=id_00 phase=watching s=208.9666 light=green
+score t_us=6231329724 n=4751 fan=id_00 phase=watching s=180.4855 light=green
+# pc_s=721.9 no stop within 60 s
+# pc_s=721.9 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6231548615 t_set_us=6231548658 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4751 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6231548615 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=721.9 trial 9 of 10
+# pc_s=721.9 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6231558519 t_set_us=6231558547 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+detector watch=id_00 phase=watching light=green trip=none windows=4751 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6231558519 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=721.9 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=6231567315 t_set_us=6231567339 t_pin_us=6231567350 pin=0 duty=0 light=green speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=721.9 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=6231569737 t_set_us=6231569763 t_pin_us=6231569765 pin=0 duty=0 light=green speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=721.9 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=6231572997 t_set_us=6231573009 t_pin_us=6231573051 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=6235000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=6238653495 n=4752 fan=id_00 phase=watching s=134.5495 light=green
+score t_us=6239677412 n=4753 fan=id_00 phase=watching s=147.3876 light=green
+t=6240000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6240701719 n=4754 fan=id_00 phase=watching s=175.4576 light=green
+score t_us=6241725616 n=4755 fan=id_00 phase=watching s=176.1961 light=green
+score t_us=6242749624 n=4756 fan=id_00 phase=watching s=157.2097 light=green
+score t_us=6243773533 n=4757 fan=id_00 phase=watching s=154.3880 light=green
+score t_us=6244797388 n=4758 fan=id_00 phase=watching s=129.6939 light=green
+t=6245000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6245821672 n=4759 fan=id_00 phase=watching s=143.6714 light=green
+score t_us=6246845594 n=4760 fan=id_00 phase=watching s=174.8560 light=green
+score t_us=6247869499 n=4761 fan=id_00 phase=watching s=135.7246 light=green
+score t_us=6248893422 n=4762 fan=id_00 phase=watching s=127.5001 light=green
+score t_us=6249917300 n=4763 fan=id_00 phase=watching s=130.0778 light=green
+t=6250000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6250941641 n=4764 fan=id_00 phase=watching s=139.8873 light=green
+score t_us=6251965603 n=4765 fan=id_00 phase=watching s=129.5217 light=green
+score t_us=6252989553 n=4766 fan=id_00 phase=watching s=138.7354 light=green
+score t_us=6254013494 n=4767 fan=id_00 phase=watching s=132.4084 light=green
+t=6255000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6255037743 n=4768 fan=id_00 phase=watching s=127.3444 light=green
+score t_us=6256061733 n=4769 fan=id_00 phase=watching s=115.4652 light=green
+score t_us=6257085606 n=4770 fan=id_00 phase=watching s=128.1843 light=green
+score t_us=6258109527 n=4771 fan=id_00 phase=watching s=170.0294 light=green
+score t_us=6259133450 n=4772 fan=id_00 phase=watching s=168.6347 light=green
+t=6260000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6260157775 n=4773 fan=id_00 phase=watching s=135.7638 light=green
+score t_us=6261181671 n=4774 fan=id_00 phase=watching s=103.1079 light=green
+score t_us=6262205620 n=4775 fan=id_00 phase=watching s=103.5756 light=green
+score t_us=6263229508 n=4776 fan=id_00 phase=watching s=116.4325 light=green
+score t_us=6264253374 n=4777 fan=id_00 phase=watching s=129.8265 light=green
+t=6265000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6265277714 n=4778 fan=id_00 phase=watching s=131.9633 light=green
+score t_us=6266301609 n=4779 fan=id_00 phase=watching s=126.1515 light=green
+score t_us=6267325530 n=4780 fan=id_00 phase=watching s=118.4678 light=green
+score t_us=6268349482 n=4781 fan=id_00 phase=watching s=139.6104 light=green
+# pc_s=759.1 fault start
+# pc_s=759.1 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=6268776790 t_set_us=6268776844 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+score t_us=6269373085 n=4782 fan=id_00 phase=watching s=127.8123 light=green
+t=6270000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6270397387 n=4783 fan=id_00 phase=watching s=131.7111 light=green
+score t_us=6271421300 n=4784 fan=id_00 phase=watching s=143.8760 light=green
+score t_us=6272445197 n=4785 fan=id_00 phase=watching s=164.2764 light=green
+score t_us=6273469105 n=4786 fan=id_00 phase=watching s=161.6705 light=green
+score t_us=6274493033 n=4787 fan=id_00 phase=watching s=143.8044 light=green
+t=6275000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6275517349 n=4788 fan=id_00 phase=watching s=132.6352 light=green
+score t_us=6276541243 n=4789 fan=id_00 phase=watching s=155.1550 light=green
+score t_us=6277565169 n=4790 fan=id_00 phase=watching s=161.9186 light=green
+score t_us=6278589072 n=4791 fan=id_00 phase=watching s=168.3176 light=green
+score t_us=6279612957 n=4792 fan=id_00 phase=watching s=161.7088 light=green
+t=6280000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6280637295 n=4793 fan=id_00 phase=watching s=182.9957 light=green
+score t_us=6281661182 n=4794 fan=id_00 phase=watching s=184.7147 light=green
+score t_us=6282685147 n=4795 fan=id_00 phase=watching s=181.5649 light=green
+score t_us=6283709032 n=4796 fan=id_00 phase=watching s=199.3938 light=green
+score t_us=6284732942 n=4797 fan=id_00 phase=watching s=179.6387 light=green
+t=6285001 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6285757287 n=4798 fan=id_00 phase=watching s=195.2825 light=green
+score t_us=6286781195 n=4799 fan=id_00 phase=watching s=164.2577 light=green
+score t_us=6287805180 n=4800 fan=id_00 phase=watching s=149.2274 light=green
+score t_us=6288829051 n=4801 fan=id_00 phase=watching s=160.2654 light=green
+score t_us=6289852995 n=4802 fan=id_00 phase=watching s=156.1544 light=green
+t=6290000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6290877397 n=4803 fan=id_00 phase=watching s=154.2073 light=green
+score t_us=6291901302 n=4804 fan=id_00 phase=watching s=172.5116 light=green
+score t_us=6292925194 n=4805 fan=id_00 phase=watching s=195.5717 light=green
+score t_us=6293949097 n=4806 fan=id_00 phase=watching s=199.0989 light=green
+score t_us=6294972998 n=4807 fan=id_00 phase=watching s=156.7626 light=green
+t=6295000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6295997067 n=4808 fan=id_00 phase=watching s=153.1610 light=green
+score t_us=6297020968 n=4809 fan=id_00 phase=watching s=177.5313 light=green
+score t_us=6298045876 n=4810 fan=id_00 phase=watching s=233.2828 light=green
+score t_us=6299069746 n=4811 fan=id_00 phase=watching s=163.4853 light=green
+t=6300000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6300093138 n=4812 fan=id_00 phase=watching s=163.6460 light=green
+score t_us=6301117044 n=4813 fan=id_00 phase=watching s=172.9330 light=green
+score t_us=6302141932 n=4814 fan=id_00 phase=watching s=185.1847 light=green
+score t_us=6303165794 n=4815 fan=id_00 phase=watching s=155.4738 light=green
+score t_us=6304189701 n=4816 fan=id_00 phase=watching s=153.2878 light=green
+t=6305000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6305212994 n=4817 fan=id_00 phase=watching s=212.2622 light=green
+score t_us=6306237879 n=4818 fan=id_00 phase=watching s=300.3069 light=green
+score t_us=6307261861 n=4819 fan=id_00 phase=watching s=284.4059 light=yellow
+light t_us=6307261861 light=yellow trip=none reset=0
+score t_us=6308285920 n=4820 fan=id_00 phase=watching s=229.9759 light=yellow
+score t_us=6309309858 n=4821 fan=id_00 phase=watching s=166.5901 light=yellow
+t=6310000 ms alive build=7670489 light=yellow fan duty=85 watch=id_00 phase=watching
+score t_us=6310333118 n=4822 fan=id_00 phase=watching s=191.8073 light=green
+light t_us=6310333118 light=green trip=none reset=0
+score t_us=6311357141 n=4823 fan=id_00 phase=watching s=208.3410 light=green
+score t_us=6312381127 n=4824 fan=id_00 phase=watching s=215.3342 light=green
+score t_us=6313405124 n=4825 fan=id_00 phase=watching s=292.4259 light=green
+score t_us=6314429042 n=4826 fan=id_00 phase=watching s=332.1687 light=yellow
+light t_us=6314429042 light=yellow trip=none reset=0
+t=6315000 ms alive build=7670489 light=yellow fan duty=85 watch=id_00 phase=watching
+score t_us=6315453501 n=4827 fan=id_00 phase=watching s=337.3028 light=yellow
+score t_us=6316477366 n=4828 fan=id_00 phase=idle s=355.1013 light=red
+trip t_us=6316477366 reason=score fan=id_00 n=4828 s=355.1013
+light t_us=6316477366 light=red trip=score reset=0
+fan update t_set_us=6316486298 t_pin_us=6316486310 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=806.8 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6316491447 t_set_us=6316491484 t_pin_us=6316491486 pin=0 duty=0 light=red speed=85 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=4828 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6316491447 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=806.8 trial 10 of 10
+# pc_s=806.8 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6316499360 t_set_us=6316499377 t_pin_us=6316499380 pin=0 duty=0 light=red speed=85 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=4828 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6316499360 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=806.9 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=6316512059 t_set_us=6316512080 t_pin_us=6316512082 pin=0 duty=0 light=red speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=806.9 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=6316514455 t_set_us=6316514481 t_pin_us=6316514483 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=806.9 asked: press the button to clear red
+t=6320000 ms alive build=7670489 light=red fan duty=0 watch=id_00 phase=idle
+light t_us=6320801021 light=green trip=none reset=1
+# pc_s=811.2 sent: fan on
+ack cmd="fan on" result=ok t_rx_us=6320803296 t_set_us=6320803315 t_pin_us=6320803358 pin=1 duty=100 light=green speed=100 want_on=1 kick=0 watch=id_00 phase=holdoff
+t=6325000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=holdoff
+score t_us=6327884061 n=4829 fan=id_00 phase=watching s=142.9073 light=green
+score t_us=6328908002 n=4830 fan=id_00 phase=watching s=115.6431 light=green
+score t_us=6329931901 n=4831 fan=id_00 phase=watching s=143.3672 light=green
+t=6330000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6330956163 n=4832 fan=id_00 phase=watching s=159.5832 light=green
+score t_us=6331980104 n=4833 fan=id_00 phase=watching s=119.4515 light=green
+score t_us=6333004009 n=4834 fan=id_00 phase=watching s=140.3226 light=green
+score t_us=6334027885 n=4835 fan=id_00 phase=watching s=154.8961 light=green
+t=6335000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6335052130 n=4836 fan=id_00 phase=watching s=149.5612 light=green
+score t_us=6336076085 n=4837 fan=id_00 phase=watching s=119.0752 light=green
+score t_us=6337099982 n=4838 fan=id_00 phase=watching s=143.4125 light=green
+score t_us=6338123974 n=4839 fan=id_00 phase=watching s=166.5052 light=green
+score t_us=6339147917 n=4840 fan=id_00 phase=watching s=177.7203 light=green
+t=6340000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6340171295 n=4841 fan=id_00 phase=watching s=158.5099 light=green
+score t_us=6341195283 n=4842 fan=id_00 phase=watching s=135.1200 light=green
+score t_us=6342220213 n=4843 fan=id_00 phase=watching s=155.1851 light=green
+score t_us=6343244105 n=4844 fan=id_00 phase=watching s=149.0354 light=green
+score t_us=6344268086 n=4845 fan=id_00 phase=watching s=130.0208 light=green
+t=6345000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6345291403 n=4846 fan=id_00 phase=watching s=114.8533 light=green
+score t_us=6346315348 n=4847 fan=id_00 phase=watching s=133.7975 light=green
+score t_us=6347339271 n=4848 fan=id_00 phase=watching s=127.0024 light=green
+score t_us=6348364223 n=4849 fan=id_00 phase=watching s=131.4541 light=green
+score t_us=6349388054 n=4850 fan=id_00 phase=watching s=137.6020 light=green
+t=6350000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6350411374 n=4851 fan=id_00 phase=watching s=128.4952 light=green
+score t_us=6351435239 n=4852 fan=id_00 phase=watching s=146.3845 light=green
+score t_us=6352460134 n=4853 fan=id_00 phase=watching s=160.5161 light=green
+score t_us=6353484029 n=4854 fan=id_00 phase=watching s=147.7624 light=green
+score t_us=6354507978 n=4855 fan=id_00 phase=watching s=146.6932 light=green
+t=6355000 ms alive build=7670489 light=green fan duty=100 watch=id_00 phase=watching
+score t_us=6355531302 n=4856 fan=id_00 phase=watching s=134.9026 light=green
+score t_us=6356556239 n=4857 fan=id_00 phase=watching s=156.9451 light=green
+score t_us=6357580125 n=4858 fan=id_00 phase=watching s=169.4424 light=green
+# pc_s=848.3 fault start
+# pc_s=848.3 sent: fan speed 85
+ack cmd="fan speed 85" result=ok t_rx_us=6358002436 t_set_us=6358002491 t_pin_us=-1 pin=-1 duty=85 light=green speed=85 want_on=1 kick=0 watch=id_00 phase=watching
+score t_us=6358603816 n=4859 fan=id_00 phase=watching s=145.2682 light=green
+score t_us=6359627754 n=4860 fan=id_00 phase=watching s=120.4925 light=green
+t=6360000 ms alive build=7670489 light=green fan duty=85 watch=id_00 phase=watching
+score t_us=6360652050 n=4861 fan=id_00 phase=watching s=143.9799 light=green
+score t_us=6361675926 n=4862 fan=id_00 phase=watching s=207.3273 light=green
+score t_us=6362699829 n=4863 fan=id_00 phase=watching s=225.0653 light=green
+score t_us=6363723797 n=4864 fan=id_00 phase=watching s=277.0004 light=green
+score t_us=6364747762 n=4865 fan=id_00 phase=watching s=360.0328 light=yellow
+light t_us=6364747762 light=yellow trip=none reset=0
+t=6365000 ms alive build=7670489 light=yellow fan duty=85 watch=id_00 phase=watching
+score t_us=6365772225 n=4866 fan=id_00 phase=watching s=354.4076 light=yellow
+score t_us=6366796142 n=4867 fan=id_00 phase=idle s=343.4126 light=red
+trip t_us=6366796142 reason=score fan=id_00 n=4867 s=343.4126
+light t_us=6366796142 light=red trip=score reset=0
+fan update t_set_us=6366805078 t_pin_us=6366805110 pin=0 duty=0 light=red kick=0 trip=score
+# pc_s=857.2 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6366809201 t_set_us=6366809239 t_pin_us=6366809241 pin=0 duty=0 light=red speed=85 want_on=1 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=4867 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6366809201 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
+# pc_s=857.2 sent: fan off
+ack cmd="fan off" result=ok t_rx_us=6366819122 t_set_us=6366819145 t_pin_us=6366819147 pin=0 duty=0 light=red speed=85 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=857.2 sent: fan speed 100
+ack cmd="fan speed 100" result=ok t_rx_us=6366821425 t_set_us=6366821454 t_pin_us=6366821456 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+# pc_s=857.2 sent: status
+build=7670489 model=h3_gmm, trained on d1+d2, seed 0; vectors from d1/normal_id_00_00000000.wav, d1/normal_id_01_00000000.wav, d1/normal_id_02_00000000.wav
+ack cmd="status" result=ok t_rx_us=6366823674 t_set_us=6366823687 t_pin_us=6366823689 pin=0 duty=0 light=red speed=100 want_on=0 kick=0 watch=id_00 phase=idle
+detector watch=id_00 phase=idle light=red trip=score windows=4867 calib=584/584 restarts=0 say_dropped=255
+limits t_us=6366823674 fan=id_00 n=584 center=146.8729 sigma=54.4698 warn=255.8126 control=310.2824
+rec streaming=0 gain=0 frames_sent=0 frames_dropped=0 overruns=0 frames_clipped=0
