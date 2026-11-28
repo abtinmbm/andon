@@ -1,4 +1,4 @@
-"""The README and model card quote only numbers from the generated results tables.
+"""The README and model card quote only numbers from the generated results tables or the log.
 
 The tables in ``results/*.md`` are generated from ``results/results_log.csv``, so a figure
 that appears in the docs but in no table was typed by hand or has gone stale.
@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = [ROOT / "README.md", ROOT / "docs" / "model_card.md"]
 TABLES = sorted((ROOT / "results").glob("*.md"))
 
-NUMBER = re.compile(r"(?<![\d.])\d+\.\d{2}(?![\d.])")  # exactly two decimals: a reported figure
+NUMBER = re.compile(r"(?<![\d.])\d+\.\d{2,3}(?![\d.])")  # two or three decimals: a reported figure
 PAIR = re.compile(r"(\d+\.\d{2}) (?:±|\+/-) (\d+\.\d{2})")
 LINK = re.compile(r"\]\(([^)#]+)(?:#[^)]*)?\)")
 VERSION = re.compile(r"Python \d+\.\d+")  # not a result
@@ -40,9 +40,13 @@ def table_text() -> str:
 @pytest.mark.parametrize("doc", DOCS, ids=lambda p: p.name)
 def test_every_figure_is_in_a_results_table(doc):
     tables = table_text()
-    allowed = set(NUMBER.findall(tables)) | published_figures()
+    # A figure may also come straight from a logged row's notes (e.g. the int8 clipped share).
+    log = (ROOT / "results" / "results_log.csv").read_text(encoding="utf-8")
+    allowed = set(NUMBER.findall(tables)) | set(NUMBER.findall(log)) | published_figures()
     unknown = sorted(set(NUMBER.findall(doc_text(doc))) - allowed)
-    assert not unknown, f"{doc.name} quotes figures that no results table holds: {unknown}"
+    assert not unknown, (
+        f"{doc.name} quotes figures that no results table or log row holds: {unknown}"
+    )
 
 
 @pytest.mark.parametrize("doc", DOCS, ids=lambda p: p.name)

@@ -669,9 +669,12 @@ def series_table(series: list[Series]) -> str:
     rows = []
     for x in series:
         c = x.caught
+        # A fit-once trial starts straight on the fault, so there is no normal stretch in
+        # which a false stop could happen: its count is not a zero, it was never measured.
+        false_stops = "-" if x.start == "fit_once" else str(x.false_stops)
         rows.append(
             f"| {x.fault} | {START_WORDS[x.start]} | {len(x.trials)} | {len(c)} | "
-            f"{x.false_stops} | {_fmt([t.switch_to_stop_s for t in c])} | "
+            f"{false_stops} | {_fmt([t.switch_to_stop_s for t in c])} | "
             f"{_fmt([t.switch_to_red_s for t in c])} | "
             f"{_fmt([float(t.windows_to_red) for t in c], 1)} | "
             f"{_fmt([t.red_to_stop_ms for t in c])} |"
@@ -788,7 +791,8 @@ def report(items: list[tuple[Config, Soak | Series, Path]]) -> str:
             "that starts the fault to the gate pin reading back low (the power cut; "
             "spin-down is not timed). For a fitted fault that command is `fan on`, so the "
             "5 s hold-off and the kick-start are inside the time. Times are mean ± sd over "
-            "the caught trials, then the range.\n\n" + series_table(series)
+            "the caught trials, then the range. A fault fitted once has no normal stretch "
+            "before its trials, so it has no false-stop count (-).\n\n" + series_table(series)
         )
         for x in series:
             parts.append(f"\n### {x.fault} ({x.fan})\n\n" + trials_table(x))

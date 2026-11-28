@@ -1,6 +1,8 @@
 """H7's unseen fault: the final real-fan model scores the d4 tape take once.
 
-No model was chosen on any imbalance clip, so this is a fault the GMM was never tuned on.
+No model or setting was chosen on any imbalance clip (the s1 pilot scored a smaller tape
+piece; it led to the control takes, not to any model or setting), so this is a fault the
+GMM was never tuned on.
 The model is ``h3_gmm`` as scored on d3: one GMM per fan, trained on every usable normal
 clip of d1 and d2 (``andon.h3.training_clips``). The unseen session holds one fan's fault
 take and the control take recorded after it (the tape off, the fan lifted and put back),

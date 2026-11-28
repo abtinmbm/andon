@@ -657,3 +657,15 @@ def test_the_report_never_writes_over_a_capture(tmp_path, monkeypatch):
     with pytest.raises(SystemExit, match="is one of the captures"):
         h7.main(["report", str(path), "--out", str(path)])
     assert path.read_text(encoding="utf-8") == before
+
+
+def test_the_committed_h7_table_is_what_the_report_makes_from_the_captures(tmp_path, monkeypatch):
+    """The four H7 captures are committed; a table edited by hand, or not regenerated after
+    a capture changed, fails here."""
+    monkeypatch.chdir(ROOT)
+    names = ["soak", "underspeed", "obstruction", "imbalance_large"]
+    paths = [f"results/h7_{n}_id_00.txt" for n in names]
+    out = tmp_path / "h7.md"
+    h7.main(["report", *paths, "--out", str(out)])
+    committed = (ROOT / "results" / "h7_hardware.md").read_text(encoding="utf-8")
+    assert out.read_text(encoding="utf-8") == committed
